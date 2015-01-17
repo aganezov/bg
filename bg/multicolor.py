@@ -5,4 +5,5 @@ __status__ = "develop"
 
 
 class Multicolor(object):
-    pass
+    def __init__(self, *args):
+        self.colors = set(args)
