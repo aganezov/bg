@@ -16,6 +16,10 @@ class Multicolor(object):
         multicolor1.colors.update(multicolor2.colors)
         return multicolor1
 
+    @staticmethod
+    def merge(*multicolors):
+        return Multicolor(*{color for multicolor in multicolors for color in multicolor.colors})
+
     def __eq__(self, other):
         if not isinstance(other, Multicolor):
             return False

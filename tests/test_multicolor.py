@@ -62,6 +62,21 @@ class MulticolorTestCase(unittest.TestCase):
         mc4 = Multicolor.left_merge(mc2, Multicolor())
         self.assertEqual(mc4, mc2)
 
+    def test_merge(self):
+        mc1 = Multicolor("red")
+        mc2 = Multicolor("blue")
+        mc3 = Multicolor.merge(mc1, mc2)
+        self.assertNotEqual(mc1, mc3)
+        self.assertNotEqual(mc2, mc3)
+        self.assertEqual(len(mc3.colors), 2)
+        self.assertSetEqual({"red", "blue"}, mc3.colors)
+        mc4 = Multicolor.merge(Multicolor(), mc2)
+        self.assertEqual(mc2, mc4)
+        mc5 = Multicolor.merge(mc1, mc2, mc3)
+        self.assertEqual(mc5, mc3)
+        mc6 = Multicolor.merge(mc1)
+        self.assertEqual(mc1, mc6)
+
 
 if __name__ == '__main__':
     unittest.main()
