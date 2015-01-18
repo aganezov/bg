@@ -49,7 +49,7 @@ class MulticolorTestCase(unittest.TestCase):
         self.assertEqual(len(mc.colors), 3)
         self.assertSetEqual({"red", "blue", "green"}, mc.colors)
 
-    def test_inplace_merge(self):
+    def test_left_merge(self):
         mc1 = Multicolor("red")
         mc2 = Multicolor("blue")
         Multicolor.left_merge(mc1, mc2)
