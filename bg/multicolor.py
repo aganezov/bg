@@ -7,3 +7,8 @@ __status__ = "develop"
 class Multicolor(object):
     def __init__(self, *args):
         self.colors = set(args)
+
+    def __eq__(self, other):
+        if not isinstance(other, Multicolor):
+            return False
+        return self.colors == other.colors
