@@ -11,6 +11,11 @@ class Multicolor(object):
     def update(self, *args):
         self.colors.update(args)
 
+    @staticmethod
+    def left_merge(multicolor1, multicolor2):
+        multicolor1.colors.update(multicolor2.colors)
+        return multicolor1
+
     def __eq__(self, other):
         if not isinstance(other, Multicolor):
             return False
