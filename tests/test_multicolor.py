@@ -36,6 +36,19 @@ class MulticolorTestCase(unittest.TestCase):
         mc2 = Multicolor("ret")
         self.assertNotEqual(mc1, mc2)
 
+    def test_update(self):
+        mc = Multicolor()
+        self.assertSetEqual(set(), mc.colors)
+        mc.update("red")
+        self.assertEqual(len(mc.colors), 1)
+        self.assertSetEqual({"red"}, mc.colors)
+        mc.update("green", "blue")
+        self.assertEqual(len(mc.colors), 3)
+        self.assertSetEqual({"red", "blue", "green"}, mc.colors)
+        mc.update("red")
+        self.assertEqual(len(mc.colors), 3)
+        self.assertSetEqual({"red", "blue", "green"}, mc.colors)
+
 
 if __name__ == '__main__':
     unittest.main()

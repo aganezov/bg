@@ -8,6 +8,9 @@ class Multicolor(object):
     def __init__(self, *args):
         self.colors = set(args)
 
+    def update(self, *args):
+        self.colors.update(args)
+
     def __eq__(self, other):
         if not isinstance(other, Multicolor):
             return False
