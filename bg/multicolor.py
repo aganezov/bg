@@ -45,6 +45,11 @@ class Multicolor(object):
             raise TypeError
         return Multicolor.merge(self, other)
 
+    def __iadd__(self, other):
+        if not isinstance(other, Multicolor):
+            raise TypeError
+        return Multicolor.left_merge(self, other)
+
     def __eq__(self, other):
         if not isinstance(other, Multicolor):
             return False

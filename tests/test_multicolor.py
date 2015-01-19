@@ -122,5 +122,16 @@ class MulticolorTestCase(unittest.TestCase):
         with self.assertRaises(TypeError):
             mc1 + 5
 
+    def test_iadd__(self):
+        mc1 = Multicolor("red", "green")
+        mc2 = Multicolor("blue", "yellow", "red")
+        mc1_id = id(mc1)
+        mc1 += mc2
+        self.assertEqual(len(mc1.colors), 4)
+        self.assertSetEqual({"red", "green", "blue", "yellow"}, mc1.colors)
+        self.assertEqual(mc1_id, id(mc1))
+        with self.assertRaises(TypeError):
+            mc1 + 5
+
 if __name__ == '__main__':
     unittest.main()
