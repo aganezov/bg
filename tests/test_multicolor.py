@@ -77,6 +77,22 @@ class MulticolorTestCase(unittest.TestCase):
         mc6 = Multicolor.merge(mc1)
         self.assertEqual(mc1, mc6)
 
+    def test_inplace_delete(self):
+        mc1 = Multicolor("red", "blue", "green")
+        mc1.delete(("red",))
+        self.assertTrue("red" not in mc1.colors)
+        self.assertEqual(len(mc1.colors), 2)
+        self.assertSetEqual({"blue", "green"}, mc1.colors)
+        mc1.delete(("yellow",))
+        self.assertTrue("red" not in mc1.colors)
+        self.assertEqual(len(mc1.colors), 2)
+        self.assertSetEqual({"blue", "green"}, mc1.colors)
+        mc2 = Multicolor("red", "green", "blue")
+        mc3 = Multicolor("red", "green", "yellow")
+        mc2.delete(mc3)
+        self.assertEqual(len(mc2.colors), 1)
+        self.assertSetEqual({"blue"}, mc2.colors)
+
 
 if __name__ == '__main__':
     unittest.main()

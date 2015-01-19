@@ -20,6 +20,13 @@ class Multicolor(object):
     def merge(*multicolors):
         return Multicolor(*{color for multicolor in multicolors for color in multicolor.colors})
 
+    def delete(self, multicolor):
+        if isinstance(multicolor, Multicolor):
+            to_delete = multicolor.colors
+        else:
+            to_delete = set(multicolor)
+        self.colors = self.colors - to_delete
+
     def __eq__(self, other):
         if not isinstance(other, Multicolor):
             return False
