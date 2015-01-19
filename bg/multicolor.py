@@ -40,6 +40,11 @@ class Multicolor(object):
         self.colors = self.colors - other.colors
         return self
 
+    def __add__(self, other):
+        if not isinstance(other, Multicolor):
+            raise TypeError
+        return Multicolor.merge(self, other)
+
     def __eq__(self, other):
         if not isinstance(other, Multicolor):
             return False
