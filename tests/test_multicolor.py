@@ -104,6 +104,14 @@ class MulticolorTestCase(unittest.TestCase):
         with self.assertRaises(TypeError):
             mc1 - 5
 
+    def test__isub__(self):
+        mc1 = Multicolor("red", "blue", "green")
+        mc2 = Multicolor("blue", "green", "yellow")
+        mc1_id = id(mc1)
+        mc1 -= mc2
+        self.assertEqual(len(mc1.colors), 1)
+        self.assertSetEqual({"red"}, mc1.colors)
+        self.assertEqual(id(mc1), mc1_id)
 
 if __name__ == '__main__':
     unittest.main()
