@@ -93,6 +93,17 @@ class MulticolorTestCase(unittest.TestCase):
         self.assertEqual(len(mc2.colors), 1)
         self.assertSetEqual({"blue"}, mc2.colors)
 
+    def test_difference(self):
+        mc1 = Multicolor("red", "blue", "green")
+        mc2 = Multicolor("blue", "green", "yellow")
+        mc3 = mc1 - mc2
+        self.assertEqual(len(mc3.colors), 1)
+        self.assertSetEqual({"red"}, mc3.colors)
+        mc4 = Multicolor() - mc2
+        self.assertEqual(mc4, Multicolor())
+        with self.assertRaises(TypeError):
+            mc1 - 5
+
 
 if __name__ == '__main__':
     unittest.main()

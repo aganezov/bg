@@ -27,6 +27,13 @@ class Multicolor(object):
             to_delete = set(multicolor)
         self.colors = self.colors - to_delete
 
+    def __sub__(self, other):
+        if not isinstance(other, Multicolor):
+            raise TypeError
+        result = Multicolor(*self.colors)
+        result.delete(other)
+        return result
+
     def __eq__(self, other):
         if not isinstance(other, Multicolor):
             return False
