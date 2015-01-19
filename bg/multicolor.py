@@ -13,25 +13,36 @@ class Multicolor(object):
 
     @staticmethod
     def left_merge(multicolor1, multicolor2):
-        multicolor1.colors.update(multicolor2.colors)
-        return multicolor1
+        return Multicolor.__left_merge(multicolor1, multicolor2)
 
     @staticmethod
     def merge(*multicolors):
-        return Multicolor(*{color for multicolor in multicolors for color in multicolor.colors})
+        return Multicolor.__merge(*multicolors)
 
     def delete(self, multicolor):
+        self.__delete(multicolor)
+
+    def __delete(self, multicolor):
         if isinstance(multicolor, Multicolor):
             to_delete = multicolor.colors
         else:
             to_delete = set(multicolor)
         self.colors = self.colors - to_delete
 
+    @staticmethod
+    def __merge(*multicolors):
+        return Multicolor(*{color for multicolor in multicolors for color in multicolor.colors})
+
+    @staticmethod
+    def __left_merge(multicolor1, multicolor2):
+        multicolor1.colors.update(multicolor2.colors)
+        return multicolor1
+
     def __sub__(self, other):
         if not isinstance(other, Multicolor):
             raise TypeError
         result = Multicolor(*self.colors)
-        result.delete(other)
+        result.__delete(other)
         return result
 
     def __isub__(self, other):
@@ -43,12 +54,12 @@ class Multicolor(object):
     def __add__(self, other):
         if not isinstance(other, Multicolor):
             raise TypeError
-        return Multicolor.merge(self, other)
+        return Multicolor.__merge(self, other)
 
     def __iadd__(self, other):
         if not isinstance(other, Multicolor):
             raise TypeError
-        return Multicolor.left_merge(self, other)
+        return Multicolor.__left_merge(self, other)
 
     def __eq__(self, other):
         if not isinstance(other, Multicolor):
