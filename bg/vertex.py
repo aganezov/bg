@@ -5,5 +5,9 @@ __status__ = "develop"
 
 
 class BGVertex(object):
-    def __init__(self, name, info):
+    def __init__(self, name, info=None):
         self.name = name
+        self.info = {}
+        if info is None:
+            info = {}
+        self.info.update(info)

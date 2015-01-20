@@ -12,6 +12,11 @@ class BGVertexTestCase(unittest.TestCase):
         with self.assertRaises(TypeError):
             BGVertex()
 
+    def test_name_initialization(self):
+        v = BGVertex("name")
+        self.assertEqual(v.name, "name")
+        self.assertDictEqual({}, v.info)
+
 
 if __name__ == '__main__':
     unittest.main()
