@@ -4,10 +4,13 @@ __email__ = "aganezov(at)gwu.edu"
 __status__ = "develop"
 
 import unittest
+from bg.vertex import BGVertex
 
 
 class BGVertexTestCase(unittest.TestCase):
-    pass
+    def test_empty_initialization(self):
+        with self.assertRaises(TypeError):
+            BGVertex()
 
 
 if __name__ == '__main__':

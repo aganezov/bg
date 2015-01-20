@@ -5,4 +5,5 @@ __status__ = "develop"
 
 
 class BGVertex(object):
-    pass
+    def __init__(self, name, info):
+        self.name = name
