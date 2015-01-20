@@ -23,6 +23,14 @@ class BGVertexTestCase(unittest.TestCase):
         self.assertEqual(v.name, "name")
         self.assertDictEqual(v.info, info)
 
+    def test__hash__(self):
+        name = "name"
+        v = BGVertex(name)
+        self.assertEqual(hash(name), hash(v))
+        name = 1
+        v = BGVertex(name)
+        self.assertEqual(hash(name), hash(v))
+
 
 if __name__ == '__main__':
     unittest.main()

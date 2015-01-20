@@ -10,3 +10,6 @@ class BGVertex(object):
         if info is None:
             info = {}
         self.info = info
+
+    def __hash__(self):
+        return hash(self.name)
