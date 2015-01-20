@@ -10,4 +10,4 @@ class BGVertex(object):
         self.info = {}
         if info is None:
             info = {}
-        self.info.update(info)
+        self.info = info
