@@ -49,5 +49,18 @@ class BreakpointGraphTestCase(unittest.TestCase):
         self.assertEqual(len(graph.bg.edges()), 1)
         self.assertEqual(graph.bg.edges(v1, data=True)[0][2]["multicolor"], multicolor + multicolor2)
 
+    def test_add_edge_with_already_existing_no_merge(self):
+        graph = BreakpointGraph()
+        v1 = BGVertex("v1")
+        v2 = BGVertex("v2")
+        multicolor = Multicolor("black")
+        graph.add_edge(vertex1=v1, vertex2=v2, multicolor=multicolor)
+        multicolor2 = Multicolor("green")
+        graph.add_edge(vertex1=v1, vertex2=v2, multicolor=multicolor2, merge=False)
+        self.assertEqual(len(graph.bg), 2)
+        self.assertEqual(len(graph.bg.edges()), 2)
+        self.assertEqual(graph.bg.edges(v1, data=True)[0][2]["multicolor"], multicolor)
+        self.assertEqual(graph.bg.edges(v1, data=True)[1][2]["multicolor"], multicolor2)
+
 if __name__ == '__main__':
     unittest.main()
