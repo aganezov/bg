@@ -4,10 +4,14 @@ __email__ = "aganezov(at)gwu.edu"
 __status__ = "develop"
 
 import unittest
+from bg.breakpoint_graph import BreakpointGraph
 
 
 class BreakpointGraphTestCase(unittest.TestCase):
-    pass
+    def test_empty_initialization(self):
+        graph = BreakpointGraph()
+        self.assertEqual(len(graph.bg), 0)
+        self.assertEqual(len(graph.bg.edges()), 0)
 
 
 if __name__ == '__main__':

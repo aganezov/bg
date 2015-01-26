@@ -2,7 +2,9 @@
 __author__ = "Sergey Aganezov"
 __email__ = "aganezov(at)gwu.edu"
 __status__ = "develop"
+from networkx import MultiGraph
 
 
 class BreakpointGraph(object):
-    pass
+    def __init__(self):
+        self.bg = MultiGraph()
