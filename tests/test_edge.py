@@ -8,7 +8,9 @@ from bg.edge import BGEdge
 
 
 class BGEdgeTestCase(unittest.TestCase):
-    pass
+    def test_empty_initialization_incorrect(self):
+        with self.assertRaises(TypeError):
+            BGEdge()
 
 if __name__ == '__main__':
     unittest.main()

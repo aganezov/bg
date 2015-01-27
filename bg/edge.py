@@ -5,4 +5,5 @@ __status__ = "develop"
 
 
 class BGEdge(object):
-    pass
+    def __init__(self, vertex1, vertex2, multicolor):
+        pass
