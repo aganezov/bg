@@ -26,5 +26,18 @@ class BGEdgeTestCase(unittest.TestCase):
         self.assertEqual(edge.vertex2, v2)
         self.assertEqual(edge.multicolor, multicolor)
 
+    def test_merging_correct(self):
+        v1 = BGVertex("v1")
+        v2 = BGVertex("v2")
+        multicolor = Multicolor("blue")
+        multicolor1 = Multicolor("green")
+        edge1 = BGEdge(vertex1=v1, vertex2=v2, multicolor=multicolor)
+        edge2 = BGEdge(vertex1=v1, vertex2=v2, multicolor=multicolor1)
+        merged_edge = BGEdge.merge(edge1, edge2)
+        self.assertEqual(merged_edge.vertex1, v1)
+        self.assertEqual(merged_edge.vertex2, v2)
+        self.assertEqual(merged_edge.multicolor, multicolor + multicolor1)
+
+
 if __name__ == '__main__':
     unittest.main()
