@@ -16,6 +16,12 @@ class BreakpointGraphTestCase(unittest.TestCase):
         self.assertEqual(len(graph.bg), 0)
         self.assertEqual(len(graph.bg.edges()), 0)
 
+    def test_initialization_for_case_of_duplications(self):
+        graph = BreakpointGraph(duplications_allowed=True)
+        self.assertEqual(len(graph.bg), 0)
+        self.assertEqual(len(graph.bg.edges()), 0)
+        self.assertTrue(graph.duplications_allowed)
+
     def test_add_edge_without_multicolor(self):
         with self.assertRaises(TypeError):
             BreakpointGraph().add_edge(vertex1=BGVertex("v1"), vertex2=BGVertex("v2"))

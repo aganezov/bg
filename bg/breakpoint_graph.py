@@ -6,8 +6,9 @@ from networkx import MultiGraph
 
 
 class BreakpointGraph(object):
-    def __init__(self):
+    def __init__(self, duplications_allowed=False):
         self.bg = MultiGraph()
+        self.duplications_allowed = duplications_allowed
 
     def add_edge(self, vertex1, vertex2, multicolor, *args, merge=True, **kwargs):
         attr_dict = {"multicolor": multicolor}
