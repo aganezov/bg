@@ -1,6 +1,4 @@
 # -*- coding: utf-8 -*-
-from bg.multicolor import Multicolor
-
 __author__ = "Sergey Aganezov"
 __email__ = "aganezov(at)gwu.edu"
 __status__ = "develop"
@@ -16,11 +14,13 @@ class BreakpointGraph(object):
         attr_dict = {"multicolor": multicolor}
         attr_dict.update(kwargs)
         if self.bg.has_edge(u=vertex1, v=vertex2):
-            if merge:
+            if not self.duplications_allowed and merge:
                 self.bg[vertex1][vertex2][0]["multicolor"] += multicolor
-                return
-        self.bg.add_edge(u=vertex1, v=vertex2,
-                         attr_dict=attr_dict)
+            elif self.duplications_allowed and merge:
+                pass
+        else:
+            self.bg.add_edge(u=vertex1, v=vertex2,
+                             attr_dict=attr_dict)
 
     def split_edge(self, vertex1, vertex2, multicolor, guidance=None):
         if not self.bg.has_edge(v=vertex1, u=vertex2):
