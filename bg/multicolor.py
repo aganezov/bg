@@ -1,4 +1,6 @@
 # -*- coding: utf-8 -*-
+from collections import Counter
+
 __author__ = "Sergey Aganezov"
 __email__ = "aganezov(at)gwu.edu"
 __status__ = "develop"
@@ -6,10 +8,10 @@ __status__ = "develop"
 
 class Multicolor(object):
     def __init__(self, *args):
-        self.colors = set(args)
+        self.multicolors = Counter(arg for arg in args)
 
     def update(self, *args):
-        self.colors.update(args)
+        self.multicolors = self.multicolors + Counter(arg for arg in args)
 
     @staticmethod
     def left_merge(multicolor1, multicolor2):
@@ -24,31 +26,34 @@ class Multicolor(object):
 
     def __delete(self, multicolor):
         if isinstance(multicolor, Multicolor):
-            to_delete = multicolor.colors
+            to_delete = multicolor.multicolors
         else:
-            to_delete = set(multicolor)
-        self.colors = self.colors - to_delete
+            to_delete = Counter(color for color in multicolor)
+        self.multicolors = self.multicolors - to_delete
 
     @staticmethod
     def __merge(*multicolors):
-        return Multicolor(*{color for multicolor in multicolors for color in multicolor.colors})
+        result = Multicolor()
+        for multicolor in multicolors:
+            result.multicolors = result.multicolors + multicolor.multicolors
+        return result
 
     @staticmethod
     def __left_merge(multicolor1, multicolor2):
-        multicolor1.colors.update(multicolor2.colors)
+        multicolor1.multicolors = multicolor1.multicolors + multicolor2.multicolors
         return multicolor1
 
     def __sub__(self, other):
         if not isinstance(other, Multicolor):
             raise TypeError
-        result = Multicolor(*self.colors)
+        result = Multicolor(*(color for color in self.multicolors.elements()))
         result.__delete(other)
         return result
 
     def __isub__(self, other):
         if not isinstance(other, Multicolor):
             raise TypeError
-        self.colors = self.colors - other.colors
+        self.multicolors = self.multicolors - other.multicolors
         return self
 
     def __add__(self, other):
@@ -64,4 +69,8 @@ class Multicolor(object):
     def __eq__(self, other):
         if not isinstance(other, Multicolor):
             return False
-        return self.colors == other.colors
+        return self.multicolors == other.multicolors
+
+    @property
+    def colors(self):
+        return set(self.multicolors.keys())
