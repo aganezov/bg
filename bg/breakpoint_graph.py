@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+from copy import deepcopy
 from bg.edge import BGEdge
 from bg.vertex import BGVertex
 
@@ -23,20 +24,30 @@ class BreakpointGraph(object):
         self.__add_bgedge(BGEdge(vertex1=vertex1, vertex2=vertex2, multicolor=multicolor))
 
     def __add_bgedge(self, bgedge):
-        self.bg.add_edge(u=bgedge.vertex1, v=bgedge.vertex2, attr_dict={"multicolor": bgedge.multicolor})
+        if bgedge.vertex1 in self.bg and bgedge.vertex2 in self.bg[bgedge.vertex1]:
+            key = list(self.bg[bgedge.vertex1][bgedge.vertex2].keys())[0]
+            self.bg[bgedge.vertex1][bgedge.vertex2][key]["multicolor"] += bgedge.multicolor
+        else:
+            self.bg.add_edge(u=bgedge.vertex1, v=bgedge.vertex2, attr_dict={"multicolor": deepcopy(bgedge.multicolor)})
 
     def add_bgedge(self, bgedge):
         self.__add_bgedge(bgedge=bgedge)
 
-    def get_vertex_by_name(self, vertex_name):
+    def __get_vertex_by_name(self, vertex_name):
         result = BGVertex(vertex_name)
         if result in self.bg.node:
             result.info = self.bg.node[result]
             return result
 
-    def get_edge_by_two_vertices(self, vertex1, vertex2, key=0):
+    def get_vertex_by_name(self, vertex_name):
+        return self.__get_vertex_by_name(vertex_name=vertex_name)
+
+    def __get_edge_by_two_vertices(self, vertex1, vertex2, key=0):
         if vertex1 in self.bg and vertex2 in self.bg[vertex1]:
             return BGEdge(vertex1=vertex1, vertex2=vertex2, multicolor=self.bg[vertex1][vertex2][key]["multicolor"])
+
+    def get_edge_by_two_vertices(self, vertex1, vertex2, key=0):
+        return self.__get_edge_by_two_vertices(vertex1=vertex1, vertex2=vertex2, key=key)
 
     def get_edges_by_vertex(self, vertex):
         if vertex in self.bg:
