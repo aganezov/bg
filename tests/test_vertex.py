@@ -31,6 +31,17 @@ class BGVertexTestCase(unittest.TestCase):
         v = BGVertex(name)
         self.assertEqual(hash(name), hash(v))
 
+    def test_equality(self):
+        name1 = "name1"
+        v1 = BGVertex(name1)
+        name2 = "name1"
+        v2 = BGVertex(name2)
+        self.assertEqual(v1, v2)
+        name3 = "name3"
+        v3 = BGVertex(name3)
+        self.assertNotEqual(v1, v3)
+        self.assertNotEqual(v2, v3)
+
 
 if __name__ == '__main__':
     unittest.main()
