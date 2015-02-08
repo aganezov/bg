@@ -114,6 +114,34 @@ class BreakpointGraphTestCase(unittest.TestCase):
         self.assertEqual(graph.get_edge_by_two_vertices(vertex1=v2, vertex2=v1).multicolor,
                          multicolor + multicolor2 + multicolor3)
 
+    def test_connected_components_iteration(self):
+        graph = BreakpointGraph()
+        v1 = BGVertex("v1")
+        v2 = BGVertex("v2")
+        v3 = BGVertex("v3")
+        v4 = BGVertex("v4")
+        multicolor1 = Multicolor("red")
+        multicolor2 = Multicolor("black")
+        edge1 = BGEdge(vertex1=v1, vertex2=v2, multicolor=multicolor1)
+        edge2 = BGEdge(vertex1=v3, vertex2=v4, multicolor=multicolor2)
+        edge3 = BGEdge(vertex1=v1, vertex2=v3, multicolor=multicolor1)
+        graph.add_bgedge(edge1)
+        graph.add_bgedge(edge2)
+        ccs = list(graph.connected_components_subgraphs())
+        self.assertEqual(len(ccs), 2)
+        for cc in ccs:
+            self.assertEqual(len(list(cc.nodes())), 2)
+            self.assertEqual(len(list(cc.edges())), 1)
+        self.assertEqual(ccs[0].get_edge_by_two_vertices(vertex1=v1, vertex2=v2), edge1)
+        self.assertEqual(ccs[1].get_edge_by_two_vertices(vertex1=v3, vertex2=v4), edge2)
+        graph.add_bgedge(edge3)
+        ccs2 = list(graph.connected_components_subgraphs())
+        self.assertEqual(len(ccs2), 1)
+        self.assertEqual(len(list(ccs2[0].nodes())), 4)
+        self.assertEqual(len(list(ccs2[0].edges())), 3)
+        self.assertEqual(ccs2[0].get_edge_by_two_vertices(vertex1=v1, vertex2=v2), edge1)
+        self.assertEqual(ccs2[0].get_edge_by_two_vertices(vertex1=v3, vertex2=v4), edge2)
+        self.assertEqual(ccs2[0].get_edge_by_two_vertices(vertex1=v1, vertex2=v3), edge3)
 
 if __name__ == '__main__':
     unittest.main()

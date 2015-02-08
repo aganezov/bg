@@ -7,11 +7,15 @@ __author__ = "Sergey Aganezov"
 __email__ = "aganezov(at)gwu.edu"
 __status__ = "develop"
 from networkx import MultiGraph
+import networkx as nx
 
 
 class BreakpointGraph(object):
-    def __init__(self):
-        self.bg = MultiGraph()
+    def __init__(self, graph=None):
+        if graph is None:
+            self.bg = MultiGraph()
+        else:
+            self.bg = graph
 
     def edges(self, nbunch=None):
         for v1, v2, data in self.bg.edges_iter(nbunch=nbunch, data=True):
@@ -54,3 +58,7 @@ class BreakpointGraph(object):
             for vertex2, edges in self.bg[vertex].items():
                 for _, data in self.bg[vertex][vertex2].items():
                     yield BGEdge(vertex1=vertex, vertex2=vertex2, multicolor=data["multicolor"])
+
+    def connected_components_subgraphs(self, copy=True):
+        for component in nx.connected_component_subgraphs(self.bg, copy=copy):
+            yield BreakpointGraph(component)
