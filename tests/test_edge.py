@@ -62,6 +62,23 @@ class BGEdgeTestCase(unittest.TestCase):
         with self.assertRaises(ValueError):
             BGEdge.merge(edge1, edge2)
 
+    def test_equality(self):
+        v1 = BGVertex("v1")
+        v2 = BGVertex("v2")
+        v3 = BGVertex("v3")
+        multicolor = Multicolor("blue")
+        multicolor1 = Multicolor("green")
+        edge1 = BGEdge(vertex1=v1, vertex2=v2, multicolor=multicolor)
+        edge2 = BGEdge(vertex1=v1, vertex2=v2, multicolor=multicolor1)
+        edge3 = BGEdge(vertex1=v1, vertex2=v3, multicolor=multicolor1)
+        self.assertNotEqual(edge1, edge2)
+        self.assertNotEqual(edge1, edge3)
+        self.assertNotEqual(edge2, edge3)
+        edge4 = BGEdge(vertex1=v2, vertex2=v1, multicolor=multicolor)
+        edge5 = BGEdge(vertex1=v1, vertex2=v2, multicolor=multicolor)
+        self.assertEqual(edge1, edge4)
+        self.assertEqual(edge1, edge5)
+        self.assertEqual(edge4, edge5)
 
 if __name__ == '__main__':
     unittest.main()

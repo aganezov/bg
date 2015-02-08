@@ -20,3 +20,14 @@ class BGEdge(object):
         elif not forward and edge1.veretex2 != edge2.vertex1:
             raise ValueError("Edges to be merged do not connect same vertices")
         return BGEdge(vertex1=edge1.vertex1, vertex2=edge1.vertex2, multicolor=edge1.multicolor + edge2.multicolor)
+
+    def __eq__(self, other):
+        if not isinstance(other, BGEdge):
+            return False
+        if self.vertex1 != other.vertex1 and self.vertex1 != other.vertex2:
+            return False
+        multicolor_equality = self.multicolor == other.multicolor
+        if self.vertex1 == other.vertex1:
+            return self.vertex2 == other.vertex2 and multicolor_equality
+        else:
+            return self.vertex2 == other.vertex1 and multicolor_equality
