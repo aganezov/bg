@@ -132,8 +132,12 @@ class BreakpointGraphTestCase(unittest.TestCase):
         for cc in ccs:
             self.assertEqual(len(list(cc.nodes())), 2)
             self.assertEqual(len(list(cc.edges())), 1)
-        self.assertEqual(ccs[0].get_edge_by_two_vertices(vertex1=v1, vertex2=v2), edge1)
-        self.assertEqual(ccs[1].get_edge_by_two_vertices(vertex1=v3, vertex2=v4), edge2)
+        if v1 in ccs[0].bg:
+            self.assertEqual(ccs[0].get_edge_by_two_vertices(vertex1=v1, vertex2=v2), edge1)
+            self.assertEqual(ccs[1].get_edge_by_two_vertices(vertex1=v3, vertex2=v4), edge2)
+        else:
+            self.assertEqual(ccs[1].get_edge_by_two_vertices(vertex1=v1, vertex2=v2), edge1)
+            self.assertEqual(ccs[0].get_edge_by_two_vertices(vertex1=v3, vertex2=v4), edge2)
         graph.add_bgedge(edge3)
         ccs2 = list(graph.connected_components_subgraphs())
         self.assertEqual(len(ccs2), 1)
