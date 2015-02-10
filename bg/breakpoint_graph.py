@@ -62,3 +62,16 @@ class BreakpointGraph(object):
     def connected_components_subgraphs(self, copy=True):
         for component in nx.connected_component_subgraphs(self.bg, copy=copy):
             yield BreakpointGraph(component)
+
+    def __delete_bgedge(self, bgedge):
+        internal_bgedge = self.__get_edge_by_two_vertices(vertex1=bgedge.vertex1, vertex2=bgedge.vertex2)
+        if internal_bgedge is not None:
+            internal_bgedge.multicolor -= bgedge.multicolor
+            if len(internal_bgedge.multicolor.multicolors) == 0:
+                self.bg.remove_edge(v=internal_bgedge.vertex1, u=bgedge.vertex2)
+
+    def delete_edge(self, vertex1, vertex2, multicolor):
+        self.__delete_bgedge(bgedge=BGEdge(vertex1=vertex1, vertex2=vertex2, multicolor=multicolor))
+
+    def delete_bgedge(self, bgedge):
+        self.__delete_bgedge(bgedge=bgedge)
