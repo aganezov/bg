@@ -43,6 +43,14 @@ class Multicolor(object):
         multicolor1.multicolors = multicolor1.multicolors + multicolor2.multicolors
         return multicolor1
 
+    @staticmethod
+    def similarity_score(multicolor1, multicolor2):
+        result = 0
+        for key, value in multicolor1.multicolors.items():
+            if key in multicolor2.multicolors:
+                result += min(value, multicolor2.multicolors[key])
+        return result
+
     def __sub__(self, other):
         if not isinstance(other, Multicolor):
             raise TypeError

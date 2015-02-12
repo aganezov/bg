@@ -228,5 +228,20 @@ class MulticolorTestCase(unittest.TestCase):
         self.assertFalse(mc1 > mc2)
         self.assertFalse(mc1 >= mc2)
 
+    def test_similarity_score(self):
+        mc1 = Multicolor("red", "green")
+        mc2 = Multicolor("red", "green")
+        self.assertEqual(Multicolor.similarity_score(mc1, mc2), 2)
+        self.assertEqual(Multicolor.similarity_score(mc2, mc1), 2)
+        mc2 = Multicolor("red", "red")
+        self.assertEqual(Multicolor.similarity_score(mc1, mc2), 1)
+        self.assertEqual(Multicolor.similarity_score(mc2, mc1), 1)
+        mc2 = Multicolor("red")
+        self.assertEqual(Multicolor.similarity_score(mc1, mc2), 1)
+        self.assertEqual(Multicolor.similarity_score(mc2, mc1), 1)
+        mc2 = Multicolor("black")
+        self.assertEqual(Multicolor.similarity_score(mc1, mc2), 0)
+        self.assertEqual(Multicolor.similarity_score(mc2, mc1), 0)
+
 if __name__ == '__main__':
     unittest.main()
