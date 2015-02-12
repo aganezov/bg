@@ -71,6 +71,16 @@ class Multicolor(object):
             return False
         return self.multicolors == other.multicolors
 
+    def __lt__(self, other):
+        if not isinstance(other, Multicolor):
+            return False
+        self_keys = set(self.multicolors.keys())
+        other_keys = set(other.multicolors.keys())
+        return any(self.multicolors[key] < other.multicolors[key] for key in self_keys) and self_keys <= other_keys
+
+    def __le__(self, other):
+        return self.__lt__(other) or self.__eq__(other)
+
     @property
     def colors(self):
         return set(self.multicolors.keys())

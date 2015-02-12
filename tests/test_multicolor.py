@@ -204,5 +204,29 @@ class MulticolorTestCase(unittest.TestCase):
         with self.assertRaises(TypeError):
             mc1 + 5
 
+    def test__lt__and__le__(self):
+        mc1 = Multicolor("red", "green", "red")
+        mc2 = Multicolor("red", "green")
+        self.assertTrue(mc2 < mc1)
+        self.assertTrue(mc2 <= mc1)
+        mc2 = Multicolor("red", "red", "green")
+        self.assertFalse(mc2 < mc1)
+        self.assertTrue(mc2 <= mc1)
+        mc2 = Multicolor("red", "red", "green", "green")
+        self.assertFalse(mc2 < mc1)
+        self.assertFalse(mc2 <= mc1)
+
+    def test__gt__and__ge__(self):
+        mc1 = Multicolor("red", "green", "red")
+        mc2 = Multicolor("red", "green")
+        self.assertTrue(mc1 > mc2)
+        self.assertTrue(mc1 >= mc2)
+        mc2 = Multicolor("red", "red", "green")
+        self.assertFalse(mc1 > mc2)
+        self.assertTrue(mc1 >= mc2)
+        mc2 = Multicolor("red", "red", "green", "green")
+        self.assertFalse(mc1 > mc2)
+        self.assertFalse(mc1 >= mc2)
+
 if __name__ == '__main__':
     unittest.main()
