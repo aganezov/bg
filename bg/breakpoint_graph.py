@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from copy import deepcopy
 from bg.edge import BGEdge
+from bg.multicolor import Multicolor
 from bg.vertex import BGVertex
 
 __author__ = "Sergey Aganezov"
@@ -17,9 +18,12 @@ class BreakpointGraph(object):
         else:
             self.bg = graph
 
-    def edges(self, nbunch=None):
+    def __edges(self, nbunch=None):
         for v1, v2, data in self.bg.edges_iter(nbunch=nbunch, data=True):
             yield BGEdge(vertex1=v1, vertex2=v2, multicolor=data["multicolor"])
+
+    def edges(self, nbunch=None):
+        yield from self.__edges(nbunch=nbunch)
 
     def nodes(self):
         yield from self.bg.nodes_iter()
@@ -74,11 +78,23 @@ class BreakpointGraph(object):
             yield BreakpointGraph(component)
 
     def __delete_bgedge(self, bgedge, key=None):
-        internal_bgedge = self.__get_edge_by_two_vertices(vertex1=bgedge.vertex1, vertex2=bgedge.vertex2, key=key)
-        if internal_bgedge is not None:
-            internal_bgedge.multicolor -= bgedge.multicolor
-            if len(internal_bgedge.multicolor.multicolors) == 0:
-                self.bg.remove_edge(v=internal_bgedge.vertex1, u=bgedge.vertex2)
+        candidate_id = None
+        candidate_score = -1
+        candidate_data = None
+        if key is not None:
+            self.bg[bgedge.vertex1][bgedge.vertex2][key]["multicolor"] -= bgedge.multicolor
+            if len(self.bg[bgedge.vertex1][bgedge.vertex2][key]["multicolor"].multicolors) == 0:
+                self.bg.remove_edge(v=bgedge.vertex1, u=bgedge.vertex2)
+        else:
+            for v1, v2, key, data in self.bg.edges_iter(nbunch=bgedge.vertex1, data=True, keys=True):
+                score = Multicolor.similarity_score(bgedge.multicolor, data["multicolor"])
+                if score > candidate_score:
+                    candidate_id = key
+                    candidate_data = data
+                    candidate_score = score
+            candidate_data["multicolor"] -= bgedge.multicolor
+            if len(self.bg[bgedge.vertex1][bgedge.vertex2][candidate_id]["multicolor"].multicolors) == 0:
+                self.bg.remove_edge(v=bgedge.vertex1, u=bgedge.vertex2, key=candidate_id)
 
     def delete_edge(self, vertex1, vertex2, multicolor, key=None):
         self.__delete_bgedge(bgedge=BGEdge(vertex1=vertex1, vertex2=vertex2, multicolor=multicolor), key=key)
