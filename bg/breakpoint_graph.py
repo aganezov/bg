@@ -46,32 +46,42 @@ class BreakpointGraph(object):
     def get_vertex_by_name(self, vertex_name):
         return self.__get_vertex_by_name(vertex_name=vertex_name)
 
-    def __get_edge_by_two_vertices(self, vertex1, vertex2, key=0):
+    def __get_edge_by_two_vertices(self, vertex1, vertex2, key=None):
         if vertex1 in self.bg and vertex2 in self.bg[vertex1]:
+            if key is None:
+                key = min(self.bg[vertex1][vertex2])
             return BGEdge(vertex1=vertex1, vertex2=vertex2, multicolor=self.bg[vertex1][vertex2][key]["multicolor"])
 
     def get_edge_by_two_vertices(self, vertex1, vertex2, key=0):
         return self.__get_edge_by_two_vertices(vertex1=vertex1, vertex2=vertex2, key=key)
 
-    def get_edges_by_vertex(self, vertex):
+    def __get_edges_by_vertex(self, vertex):
         if vertex in self.bg:
             for vertex2, edges in self.bg[vertex].items():
                 for _, data in self.bg[vertex][vertex2].items():
                     yield BGEdge(vertex1=vertex, vertex2=vertex2, multicolor=data["multicolor"])
 
+    def __get_all_edges_by_two_vertices(self, vertex1, vertex2):
+        if vertex1 in self.bg and vertex2 in self.bg[vertex1]:
+            for key, data in self.bg[vertex1][vertex2].items():
+                yield BGEdge(vertex1=vertex1, vertex2=vertex2, multicolor=data["multicolor"])
+
+    def get_edges_by_vertex(self, vertex):
+        yield from self.__get_edges_by_vertex(vertex=vertex)
+
     def connected_components_subgraphs(self, copy=True):
         for component in nx.connected_component_subgraphs(self.bg, copy=copy):
             yield BreakpointGraph(component)
 
-    def __delete_bgedge(self, bgedge):
-        internal_bgedge = self.__get_edge_by_two_vertices(vertex1=bgedge.vertex1, vertex2=bgedge.vertex2)
+    def __delete_bgedge(self, bgedge, key=None):
+        internal_bgedge = self.__get_edge_by_two_vertices(vertex1=bgedge.vertex1, vertex2=bgedge.vertex2, key=key)
         if internal_bgedge is not None:
             internal_bgedge.multicolor -= bgedge.multicolor
             if len(internal_bgedge.multicolor.multicolors) == 0:
                 self.bg.remove_edge(v=internal_bgedge.vertex1, u=bgedge.vertex2)
 
-    def delete_edge(self, vertex1, vertex2, multicolor):
-        self.__delete_bgedge(bgedge=BGEdge(vertex1=vertex1, vertex2=vertex2, multicolor=multicolor))
+    def delete_edge(self, vertex1, vertex2, multicolor, key=None):
+        self.__delete_bgedge(bgedge=BGEdge(vertex1=vertex1, vertex2=vertex2, multicolor=multicolor), key=key)
 
-    def delete_bgedge(self, bgedge):
-        self.__delete_bgedge(bgedge=bgedge)
+    def delete_bgedge(self, bgedge, key=None):
+        self.__delete_bgedge(bgedge=bgedge, key=key)
