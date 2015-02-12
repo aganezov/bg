@@ -224,7 +224,7 @@ class BreakpointGraphTestCase(unittest.TestCase):
         self.assertEqual(ccs2[0].get_edge_by_two_vertices(vertex1=v3, vertex2=v4), edge2)
         self.assertEqual(ccs2[0].get_edge_by_two_vertices(vertex1=v1, vertex2=v3), edge3)
 
-    def test_delete_edge_existing(self):
+    def test_delete_single_edge_existing(self):
         # regular case
         # added edge is deleted
         graph = BreakpointGraph()
@@ -281,7 +281,7 @@ class BreakpointGraphTestCase(unittest.TestCase):
         self.assertEqual(len(list(graph.nodes())), 2)
         self.assertEqual(list(graph.edges(nbunch=v6))[0].multicolor, Multicolor("black", "red"))
 
-    def test_delete_bgedge_existing(self):
+    def test_delete_single_bgedge_existing(self):
         # regular case
         # added bgedge is deleted
         graph = BreakpointGraph()
