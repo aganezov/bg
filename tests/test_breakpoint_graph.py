@@ -557,6 +557,37 @@ class BreakpointGraphTestCase(unittest.TestCase):
         key = min(graph.bg[v2][v1])
         self.assertEqual(key, edge_to_keep_id)
 
+    def test_delete_single_edge_non_existing(self):
+        # covers the case when there is attempt to delete an edge between two vertices that have no edges between them
+        # nothing shall happen
+        graph = BreakpointGraph()
+        v1 = BGVertex("v1")
+        v2 = BGVertex("v2")
+        multicolor = Multicolor("black")
+        bgedge = BGEdge(vertex1=v1, vertex2=v2, multicolor=multicolor)
+        graph.add_bgedge(bgedge)
+        graph.delete_bgedge(bgedge)
+        graph.delete_edge(vertex1=v1, vertex2=v2, multicolor=multicolor)
+        self.assertEqual(len(list(graph.edges())), 0)
+        self.assertEqual(len(list(graph.nodes())), 2)
+        with self.assertRaises(KeyError):
+            graph.delete_edge(vertex1=v1, vertex2=v2, multicolor=multicolor, key=0)
+
+    def test_delete_single_bgedge_non_existing(self):
+        # covers the case when there is attempt to delete an edge between two vertices that have no edges between them
+        # nothing shall happen
+        graph = BreakpointGraph()
+        v1 = BGVertex("v1")
+        v2 = BGVertex("v2")
+        multicolor = Multicolor("black")
+        bgedge = BGEdge(vertex1=v1, vertex2=v2, multicolor=multicolor)
+        graph.add_bgedge(bgedge)
+        graph.delete_bgedge(bgedge)
+        graph.delete_bgedge(bgedge)
+        self.assertEqual(len(list(graph.edges())), 0)
+        self.assertEqual(len(list(graph.nodes())), 2)
+        with self.assertRaises(KeyError):
+            graph.delete_bgedge(bgedge, key=0)
 
 if __name__ == '__main__':
     unittest.main()

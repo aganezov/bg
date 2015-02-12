@@ -92,9 +92,10 @@ class BreakpointGraph(object):
                     candidate_id = key
                     candidate_data = data
                     candidate_score = score
-            candidate_data["multicolor"] -= bgedge.multicolor
-            if len(self.bg[bgedge.vertex1][bgedge.vertex2][candidate_id]["multicolor"].multicolors) == 0:
-                self.bg.remove_edge(v=bgedge.vertex1, u=bgedge.vertex2, key=candidate_id)
+            if candidate_data is not None:
+                candidate_data["multicolor"] -= bgedge.multicolor
+                if len(self.bg[bgedge.vertex1][bgedge.vertex2][candidate_id]["multicolor"].multicolors) == 0:
+                    self.bg.remove_edge(v=bgedge.vertex1, u=bgedge.vertex2, key=candidate_id)
 
     def delete_edge(self, vertex1, vertex2, multicolor, key=None):
         self.__delete_bgedge(bgedge=BGEdge(vertex1=vertex1, vertex2=vertex2, multicolor=multicolor), key=key)
