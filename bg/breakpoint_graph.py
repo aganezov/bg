@@ -24,18 +24,18 @@ class BreakpointGraph(object):
     def nodes(self):
         yield from self.bg.nodes_iter()
 
-    def add_edge(self, vertex1, vertex2, multicolor):
-        self.__add_bgedge(BGEdge(vertex1=vertex1, vertex2=vertex2, multicolor=multicolor))
+    def add_edge(self, vertex1, vertex2, multicolor, merge=True):
+        self.__add_bgedge(BGEdge(vertex1=vertex1, vertex2=vertex2, multicolor=multicolor), merge=merge)
 
-    def __add_bgedge(self, bgedge):
-        if bgedge.vertex1 in self.bg and bgedge.vertex2 in self.bg[bgedge.vertex1]:
-            key = list(self.bg[bgedge.vertex1][bgedge.vertex2].keys())[0]
+    def __add_bgedge(self, bgedge, merge=True):
+        if bgedge.vertex1 in self.bg and bgedge.vertex2 in self.bg[bgedge.vertex1] and merge:
+            key = min(self.bg[bgedge.vertex1][bgedge.vertex2].keys())
             self.bg[bgedge.vertex1][bgedge.vertex2][key]["multicolor"] += bgedge.multicolor
         else:
             self.bg.add_edge(u=bgedge.vertex1, v=bgedge.vertex2, attr_dict={"multicolor": deepcopy(bgedge.multicolor)})
 
-    def add_bgedge(self, bgedge):
-        self.__add_bgedge(bgedge=bgedge)
+    def add_bgedge(self, bgedge, merge=True):
+        self.__add_bgedge(bgedge=bgedge, merge=merge)
 
     def __get_vertex_by_name(self, vertex_name):
         result = BGVertex(vertex_name)

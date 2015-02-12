@@ -114,6 +114,34 @@ class BreakpointGraphTestCase(unittest.TestCase):
         self.assertEqual(graph.get_edge_by_two_vertices(vertex1=v2, vertex2=v1).multicolor,
                          multicolor + multicolor2 + multicolor3)
 
+    def test_add_edge_with_already_existing_no_merge(self):
+        graph = BreakpointGraph()
+        v1 = BGVertex("v1")
+        v2 = BGVertex("v2")
+        multicolor = Multicolor("black")
+        graph.add_edge(vertex1=v1, vertex2=v2, multicolor=multicolor)
+        multicolor2 = Multicolor("green")
+        graph.add_edge(vertex1=v1, vertex2=v2, multicolor=multicolor2, merge=False)
+        self.assertEqual(len(list(graph.nodes())), 2)
+        self.assertEqual(len(list(graph.edges())), 2)
+        edges = list(graph.get_edges_by_vertex(vertex=v1))
+        for bgedge in edges:
+            self.assertTrue(bgedge.multicolor in [Multicolor("black"), Multicolor("green")])
+        edges = list(graph.get_edges_by_vertex(vertex=v2))
+        for bgedge in edges:
+            self.assertTrue(bgedge.multicolor in [Multicolor("black"), Multicolor("green")])
+        multicolor3 = Multicolor("black")
+        graph.add_edge(vertex1=v1, vertex2=v2, multicolor=multicolor3, merge=False)
+        graph.add_edge(vertex1=v1, vertex2=v2, multicolor=multicolor3, merge=False)
+        self.assertEqual(len(list(graph.nodes())), 2)
+        self.assertEqual(len(list(graph.edges())), 4)
+        edges = list(graph.get_edges_by_vertex(vertex=v1))
+        for bgedge in edges:
+            self.assertTrue(bgedge.multicolor in [Multicolor("black"), Multicolor("green")])
+        edges = list(graph.get_edges_by_vertex(vertex=v2))
+        for bgedge in edges:
+            self.assertTrue(bgedge.multicolor in [Multicolor("black"), Multicolor("green")])
+
     def test_connected_components_iteration(self):
         graph = BreakpointGraph()
         v1 = BGVertex("v1")
