@@ -4,6 +4,12 @@ python:
   - "3.3"
   - "3.4"
 
-install: pip install -r requirements.txt
+install:
+  - pip install -r requirements.txt
+  - pip install coveralls
 
-script: nosetests
+script:
+  nosetests --with-coverage --cover-package=bg
+
+after_success:
+  coveralls
