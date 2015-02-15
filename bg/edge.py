@@ -17,7 +17,7 @@ class BGEdge(object):
         forward = edge1.vertex1 == edge2.vertex1
         if forward and edge1.vertex2 != edge2.vertex2:
             raise ValueError("Edges to be merged do not connect same vertices")
-        elif not forward and edge1.veretex2 != edge2.vertex1:
+        elif not forward and edge1.vertex2 != edge2.vertex1:
             raise ValueError("Edges to be merged do not connect same vertices")
         return BGEdge(vertex1=edge1.vertex1, vertex2=edge1.vertex2, multicolor=edge1.multicolor + edge2.multicolor)
 

@@ -61,24 +61,33 @@ class BGEdgeTestCase(unittest.TestCase):
         edge2 = BGEdge(vertex1=v2, vertex2=v2, multicolor=multicolor1)
         with self.assertRaises(ValueError):
             BGEdge.merge(edge1, edge2)
+        edge2 = BGEdge(vertex1=v3, vertex2=v1, multicolor=multicolor1)
+        with self.assertRaises(ValueError):
+            BGEdge.merge(edge1, edge2)
 
     def test_equality(self):
         v1 = BGVertex("v1")
         v2 = BGVertex("v2")
         v3 = BGVertex("v3")
+        v4 = BGVertex("v4")
         multicolor = Multicolor("blue")
         multicolor1 = Multicolor("green")
         edge1 = BGEdge(vertex1=v1, vertex2=v2, multicolor=multicolor)
         edge2 = BGEdge(vertex1=v1, vertex2=v2, multicolor=multicolor1)
         edge3 = BGEdge(vertex1=v1, vertex2=v3, multicolor=multicolor1)
+        edge4 = BGEdge(vertex1=v3, vertex2=v4, multicolor=multicolor)
         self.assertNotEqual(edge1, edge2)
         self.assertNotEqual(edge1, edge3)
         self.assertNotEqual(edge2, edge3)
+        self.assertNotEqual(edge1, edge4)
         edge4 = BGEdge(vertex1=v2, vertex2=v1, multicolor=multicolor)
         edge5 = BGEdge(vertex1=v1, vertex2=v2, multicolor=multicolor)
         self.assertEqual(edge1, edge4)
         self.assertEqual(edge1, edge5)
         self.assertEqual(edge4, edge5)
+        self.assertNotEqual(edge1, 5)
+        edge6 = BGEdge(vertex1=v3, vertex2=v1, multicolor=multicolor)
+        self.assertNotEqual(edge1, edge6)
 
-if __name__ == '__main__':
-    unittest.main()
+if __name__ == '__main__':  # pragma: no cover
+    unittest.main()         # pragma: no cover
