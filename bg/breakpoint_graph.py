@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 from copy import deepcopy
+import itertools
 from bg.edge import BGEdge
 from bg.multicolor import Multicolor
 from bg.vertex import BGVertex
@@ -64,7 +65,6 @@ class BreakpointGraph(object):
             for vertex2, edges in self.bg[vertex].items():
                 for _, data in self.bg[vertex][vertex2].items():
                     yield BGEdge(vertex1=vertex, vertex2=vertex2, multicolor=data["multicolor"])
-
 
     def get_edges_by_vertex(self, vertex):
         yield from self.__get_edges_by_vertex(vertex=vertex)
@@ -145,3 +145,7 @@ class BreakpointGraph(object):
 
     def split_all_edges_between_two_vertices(self, vertex1, vertex2, guidance=None):
         self.__split_all_edges_between_two_vertices(vertex1=vertex1, vertex2=vertex2, guidance=guidance)
+
+    def split_all_edges(self, guidance=None):
+        for v1, v2 in itertools.combinations(self.bg.nodes_iter(), 2):
+            self.__split_all_edges_between_two_vertices(vertex1=v1, vertex2=v2, guidance=guidance)
