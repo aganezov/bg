@@ -137,3 +137,11 @@ class BreakpointGraph(object):
     def split_bgedge(self, bgedge, guidance=None, duplication_splitting=False, key=None):
         self.__split_bgedge(bgedge=bgedge, guidance=guidance, duplication_splitting=duplication_splitting,
                             key=key)
+
+    def __split_all_edges_between_two_vertices(self, vertex1, vertex2, guidance=None):
+        edges_to_be_split_keys = [key for v1, v2, key in self.bg.edges_iter(nbunch=vertex1, keys=True) if v2 == vertex2]
+        for key in edges_to_be_split_keys:
+            self.__split_bgedge(BGEdge(vertex1=vertex1, vertex2=vertex2, multicolor=None), guidance=guidance, key=key)
+
+    def split_all_edges_between_two_vertices(self, vertex1, vertex2, guidance=None):
+        self.__split_all_edges_between_two_vertices(vertex1=vertex1, vertex2=vertex2, guidance=guidance)
