@@ -104,9 +104,6 @@ class BreakpointGraph(object):
         candidate_id = None
         candidate_score = 0
         candidate_data = None
-        if guidance is None:
-            guidance = [(color,) for color in bgedge.multicolor.colors]
-        guidance = sorted(guidance, key=lambda subset: len(subset), reverse=True)
         if key is not None:
             new_multicolors = Multicolor.split_colors(multicolor=candidate_data["multicolor"], guidance=guidance)
             self.__delete_bgedge(bgedge=bgedge, key=candidate_id)
