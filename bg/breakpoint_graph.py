@@ -56,7 +56,7 @@ class BreakpointGraph(object):
                 key = min(self.bg[vertex1][vertex2])
             return BGEdge(vertex1=vertex1, vertex2=vertex2, multicolor=self.bg[vertex1][vertex2][key]["multicolor"])
 
-    def get_edge_by_two_vertices(self, vertex1, vertex2, key=0):
+    def get_edge_by_two_vertices(self, vertex1, vertex2, key=None):
         return self.__get_edge_by_two_vertices(vertex1=vertex1, vertex2=vertex2, key=key)
 
     def __get_edges_by_vertex(self, vertex):
@@ -65,10 +65,6 @@ class BreakpointGraph(object):
                 for _, data in self.bg[vertex][vertex2].items():
                     yield BGEdge(vertex1=vertex, vertex2=vertex2, multicolor=data["multicolor"])
 
-    def __get_all_edges_by_two_vertices(self, vertex1, vertex2):
-        if vertex1 in self.bg and vertex2 in self.bg[vertex1]:
-            for key, data in self.bg[vertex1][vertex2].items():
-                yield BGEdge(vertex1=vertex1, vertex2=vertex2, multicolor=data["multicolor"])
 
     def get_edges_by_vertex(self, vertex):
         yield from self.__get_edges_by_vertex(vertex=vertex)
@@ -106,7 +102,7 @@ class BreakpointGraph(object):
 
     def __split_bgedge(self, bgedge, guidance=None, duplication_splitting=False, key=None):
         candidate_id = None
-        candidate_score = -1
+        candidate_score = 0
         candidate_data = None
         if guidance is None:
             guidance = [(color,) for color in bgedge.multicolor.colors]
