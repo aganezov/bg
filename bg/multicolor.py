@@ -51,6 +51,32 @@ class Multicolor(object):
                 result += min(value, multicolor2.multicolors[key])
         return result
 
+    @staticmethod
+    def split_colors(multicolor, guidance=None):
+        if guidance is None:
+            guidance = [(color, ) for color in multicolor.colors]
+        guidance = sorted([set(subset) for subset in guidance], key=lambda subset: len(subset), reverse=True)
+        first_run_result = []
+        second_run_result = []
+        colors = multicolor.colors
+        for color_set in guidance:
+            if color_set.issubset(colors):
+                first_run_result.append(color_set)
+                colors -= color_set
+        for color_set in guidance:
+            if len(color_set.intersection(colors)) > 0:
+                second_run_result.append(color_set.intersection(colors))
+                colors -= color_set.intersection(colors)
+        appendix = colors
+        preliminary_result = first_run_result + second_run_result + ([appendix] if len(appendix) > 0 else [])
+        result = []
+        for color_set in preliminary_result:
+            colors = []
+            for color in color_set:
+                colors.extend([color for _ in range(multicolor.multicolors[color])])
+            result.append(Multicolor(*colors))
+        return result
+
     def __sub__(self, other):
         if not isinstance(other, Multicolor):
             raise TypeError

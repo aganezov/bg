@@ -243,5 +243,339 @@ class MulticolorTestCase(unittest.TestCase):
         self.assertEqual(Multicolor.similarity_score(mc1, mc2), 0)
         self.assertEqual(Multicolor.similarity_score(mc2, mc1), 0)
 
+    def test_split_colors_simple_multicolor_no_duplications(self):
+        # color exists in guidance
+        mc = Multicolor("red")
+        guidance = [("red", )]
+        mc = Multicolor.split_colors(mc, guidance=guidance)[0]
+        self.assertEqual(len(mc.colors), 1)
+        self.assertEqual(len(mc.multicolors), 1)
+        self.assertEqual(mc.multicolors["red"], 1)
+        # color exists in guidance only as subset
+        mc = Multicolor("red")
+        guidance = [("red", "black")]
+        mc = Multicolor.split_colors(mc, guidance=guidance)[0]
+        self.assertEqual(len(mc.colors), 1)
+        self.assertEqual(len(mc.multicolors), 1)
+        self.assertEqual(mc.multicolors["red"], 1)
+        # color exists in guidance both as subset and a set itself
+        mc = Multicolor("red")
+        guidance = [("red", "black"), ("red", ), ("black", )]
+        mc = Multicolor.split_colors(mc, guidance=guidance)[0]
+        self.assertEqual(len(mc.colors), 1)
+        self.assertEqual(len(mc.multicolors), 1)
+        self.assertEqual(mc.multicolors["red"], 1)
+        # color does not exist in guidance
+        mc = Multicolor("red")
+        guidance = [("green", "black")]
+        mc = Multicolor.split_colors(mc, guidance=guidance)[0]
+        self.assertEqual(len(mc.colors), 1)
+        self.assertEqual(len(mc.multicolors), 1)
+        self.assertEqual(mc.multicolors["red"], 1)
+
+    def test_split_colors_simple_multicolor_with_duplications(self):
+        # color exists in guidance
+        mc = Multicolor("red", "red")
+        guidance = [("red", )]
+        mc = Multicolor.split_colors(mc, guidance=guidance)[0]
+        self.assertEqual(len(mc.colors), 1)
+        self.assertEqual(len(mc.multicolors), 1)
+        self.assertEqual(mc.multicolors["red"], 2)
+        # color exists in guidance only as subset
+        mc = Multicolor("red", "red")
+        guidance = [("red", "black")]
+        mc = Multicolor.split_colors(mc, guidance=guidance)[0]
+        self.assertEqual(len(mc.colors), 1)
+        self.assertEqual(len(mc.multicolors), 1)
+        self.assertEqual(mc.multicolors["red"], 2)
+        # color exists in guidance both as subset and a set itself
+        mc = Multicolor("red")
+        guidance = [("red", "black"), ("red", ), ("black", )]
+        mc = Multicolor.split_colors(mc, guidance=guidance)[0]
+        self.assertEqual(len(mc.colors), 1)
+        self.assertEqual(len(mc.multicolors), 1)
+        self.assertEqual(mc.multicolors["red"], 1)
+        # color does not exist in guidance
+        mc = Multicolor("red", "red")
+        guidance = [("green", "black")]
+        mc = Multicolor.split_colors(mc, guidance=guidance)[0]
+        self.assertEqual(len(mc.colors), 1)
+        self.assertEqual(len(mc.multicolors), 1)
+        self.assertEqual(mc.multicolors["red"], 2)
+
+    def test_split_colors_complex_multicolor_no_duplications(self):
+        # full color exists in guidance
+        mc = Multicolor("red", "black")
+        guidance = [("red", "black")]
+        mc = Multicolor.split_colors(mc, guidance=guidance)[0]
+        self.assertEqual(len(mc.multicolors), 2)
+        self.assertEqual(mc.multicolors["red"], 1)
+        self.assertEqual(mc.multicolors["black"], 1)
+        ################################################################
+        guidance = [("red", ), ("black", ), ("red", "black")]
+        mc = Multicolor.split_colors(mc, guidance=guidance)[0]
+        self.assertEqual(len(mc.multicolors), 2)
+        self.assertEqual(mc.multicolors["red"], 1)
+        self.assertEqual(mc.multicolors["black"], 1)
+        ################################################################
+        guidance = [("red", ), ("black", ), ("red", "black"), ("red", "black", "green"), ("green", )]
+        mc = Multicolor.split_colors(mc, guidance=guidance)[0]
+        self.assertEqual(len(mc.multicolors), 2)
+        self.assertEqual(mc.multicolors["red"], 1)
+        self.assertEqual(mc.multicolors["black"], 1)
+        # full color exists in guidance only as subset
+        mc = Multicolor("red", "black")
+        guidance = [("red", "black", "green"), ("green", )]
+        mc = Multicolor.split_colors(mc, guidance=guidance)[0]
+        self.assertEqual(len(mc.multicolors), 2)
+        self.assertEqual(mc.multicolors["red"], 1)
+        self.assertEqual(mc.multicolors["black"], 1)
+        # full color exists in guidance both as subset and a set itself
+        mc = Multicolor("red", "black")
+        guidance = [("red", "black", "green"), ("green", ), ("red", "black")]
+        mc = Multicolor.split_colors(mc, guidance=guidance)[0]
+        self.assertEqual(len(mc.multicolors), 2)
+        self.assertEqual(mc.multicolors["red"], 1)
+        self.assertEqual(mc.multicolors["black"], 1)
+        # full color exists in guidance both as subset and portions of it intersect with some guidance subsets
+        mc = Multicolor("red", "black")
+        guidance = [("red", "black", "green"), ("black", "green"), ("red", "green")]
+        mc = Multicolor.split_colors(mc, guidance=guidance)[0]
+        self.assertEqual(len(mc.multicolors), 2)
+        self.assertEqual(mc.multicolors["red"], 1)
+        self.assertEqual(mc.multicolors["black"], 1)
+        # color does not exist in guidance (nor any of its subsets by themselves), but it intersects with some
+        # guidance sets
+        mc = Multicolor("red", "black")
+        guidance = [("red", "green"), ("black", "blue")]
+        mc1, mc2 = Multicolor.split_colors(mc, guidance=guidance)
+        self.assertEqual(len(mc1.colors), 1)
+        self.assertEqual(len(mc1.multicolors), 1)
+        self.assertEqual(len(mc2.colors), 1)
+        self.assertEqual(len(mc2.multicolors), 1)
+        # portion of a color exists in guidance as a set, while rest of it is not mentioned
+        mc = Multicolor("red", "green", "black", "blue")
+        guidance = [("red", "green"), ]
+        mc1, mc2 = Multicolor.split_colors(mc, guidance=guidance)
+        self.assertEqual(len(mc1.colors), 2)
+        self.assertEqual(len(mc1.multicolors), 2)
+        self.assertEqual(len(mc2.colors), 2)
+        self.assertEqual(len(mc2.multicolors), 2)
+        multicolors = [Multicolor("red", "green"), Multicolor("black", "blue")]
+        for mc in [mc1, mc2]:
+            self.assertTrue(mc in multicolors)
+        # portion of a color exists in guidance as subset, while rest of it is not mentioned
+        mc = Multicolor("red", "green", "black", "blue")
+        guidance = [("red", "green", "yellow"), ]
+        mc1, mc2 = Multicolor.split_colors(mc, guidance=guidance)
+        self.assertEqual(len(mc1.colors), 2)
+        self.assertEqual(len(mc1.multicolors), 2)
+        self.assertEqual(len(mc2.colors), 2)
+        self.assertEqual(len(mc2.multicolors), 2)
+        multicolors = [Multicolor("red", "green"), Multicolor("black", "blue")]
+        for mc in [mc1, mc2]:
+            self.assertTrue(mc in multicolors)
+        # portion of a color exists in guidance as set, while the rest exists as set
+        mc = Multicolor("red", "green", "black", "blue")
+        guidance = [("red", "green"), ("black", "blue")]
+        mc1, mc2 = Multicolor.split_colors(mc, guidance=guidance)
+        self.assertEqual(len(mc1.colors), 2)
+        self.assertEqual(len(mc1.multicolors), 2)
+        self.assertEqual(len(mc2.colors), 2)
+        self.assertEqual(len(mc2.multicolors), 2)
+        multicolors = [Multicolor("red", "green"), Multicolor("black", "blue")]
+        for mc in [mc1, mc2]:
+            self.assertTrue(mc in multicolors)
+        # portion of a color exists in guidance as subset, while the rest exists as subset
+        mc = Multicolor("red", "green", "black", "blue")
+        guidance = [("red", "green", "yellow"), ("black", "blue", "yellow")]
+        mc1, mc2 = Multicolor.split_colors(mc, guidance=guidance)
+        self.assertEqual(len(mc1.colors), 2)
+        self.assertEqual(len(mc1.multicolors), 2)
+        self.assertEqual(len(mc2.colors), 2)
+        self.assertEqual(len(mc2.multicolors), 2)
+        multicolors = [Multicolor("red", "green"), Multicolor("black", "blue")]
+        for mc in [mc1, mc2]:
+            self.assertTrue(mc in multicolors)
+        # portion of a color exists in guidance as set, while the rest exists as subset
+        mc = Multicolor("red", "green", "black", "blue")
+        guidance = [("red", "green"), ("black", "blue", "yellow")]
+        mc1, mc2 = Multicolor.split_colors(mc, guidance=guidance)
+        self.assertEqual(len(mc1.colors), 2)
+        self.assertEqual(len(mc1.multicolors), 2)
+        self.assertEqual(len(mc2.colors), 2)
+        self.assertEqual(len(mc2.multicolors), 2)
+        multicolors = [Multicolor("red", "green"), Multicolor("black", "blue")]
+        for mc in [mc1, mc2]:
+            self.assertTrue(mc in multicolors)
+        # portion of a color exists as intersections, while the rest exists as set
+        mc = Multicolor("red", "green", "black", "blue")
+        guidance = [("red", "yellow"), ("green", "yellow"), ("black", "blue")]
+        mc1, mc2, mc3 = Multicolor.split_colors(mc, guidance=guidance)
+        multicolors = [Multicolor("red"), Multicolor("black", "blue"), Multicolor("green")]
+        for mc in [mc1, mc2, mc3]:
+            self.assertTrue(mc in multicolors)
+        # portion of a color exists as intersection, while the rest exists as subset
+        mc = Multicolor("red", "green", "black", "blue")
+        guidance = [("red", "yellow"), ("green", "yellow"), ("black", "blue", "yellow")]
+        mc1, mc2, mc3 = Multicolor.split_colors(mc, guidance=guidance)
+        multicolors = [Multicolor("red"), Multicolor("black", "blue"), Multicolor("green")]
+        for mc in [mc1, mc2, mc3]:
+            self.assertTrue(mc in multicolors)
+        # both portions of color exist as intersections
+        mc = Multicolor("red", "green", "black", "blue")
+        guidance = [("red", "yellow"), ("green", "yellow"), ("black", "yellow"), ("blue", "yellow")]
+        mc1, mc2, mc3, mc4 = Multicolor.split_colors(mc, guidance=guidance)
+        multicolors = [Multicolor("red"), Multicolor("black"), Multicolor("green"), Multicolor("blue")]
+        for mc in [mc1, mc2, mc3, mc4]:
+            self.assertTrue(mc in multicolors)
+        # color does not exist in guidance
+        mc = Multicolor("red", "black")
+        guidance = [("green", "blue"), ("green", ), ("blue", )]
+        mc = Multicolor.split_colors(mc, guidance=guidance)[0]
+        self.assertEqual(len(mc.colors), 2)
+        self.assertEqual(len(mc.multicolors), 2)
+        self.assertEqual(mc.multicolors["red"], 1)
+        self.assertEqual(mc.multicolors["black"], 1)
+
+    def test_split_colors_complex_multicolor_with_duplications(self):
+        # full color exists in guidance
+        mc = Multicolor("red", "black", "red", "black")
+        guidance = [("red", "black")]
+        mc = Multicolor.split_colors(mc, guidance=guidance)[0]
+        self.assertEqual(len(mc.multicolors), 2)
+        self.assertEqual(mc.multicolors["red"], 2)
+        self.assertEqual(mc.multicolors["black"], 2)
+        ################################################################
+        guidance = [("red", ), ("black", ), ("red", "black")]
+        mc = Multicolor.split_colors(mc, guidance=guidance)[0]
+        self.assertEqual(len(mc.multicolors), 2)
+        self.assertEqual(mc.multicolors["red"], 2)
+        self.assertEqual(mc.multicolors["black"], 2)
+        ################################################################
+        guidance = [("red", ), ("black", ), ("red", "black"), ("red", "black", "green"), ("green", )]
+        mc = Multicolor.split_colors(mc, guidance=guidance)[0]
+        self.assertEqual(len(mc.multicolors), 2)
+        self.assertEqual(mc.multicolors["red"], 2)
+        self.assertEqual(mc.multicolors["black"], 2)
+        # full color exists in guidance only as subset
+        mc = Multicolor("red", "black", "red", "black", "red")
+        guidance = [("red", "black", "green"), ("green", )]
+        mc = Multicolor.split_colors(mc, guidance=guidance)[0]
+        self.assertEqual(len(mc.multicolors), 2)
+        self.assertEqual(mc.multicolors["red"], 3)
+        self.assertEqual(mc.multicolors["black"], 2)
+        # full color exists in guidance both as subset and a set itself
+        mc = Multicolor("red", "black", "red", "red")
+        guidance = [("red", "black", "green"), ("green", ), ("red", "black")]
+        mc = Multicolor.split_colors(mc, guidance=guidance)[0]
+        self.assertEqual(len(mc.multicolors), 2)
+        self.assertEqual(mc.multicolors["red"], 3)
+        self.assertEqual(mc.multicolors["black"], 1)
+        # full color exists in guidance both as subset and portions of it intersect with some guidance subsets
+        mc = Multicolor("red", "black", "red", "black")
+        guidance = [("red", "black", "green"), ("black", "green"), ("red", "green")]
+        mc = Multicolor.split_colors(mc, guidance=guidance)[0]
+        self.assertEqual(len(mc.multicolors), 2)
+        self.assertEqual(mc.multicolors["red"], 2)
+        self.assertEqual(mc.multicolors["black"], 2)
+        # color does not exist in guidance (nor any of its subsets by themselves), but it intersects with some
+        # guidance sets
+        mc = Multicolor("red", "black", "red", "black", "red", "black")
+        guidance = [("red", "green"), ("black", "blue")]
+        mc1, mc2 = Multicolor.split_colors(mc, guidance=guidance)
+        self.assertEqual(len(mc1.colors), 1)
+        self.assertEqual(len(mc1.multicolors), 1)
+        self.assertEqual(len(mc2.colors), 1)
+        self.assertEqual(len(mc2.multicolors), 1)
+        for mc in [mc1, mc2]:
+            for color in mc.colors:
+                self.assertEqual(mc.multicolors[color], 3)
+        # portion of a color exists in guidance as a set, while rest of it is not mentioned
+        mc = Multicolor("red", "green", "black", "blue")
+        guidance = [("red", "green"), ]
+        mc1, mc2 = Multicolor.split_colors(mc, guidance=guidance)
+        self.assertEqual(len(mc1.colors), 2)
+        self.assertEqual(len(mc1.multicolors), 2)
+        self.assertEqual(len(mc2.colors), 2)
+        self.assertEqual(len(mc2.multicolors), 2)
+        multicolors = [Multicolor("red", "green"), Multicolor("black", "blue")]
+        for mc in [mc1, mc2]:
+            self.assertTrue(mc in multicolors)
+        # portion of a color exists in guidance as subset, while rest of it is not mentioned
+        mc = Multicolor("red", "green", "black", "blue")
+        guidance = [("red", "green", "yellow"), ]
+        mc1, mc2 = Multicolor.split_colors(mc, guidance=guidance)
+        self.assertEqual(len(mc1.colors), 2)
+        self.assertEqual(len(mc1.multicolors), 2)
+        self.assertEqual(len(mc2.colors), 2)
+        self.assertEqual(len(mc2.multicolors), 2)
+        multicolors = [Multicolor("red", "green"), Multicolor("black", "blue")]
+        for mc in [mc1, mc2]:
+            self.assertTrue(mc in multicolors)
+        # portion of a color exists in guidance as set, while the rest exists as set
+        mc = Multicolor("red", "green", "black", "blue")
+        guidance = [("red", "green"), ("black", "blue")]
+        mc1, mc2 = Multicolor.split_colors(mc, guidance=guidance)
+        self.assertEqual(len(mc1.colors), 2)
+        self.assertEqual(len(mc1.multicolors), 2)
+        self.assertEqual(len(mc2.colors), 2)
+        self.assertEqual(len(mc2.multicolors), 2)
+        multicolors = [Multicolor("red", "green"), Multicolor("black", "blue")]
+        for mc in [mc1, mc2]:
+            self.assertTrue(mc in multicolors)
+        # portion of a color exists in guidance as subset, while the rest exists as subset
+        mc = Multicolor("red", "green", "black", "blue")
+        guidance = [("red", "green", "yellow"), ("black", "blue", "yellow")]
+        mc1, mc2 = Multicolor.split_colors(mc, guidance=guidance)
+        self.assertEqual(len(mc1.colors), 2)
+        self.assertEqual(len(mc1.multicolors), 2)
+        self.assertEqual(len(mc2.colors), 2)
+        self.assertEqual(len(mc2.multicolors), 2)
+        multicolors = [Multicolor("red", "green"), Multicolor("black", "blue")]
+        for mc in [mc1, mc2]:
+            self.assertTrue(mc in multicolors)
+        # portion of a color exists in guidance as set, while the rest exists as subset
+        mc = Multicolor("red", "green", "black", "blue", "red", "green", "black")
+        guidance = [("red", "green"), ("black", "blue", "yellow")]
+        mc1, mc2 = Multicolor.split_colors(mc, guidance=guidance)
+        self.assertEqual(len(mc1.colors), 2)
+        self.assertEqual(len(mc1.multicolors), 2)
+        self.assertEqual(len(mc2.colors), 2)
+        self.assertEqual(len(mc2.multicolors), 2)
+        multicolors = [Multicolor("red", "green", "red", "green"), Multicolor("black", "blue", "black")]
+        for mc in [mc1, mc2]:
+            self.assertTrue(mc in multicolors)
+        # portion of a color exists as intersections, while the rest exists as set
+        mc = Multicolor("red", "green", "black", "blue", "green", "black", "blue")
+        guidance = [("red", "yellow"), ("green", "yellow"), ("black", "blue")]
+        mc1, mc2, mc3 = Multicolor.split_colors(mc, guidance=guidance)
+        multicolors = [Multicolor("red"), Multicolor("black", "blue", "black", "blue"), Multicolor("green", "green")]
+        for mc in [mc1, mc2, mc3]:
+            self.assertTrue(mc in multicolors)
+        # portion of a color exists as intersection, while the rest exists as subset
+        mc = Multicolor("red", "green", "black", "blue", "green", "black")
+        guidance = [("red", "yellow"), ("green", "yellow"), ("black", "blue", "yellow")]
+        mc1, mc2, mc3 = Multicolor.split_colors(mc, guidance=guidance)
+        multicolors = [Multicolor("red"), Multicolor("black", "blue", "black"), Multicolor("green", "green")]
+        for mc in [mc1, mc2, mc3]:
+            self.assertTrue(mc in multicolors)
+        # both portions of color exist as intersections
+        mc = Multicolor("red", "green", "black", "blue", "red", "green", "black", "blue")
+        guidance = [("red", "yellow"), ("green", "yellow"), ("black", "yellow"), ("blue", "yellow")]
+        mc1, mc2, mc3, mc4 = Multicolor.split_colors(mc, guidance=guidance)
+        multicolors = [Multicolor("red", "red"), Multicolor("black", "black"), Multicolor("green", "green"),
+                       Multicolor("blue", "blue")]
+        for mc in [mc1, mc2, mc3, mc4]:
+            self.assertTrue(mc in multicolors)
+        # color does not exist in guidance
+        mc = Multicolor("red", "black", "red", "black")
+        guidance = [("green", "blue"), ("green", ), ("blue", )]
+        mc = Multicolor.split_colors(mc, guidance=guidance)[0]
+        self.assertEqual(len(mc.colors), 2)
+        self.assertEqual(len(mc.multicolors), 2)
+        self.assertEqual(mc.multicolors["red"], 2)
+        self.assertEqual(mc.multicolors["black"], 2)
+
 if __name__ == '__main__':
     unittest.main()
