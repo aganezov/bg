@@ -171,6 +171,8 @@ class MulticolorTestCase(unittest.TestCase):
         self.assertEqual(mc1.multicolors["red"], 2)
         self.assertSetEqual({"red"}, mc1.colors)
         self.assertEqual(id(mc1), mc1_id)
+        with self.assertRaises(TypeError):
+            mc1 -= 5
 
     def test__add__(self):
         mc1 = Multicolor("red", "green")
@@ -202,13 +204,15 @@ class MulticolorTestCase(unittest.TestCase):
                 self.assertEqual(mc1.multicolors[color], 1)
         self.assertEqual(mc1_id, id(mc1))
         with self.assertRaises(TypeError):
-            mc1 + 5
+            mc1 += 5
 
     def test__lt__and__le__(self):
         mc1 = Multicolor("red", "green", "red")
         mc2 = Multicolor("red", "green")
         self.assertTrue(mc2 < mc1)
         self.assertTrue(mc2 <= mc1)
+        self.assertFalse(mc2 <= 5)
+        self.assertFalse(mc2 < 5)
         mc2 = Multicolor("red", "red", "green")
         self.assertFalse(mc2 < mc1)
         self.assertTrue(mc2 <= mc1)
@@ -278,6 +282,10 @@ class MulticolorTestCase(unittest.TestCase):
         mc = Multicolor("red", "red")
         guidance = [("red", )]
         mc = Multicolor.split_colors(mc, guidance=guidance)[0]
+        self.assertEqual(len(mc.colors), 1)
+        self.assertEqual(len(mc.multicolors), 1)
+        self.assertEqual(mc.multicolors["red"], 2)
+        mc = Multicolor.split_colors(mc)[0]
         self.assertEqual(len(mc.colors), 1)
         self.assertEqual(len(mc.multicolors), 1)
         self.assertEqual(mc.multicolors["red"], 2)
@@ -577,5 +585,5 @@ class MulticolorTestCase(unittest.TestCase):
         self.assertEqual(mc.multicolors["red"], 2)
         self.assertEqual(mc.multicolors["black"], 2)
 
-if __name__ == '__main__':
-    unittest.main()
+if __name__ == '__main__':  # pragma: no cover
+    unittest.main()         # pragma: no cover

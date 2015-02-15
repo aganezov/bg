@@ -41,7 +41,8 @@ class BGVertexTestCase(unittest.TestCase):
         v3 = BGVertex(name3)
         self.assertNotEqual(v1, v3)
         self.assertNotEqual(v2, v3)
+        self.assertNotEqual(v1, 5)
 
 
-if __name__ == '__main__':
-    unittest.main()
+if __name__ == '__main__':  # pragma: no cover
+    unittest.main()         # pragma: no cover
