@@ -159,6 +159,16 @@ class BreakpointGraph(object):
     def delete_all_edges_between_two_vertices(self, vertex1, vertex2):
         self.__delete_all_bgedges_between_two_vertices(vertex1=vertex1, vertex2=vertex2)
 
+    def __merge_all_bgedges_between_two_vertices(self, vertex1, vertex2):
+        edges_multicolors = [deepcopy(data["multicolor"]) for v1, v2, data in
+                             self.bg.edges_iter(nbunch=vertex1, data=True) if v2 == vertex2]
+        self.__delete_all_bgedges_between_two_vertices(vertex1=vertex1, vertex2=vertex2)
+        for multicolor in edges_multicolors:
+            self.__add_bgedge(BGEdge(vertex1=vertex1, vertex2=vertex2, multicolor=multicolor), merge=True)
+
+    def merge_all_edges_between_two_vertices(self, vertex1, vertex2):
+        self.__merge_all_bgedges_between_two_vertices(vertex1=vertex1, vertex2=vertex2)
+
     @staticmethod
     def merge(breakpoint_graph1, breakpoint_graph2, merge_edges=False):
         result = BreakpointGraph()

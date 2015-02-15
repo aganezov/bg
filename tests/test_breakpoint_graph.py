@@ -1726,6 +1726,53 @@ class BreakpointGraphTestCase(unittest.TestCase):
         for bgedge in bgedges:
             self.assertTrue(bgedge.multicolor in multicolors)
 
+    def test_merge_all_edges_between_two_vertices(self):
+        # if no edges exist between two vertices, no exception shall be risen
+        graph = BreakpointGraph()
+        v1 = BGVertex("v1")
+        v2 = BGVertex("v2")
+        multicolor2 = Multicolor("red")
+        edge1 = BGEdge(vertex1=v1, vertex2=v2, multicolor=multicolor2)
+        graph.add_bgedge(edge1)
+        graph.delete_bgedge(bgedge=edge1)
+        self.assertEqual(len(list(graph.nodes())), 2)
+        self.assertEqual(len(list(graph.edges())), 0)
+        graph.merge_all_edges_between_two_vertices(vertex1=v1, vertex2=v2)
+        self.assertEqual(len(list(graph.nodes())), 2)
+        self.assertEqual(len(list(graph.edges())), 0)
+        # if single edge exists between two vertices, nothing shall be done
+        graph = BreakpointGraph()
+        v1 = BGVertex("v1")
+        v2 = BGVertex("v2")
+        multicolor2 = Multicolor("red")
+        edge1 = BGEdge(vertex1=v1, vertex2=v2, multicolor=multicolor2)
+        graph.add_bgedge(edge1)
+        graph.merge_all_edges_between_two_vertices(vertex1=v1, vertex2=v2)
+        self.assertEqual(len(list(graph.nodes())), 2)
+        edges = list(graph.edges())
+        self.assertEqual(len(edges), 1)
+        self.assertEqual(edges[0].multicolor, multicolor2)
+        # multiple edges shall be glued together
+        graph = BreakpointGraph()
+        v1 = BGVertex("v1")
+        v2 = BGVertex("v2")
+        multicolor1 = Multicolor("red")
+        multicolor2 = Multicolor("red")
+        multicolor3 = Multicolor("red", "black")
+        multicolor4 = Multicolor("blue", "black")
+        edge1 = BGEdge(vertex1=v1, vertex2=v2, multicolor=multicolor1)
+        edge2 = BGEdge(vertex1=v1, vertex2=v2, multicolor=multicolor2)
+        edge3 = BGEdge(vertex1=v1, vertex2=v2, multicolor=multicolor3)
+        edge4 = BGEdge(vertex1=v1, vertex2=v2, multicolor=multicolor4)
+        graph.add_bgedge(edge1)
+        graph.add_bgedge(edge2, merge=False)
+        graph.add_bgedge(edge3, merge=False)
+        graph.add_bgedge(edge4, merge=False)
+        graph.merge_all_edges_between_two_vertices(vertex1=v1, vertex2=v2)
+        self.assertEqual(len(list(graph.nodes())), 2)
+        edges = list(graph.edges())
+        self.assertEqual(len(edges), 1)
+        self.assertEqual(edges[0].multicolor, multicolor1 + multicolor2 + multicolor3 + multicolor4)
 
 if __name__ == '__main__':  # pragma: no cover
     unittest.main()  # pragma: no cover
