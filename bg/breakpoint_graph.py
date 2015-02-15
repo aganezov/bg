@@ -149,3 +149,12 @@ class BreakpointGraph(object):
     def split_all_edges(self, guidance=None):
         for v1, v2 in itertools.combinations(self.bg.nodes_iter(), 2):
             self.__split_all_edges_between_two_vertices(vertex1=v1, vertex2=v2, guidance=guidance)
+
+    def __delete_all_bgedges_between_two_vertices(self, vertex1, vertex2):
+        edges_to_be_split_keys = [(key, data) for v1, v2, key, data in self.bg.edges_iter(nbunch=vertex1, keys=True,
+                                                                                          data=True) if v2 == vertex2]
+        for key, data in edges_to_be_split_keys:
+            self.__delete_bgedge(BGEdge(vertex1=vertex1, vertex2=vertex2, multicolor=data["multicolor"]), key=key)
+
+    def delete_all_edges_between_two_vertices(self, vertex1, vertex2):
+        self.__delete_all_bgedges_between_two_vertices(vertex1=vertex1, vertex2=vertex2)

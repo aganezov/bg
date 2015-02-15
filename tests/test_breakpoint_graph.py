@@ -1349,6 +1349,33 @@ class BreakpointGraphTestCase(unittest.TestCase):
         for bgedge in edges:
             self.assertTrue(bgedge.multicolor in multicolors)
 
+    def test_delete_all_edges_between_two_vertices(self):
+        # comprehensive test case with various possible edges between two given vertices
+        # equipped with a random edge sticking out of vertex v1, but not towards vertex v2
+        graph = BreakpointGraph()
+        v1 = BGVertex("v1")
+        v2 = BGVertex("v2")
+        v3 = BGVertex("v3")
+        multicolor1 = Multicolor("red")
+        multicolor2 = Multicolor("red", "red")
+        multicolor4 = Multicolor("red", "black", "green")
+        multicolor5 = Multicolor("red", "black", "green", "red", "green")
+        edge1 = BGEdge(vertex1=v1, vertex2=v2, multicolor=multicolor1)
+        edge2 = BGEdge(vertex1=v1, vertex2=v2, multicolor=multicolor2)
+        edge4 = BGEdge(vertex1=v1, vertex2=v2, multicolor=multicolor4)
+        edge5 = BGEdge(vertex1=v1, vertex2=v2, multicolor=multicolor5)
+        edge6 = BGEdge(vertex1=v1, vertex2=v3, multicolor=multicolor1)
+        graph.add_bgedge(edge1)
+        graph.add_bgedge(edge2, merge=False)
+        graph.add_bgedge(edge4, merge=False)
+        graph.add_bgedge(edge5, merge=False)
+        graph.add_bgedge(edge6, merge=False)
+        graph.delete_all_edges_between_two_vertices(vertex1=v1, vertex2=v2)
+        self.assertEqual(len(list(graph.nodes())), 3)
+        self.assertEqual(len(list(graph.edges())), 1)
+        edges = list(graph.get_edges_by_vertex(vertex=v1))
+        self.assertEqual(edges[0].multicolor, multicolor1)
+
 
 if __name__ == '__main__':  # pragma: no cover
     unittest.main()  # pragma: no cover
