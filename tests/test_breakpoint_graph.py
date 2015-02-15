@@ -589,5 +589,117 @@ class BreakpointGraphTestCase(unittest.TestCase):
         with self.assertRaises(KeyError):
             graph.delete_bgedge(bgedge, key=0)
 
+    def test_single_edge_splitting_no_guidance_no_duplication_splitting(self):
+        # test with a simple one-colored edge
+        graph = BreakpointGraph()
+        v1 = BGVertex("v1")
+        v2 = BGVertex("v2")
+        multicolor1 = Multicolor("red")
+        edge1 = BGEdge(vertex1=v1, vertex2=v2, multicolor=multicolor1)
+        graph.add_bgedge(edge1)
+        self.assertEqual(len(list(graph.nodes())), 2)
+        self.assertEqual(len(list(graph.edges())), 1)
+        graph.split_edge(vertex1=v1, vertex2=v2, multicolor=multicolor1, guidance=None, duplication_splitting=False)
+        self.assertEqual(len(list(graph.nodes())), 2)
+        self.assertEqual(len(list(graph.edges())), 1)
+        # test with a simple multi-colored edge, no duplications of same color
+        graph = BreakpointGraph()
+        v1 = BGVertex("v1")
+        v2 = BGVertex("v2")
+        multicolor1 = Multicolor("red", "black", "green")
+        edge1 = BGEdge(vertex1=v1, vertex2=v2, multicolor=multicolor1)
+        graph.add_bgedge(edge1)
+        self.assertEqual(len(list(graph.nodes())), 2)
+        self.assertEqual(len(list(graph.edges())), 1)
+        graph.split_edge(vertex1=v1, vertex2=v2, multicolor=multicolor1, guidance=None, duplication_splitting=False)
+        self.assertEqual(len(list(graph.nodes())), 2)
+        self.assertEqual(len(list(graph.edges())), 3)
+        edges = list(graph.get_edges_by_vertex(vertex=v1))
+        multicolors = [Multicolor("red"), Multicolor("black"), Multicolor("green")]
+        for bgedge in edges:
+            self.assertTrue(bgedge.multicolor in multicolors)
+        # test case with a simple one-colored edge with duplications of the same color
+        graph = BreakpointGraph()
+        v1 = BGVertex("v1")
+        v2 = BGVertex("v2")
+        multicolor1 = Multicolor("red", "red")
+        edge1 = BGEdge(vertex1=v1, vertex2=v2, multicolor=multicolor1)
+        graph.add_bgedge(edge1)
+        graph.split_edge(vertex1=v1, vertex2=v2, multicolor=multicolor1, guidance=None, duplication_splitting=False)
+        self.assertEqual(len(list(graph.nodes())), 2)
+        self.assertEqual(len(list(graph.edges())), 1)
+        edges = list(graph.get_edges_by_vertex(vertex=v1))
+        self.assertEqual(edges[0].multicolor, multicolor1)
+        # test case with a multi-colored edge with duplications of same color
+        graph = BreakpointGraph()
+        v1 = BGVertex("v1")
+        v2 = BGVertex("v2")
+        multicolor1 = Multicolor("red", "green", "red", "green", "black")
+        edge1 = BGEdge(vertex1=v1, vertex2=v2, multicolor=multicolor1)
+        graph.add_bgedge(edge1)
+        graph.split_edge(vertex1=v1, vertex2=v2, multicolor=multicolor1, guidance=None, duplication_splitting=False)
+        self.assertEqual(len(list(graph.nodes())), 2)
+        self.assertEqual(len(list(graph.edges())), 3)
+        edges = list(graph.get_edges_by_vertex(vertex=v1))
+        multicolors = [Multicolor("red", "red"), Multicolor("green", "green"), Multicolor("black")]
+        for bgedge in edges:
+            self.assertTrue(bgedge.multicolor in multicolors)
+
+    def test_single_bgedge_splitting_no_guidance_no_duplication_splitting(self):
+        # test with a simple one-colored edge
+        graph = BreakpointGraph()
+        v1 = BGVertex("v1")
+        v2 = BGVertex("v2")
+        multicolor1 = Multicolor("red")
+        edge1 = BGEdge(vertex1=v1, vertex2=v2, multicolor=multicolor1)
+        graph.add_bgedge(edge1)
+        self.assertEqual(len(list(graph.nodes())), 2)
+        self.assertEqual(len(list(graph.edges())), 1)
+        graph.split_bgedge(BGEdge(vertex1=v1, vertex2=v2, multicolor=multicolor1), guidance=None, duplication_splitting=False)
+        self.assertEqual(len(list(graph.nodes())), 2)
+        self.assertEqual(len(list(graph.edges())), 1)
+        # test with a simple multi-colored edge, no duplications of same color
+        graph = BreakpointGraph()
+        v1 = BGVertex("v1")
+        v2 = BGVertex("v2")
+        multicolor1 = Multicolor("red", "black", "green")
+        edge1 = BGEdge(vertex1=v1, vertex2=v2, multicolor=multicolor1)
+        graph.add_bgedge(edge1)
+        self.assertEqual(len(list(graph.nodes())), 2)
+        self.assertEqual(len(list(graph.edges())), 1)
+        graph.split_bgedge(BGEdge(vertex1=v1, vertex2=v2, multicolor=multicolor1), guidance=None, duplication_splitting=False)
+        self.assertEqual(len(list(graph.nodes())), 2)
+        self.assertEqual(len(list(graph.edges())), 3)
+        edges = list(graph.get_edges_by_vertex(vertex=v1))
+        multicolors = [Multicolor("red"), Multicolor("black"), Multicolor("green")]
+        for bgedge in edges:
+            self.assertTrue(bgedge.multicolor in multicolors)
+        # test case with a simple one-colored edge with duplications of the same color
+        graph = BreakpointGraph()
+        v1 = BGVertex("v1")
+        v2 = BGVertex("v2")
+        multicolor1 = Multicolor("red", "red")
+        edge1 = BGEdge(vertex1=v1, vertex2=v2, multicolor=multicolor1)
+        graph.add_bgedge(edge1)
+        graph.split_bgedge(BGEdge(vertex1=v1, vertex2=v2, multicolor=multicolor1), guidance=None, duplication_splitting=False)
+        self.assertEqual(len(list(graph.nodes())), 2)
+        self.assertEqual(len(list(graph.edges())), 1)
+        edges = list(graph.get_edges_by_vertex(vertex=v1))
+        self.assertEqual(edges[0].multicolor, multicolor1)
+        # test case with a multi-colored edge with duplications of same color
+        graph = BreakpointGraph()
+        v1 = BGVertex("v1")
+        v2 = BGVertex("v2")
+        multicolor1 = Multicolor("red", "green", "red", "green", "black")
+        edge1 = BGEdge(vertex1=v1, vertex2=v2, multicolor=multicolor1)
+        graph.add_bgedge(edge1)
+        graph.split_bgedge(BGEdge(vertex1=v1, vertex2=v2, multicolor=multicolor1), guidance=None, duplication_splitting=False)
+        self.assertEqual(len(list(graph.nodes())), 2)
+        self.assertEqual(len(list(graph.edges())), 3)
+        edges = list(graph.get_edges_by_vertex(vertex=v1))
+        multicolors = [Multicolor("red", "red"), Multicolor("green", "green"), Multicolor("black")]
+        for bgedge in edges:
+            self.assertTrue(bgedge.multicolor in multicolors)
+
 if __name__ == '__main__':
     unittest.main()

@@ -102,3 +102,41 @@ class BreakpointGraph(object):
 
     def delete_bgedge(self, bgedge, key=None):
         self.__delete_bgedge(bgedge=bgedge, key=key)
+
+    def __split_bgedge(self, bgedge, guidance=None, duplication_splitting=False, key=None):
+        candidate_id = None
+        candidate_score = -1
+        candidate_data = None
+        if guidance is None:
+            guidance = [(color,) for color in bgedge.multicolor.colors]
+        guidance = sorted(guidance, key=lambda subset: len(subset), reverse=True)
+        if key is not None:
+            new_multicolors = Multicolor.split_colors(multicolor=candidate_data["multicolor"], guidance=guidance)
+            self.__delete_bgedge(bgedge=bgedge, key=candidate_id)
+            for multicolor in new_multicolors:
+                self.__add_bgedge(BGEdge(vertex1=bgedge.vertex1, vertex2=bgedge.vertex2, multicolor=multicolor),
+                                  merge=False)
+        else:
+            for v1, v2, key, data in self.bg.edges_iter(nbunch=bgedge.vertex1, data=True, keys=True):
+                if v2 == bgedge.vertex2:
+                    score = Multicolor.similarity_score(bgedge.multicolor, data["multicolor"])
+                    if score > candidate_score:
+                        candidate_id = key
+                        candidate_data = data
+                        candidate_score = score
+            if candidate_data is not None:
+                new_multicolors = Multicolor.split_colors(multicolor=candidate_data["multicolor"], guidance=guidance)
+                self.__delete_bgedge(bgedge=BGEdge(vertex1=bgedge.vertex1, vertex2=bgedge.vertex2,
+                                                   multicolor=candidate_data["multicolor"]),
+                                     key=candidate_id)
+                for multicolor in new_multicolors:
+                    self.__add_bgedge(BGEdge(vertex1=bgedge.vertex1, vertex2=bgedge.vertex2,
+                                             multicolor=multicolor), merge=False)
+
+    def split_edge(self, vertex1, vertex2, multicolor, guidance=None, duplication_splitting=False, key=None):
+        self.__split_bgedge(bgedge=BGEdge(vertex1=vertex1, vertex2=vertex2, multicolor=multicolor), guidance=guidance,
+                            duplication_splitting=duplication_splitting, key=key)
+
+    def split_bgedge(self, bgedge, guidance=None, duplication_splitting=False, key=None):
+        self.__split_bgedge(bgedge=bgedge, guidance=guidance, duplication_splitting=duplication_splitting,
+                            key=key)
