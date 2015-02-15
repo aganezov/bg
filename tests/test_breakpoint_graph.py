@@ -1774,5 +1774,56 @@ class BreakpointGraphTestCase(unittest.TestCase):
         self.assertEqual(len(edges), 1)
         self.assertEqual(edges[0].multicolor, multicolor1 + multicolor2 + multicolor3 + multicolor4)
 
+    def test_merge_all_edges(self):
+        # a single comprehensive case
+        graph = BreakpointGraph()
+        v1 = BGVertex("v1")
+        v2 = BGVertex("v2")
+        v3 = BGVertex("v3")
+        v4 = BGVertex("v4")
+        v5 = BGVertex("v5")
+        v6 = BGVertex("v6")
+        v7 = BGVertex("v7")
+        v8 = BGVertex("v8")
+        multicolor1 = Multicolor("red", "black", "green", "red")
+        multicolor2 = Multicolor("red")
+        edge1 = BGEdge(vertex1=v1, vertex2=v2, multicolor=multicolor1)
+        edge12 = BGEdge(vertex1=v1, vertex2=v2, multicolor=multicolor2)
+        edge2 = BGEdge(vertex1=v1, vertex2=v3, multicolor=multicolor2)
+        edge3 = BGEdge(vertex1=v4, vertex2=v5, multicolor=multicolor1)
+        edge32 = BGEdge(vertex1=v4, vertex2=v5, multicolor=multicolor2)
+        edge4 = BGEdge(vertex1=v1, vertex2=v6, multicolor=multicolor1)
+        edge5 = BGEdge(vertex1=v7, vertex2=v8, multicolor=multicolor1)
+        graph.add_bgedge(edge1)
+        graph.add_bgedge(edge1, merge=False)
+        graph.add_bgedge(edge12, merge=False)
+        graph.add_bgedge(edge2, merge=False)
+        graph.add_bgedge(edge2, merge=False)
+        graph.add_bgedge(edge3, merge=False)
+        graph.add_bgedge(edge32, merge=False)
+        graph.add_bgedge(edge4, merge=False)
+        graph.add_bgedge(edge5, merge=False)
+        graph.delete_bgedge(bgedge=edge5)
+        self.assertEqual(len(list(graph.nodes())), 8)
+        self.assertEqual(len(list(graph.edges())), 8)
+        graph.merge_all_edges()
+        self.assertEqual(len(list(graph.nodes())), 8)
+        self.assertEqual(len(list(graph.get_edges_by_vertex(vertex=v1))), 3)
+        self.assertEqual(len(list(graph.get_edges_by_vertex(vertex=v2))), 1)
+        self.assertEqual(len(list(graph.get_edges_by_vertex(vertex=v6))), 1)
+        self.assertEqual(len(list(graph.get_edges_by_vertex(vertex=v3))), 1)
+        self.assertEqual(len(list(graph.get_edges_by_vertex(vertex=v4))), 1)
+        self.assertEqual(len(list(graph.get_edges_by_vertex(vertex=v5))), 1)
+        self.assertEqual(len(list(graph.get_edges_by_vertex(vertex=v7))), 0)
+        self.assertEqual(len(list(graph.get_edges_by_vertex(vertex=v8))), 0)
+        bgedges = list(graph.edges())
+        multicolors = [multicolor1 + multicolor2 + multicolor1,
+                       multicolor2 + multicolor2,
+                       multicolor1,
+                       multicolor1 + multicolor2]
+        self.assertEqual(len(bgedges), 4)
+        for bgedge in bgedges:
+            self.assertTrue(bgedge.multicolor in multicolors)
+
 if __name__ == '__main__':  # pragma: no cover
     unittest.main()  # pragma: no cover

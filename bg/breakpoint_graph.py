@@ -169,6 +169,10 @@ class BreakpointGraph(object):
     def merge_all_edges_between_two_vertices(self, vertex1, vertex2):
         self.__merge_all_bgedges_between_two_vertices(vertex1=vertex1, vertex2=vertex2)
 
+    def merge_all_edges(self):
+        for v1, v2 in itertools.combinations(self.bg.nodes_iter(), 2):
+            self.__merge_all_bgedges_between_two_vertices(vertex1=v1, vertex2=v2)
+
     @staticmethod
     def merge(breakpoint_graph1, breakpoint_graph2, merge_edges=False):
         result = BreakpointGraph()
