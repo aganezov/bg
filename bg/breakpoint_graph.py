@@ -80,7 +80,7 @@ class BreakpointGraph(object):
         if key is not None:
             self.bg[bgedge.vertex1][bgedge.vertex2][key]["multicolor"] -= bgedge.multicolor
             if len(self.bg[bgedge.vertex1][bgedge.vertex2][key]["multicolor"].multicolors) == 0:
-                self.bg.remove_edge(v=bgedge.vertex1, u=bgedge.vertex2)
+                self.bg.remove_edge(v=bgedge.vertex1, u=bgedge.vertex2, key=key)
         else:
             for v1, v2, key, data in self.bg.edges_iter(nbunch=bgedge.vertex1, data=True, keys=True):
                 if v2 == bgedge.vertex2:
@@ -105,8 +105,11 @@ class BreakpointGraph(object):
         candidate_score = 0
         candidate_data = None
         if key is not None:
-            new_multicolors = Multicolor.split_colors(multicolor=candidate_data["multicolor"], guidance=guidance)
-            self.__delete_bgedge(bgedge=bgedge, key=candidate_id)
+            new_multicolors = Multicolor.split_colors(
+                multicolor=self.bg[bgedge.vertex1][bgedge.vertex2][key]["multicolor"], guidance=guidance)
+            self.__delete_bgedge(bgedge=BGEdge(vertex1=bgedge.vertex1, vertex2=bgedge.vertex2,
+                                               multicolor=self.bg[bgedge.vertex1][bgedge.vertex2][key]["multicolor"]),
+                                 key=key)
             for multicolor in new_multicolors:
                 self.__add_bgedge(BGEdge(vertex1=bgedge.vertex1, vertex2=bgedge.vertex2, multicolor=multicolor),
                                   merge=False)
