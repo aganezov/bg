@@ -87,11 +87,12 @@ class BreakpointGraph(object):
                 self.bg.remove_edge(v=bgedge.vertex1, u=bgedge.vertex2)
         else:
             for v1, v2, key, data in self.bg.edges_iter(nbunch=bgedge.vertex1, data=True, keys=True):
-                score = Multicolor.similarity_score(bgedge.multicolor, data["multicolor"])
-                if score > candidate_score:
-                    candidate_id = key
-                    candidate_data = data
-                    candidate_score = score
+                if v2 == bgedge.vertex2:
+                    score = Multicolor.similarity_score(bgedge.multicolor, data["multicolor"])
+                    if score > candidate_score:
+                        candidate_id = key
+                        candidate_data = data
+                        candidate_score = score
             if candidate_data is not None:
                 candidate_data["multicolor"] -= bgedge.multicolor
                 if len(self.bg[bgedge.vertex1][bgedge.vertex2][candidate_id]["multicolor"].multicolors) == 0:
