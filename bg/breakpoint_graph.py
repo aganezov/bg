@@ -158,3 +158,20 @@ class BreakpointGraph(object):
 
     def delete_all_edges_between_two_vertices(self, vertex1, vertex2):
         self.__delete_all_bgedges_between_two_vertices(vertex1=vertex1, vertex2=vertex2)
+
+    @staticmethod
+    def merge(breakpoint_graph1, breakpoint_graph2, merge_edges=False):
+        result = BreakpointGraph()
+        for bgedge in breakpoint_graph1.edges():
+            result.__add_bgedge(bgedge=bgedge, merge=merge_edges)
+        for bgedge in breakpoint_graph2.edges():
+            result.__add_bgedge(bgedge=bgedge, merge=merge_edges)
+        return result
+
+    def __update(self, breakpoint_graph, merge_edges=False):
+        for bgedge in breakpoint_graph.edges():
+            self.__add_bgedge(bgedge=bgedge, merge=merge_edges)
+
+    def update(self, breakpoint_graph, merge_edges=False):
+        self.__update(breakpoint_graph=breakpoint_graph,
+                      merge_edges=merge_edges)
