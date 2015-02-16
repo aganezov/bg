@@ -16,7 +16,6 @@ setup(
     url="https://github.com/sergey-aganezov-jr/bg",
     classifiers=[
         "Development Status :: 2 - Pre-Alpha",
-        "Topic :: Data Structures",
         "License :: OSI Approved :: GPLv3",
         'Programming Language :: Python',
         'Programming Language :: Python :: 3',
