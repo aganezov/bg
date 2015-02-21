@@ -24,6 +24,7 @@ Contents:
    :maxdepth: 2
 
    contributing
+   code
 
 
 Indices and tables
