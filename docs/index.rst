@@ -18,10 +18,12 @@ Author is very grateful for thoughtful and dedicated mentoring of `Dr. Max A. Al
 Associate Professor at Department of Mathematics & CBI, GWU.
 
 Contents:
+=========
 
 .. toctree::
    :maxdepth: 2
 
+   contributing
 
 
 Indices and tables
