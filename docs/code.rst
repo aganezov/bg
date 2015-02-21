@@ -5,6 +5,8 @@ breakpoint_graph.py
    :members:
    :private-members:
    :special-members:
+   :exclude-members: __dict__, __weakref__
+   :show-inheritance:
 
 edge.py
 ~~~~~~~
@@ -13,6 +15,8 @@ edge.py
    :members:
    :private-members:
    :special-members:
+   :exclude-members: __dict__, __weakref__
+   :show-inheritance:
 
 multicolor.py
 ~~~~~~~~~~~~~
@@ -21,6 +25,8 @@ multicolor.py
    :members:
    :private-members:
    :special-members:
+   :exclude-members: __dict__, __weakref__
+   :show-inheritance:
 
 vertex.py
 ~~~~~~~~~
@@ -29,3 +35,5 @@ vertex.py
    :members:
    :private-members:
    :special-members:
+   :exclude-members: __dict__, __weakref__
+   :show-inheritance:
