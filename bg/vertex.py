@@ -5,7 +5,7 @@ __status__ = "develop"
 
 
 class BGVertex(object):
-    """ A wrapper class used to store information about vertex in the :class:`BreakpointGraph` data structure
+    """ A wrapper class used to store information about vertex in the :class:`bg.breakpoint_graph.BreakpointGraph` data structure
 
     This class supports the following attributes, that carry information each BGVertex instances:
 
@@ -15,7 +15,7 @@ class BGVertex(object):
     def __init__(self, name, info=None):
         """ Initialization of BGVertex instance
 
-        :param name: unique label for respective vertex to be identified in :class:`BreakpointGraph`
+        :param name: unique label for respective vertex to be identified in :class:`bg.breakpoint_graph.BreakpointGraph`
         :type name: any hashable object
         :param info: additional data about the vertex
         :type info: assumed to be {key:value} typed object

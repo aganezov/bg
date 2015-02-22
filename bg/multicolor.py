@@ -7,11 +7,11 @@ __status__ = "develop"
 
 
 class Multicolor(object):
-    """ Class providing implementation of multi-color notion for edges in :class:`BreakpointGraph`.
+    """ Class providing implementation of multi-color notion for edges in :class:`bg.breakpoint_graph.BreakpointGraph`.
 
     Multi-color is a specific property of edges in Breakpoint Graph combinatorial object which represents similar adjacencies between genomic material in multiple genomes.
 
-    This class supports the following attributes, that carry information colors and their multiplicity of edges in :class:`BreakpointGraph`.
+    This class supports the following attributes, that carry information colors and their multiplicity of edges in :class:`bg.breakpoint_graph.BreakpointGraph`.
 
     *    :attr:`Multicolor.multicolors`: a python Counter object which contains information about colors and their multiplicity for a given :class:`Multicolor` instance
     *    :attr:`Multicolor.colors`: a property attribute providing a set of colors in :attr:`Multicolor.multicolors` attribute, hiding information about colors multiplicity

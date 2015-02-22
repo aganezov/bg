@@ -5,15 +5,15 @@ __status__ = "develop"
 
 
 class BGEdge(object):
-    """ A wrapper class for edges in :class:`BreakpointGraph`
+    """ A wrapper class for edges in :class:`bg.breakpoint_graph.BreakpointGraph`
 
-    Is not stored on its own in the :class:`BreakpointGraph`, but is rather can be supplied to work with and is returned if retrieval is performed.
+    Is not stored on its own in the :class:`bg.breakpoint_graph.BreakpointGraph`, but is rather can be supplied to work with and is returned if retrieval is performed.
     BGEdge represents an undirected edge, thus distinction between :attr:`BGEdge.vertex1` and :attr:`BGEdge.vertex2` attributes is just from identities perspective, not from the order perspective.
 
     This class supports th following attributes, that cary information about multi-color for this edge, as well as vertices, its is attached to:
 
-    *   :attr:`BGEdge.vertex1`: a first vertex to be utilized in :class:`BreakpointGraph`. Expected to store :class:`BGVertex`.
-    *   :attr:`BGEdge.vertex2`: a second vertex to be utilized in :class:`BreakpointGraph`. Expected to store :class:`BGVertex`.
+    *   :attr:`BGEdge.vertex1`: a first vertex to be utilized in :class:`bg.breakpoint_graph.BreakpointGraph`. Expected to store :class:`bg.vertex.BGVertex`.
+    *   :attr:`BGEdge.vertex2`: a second vertex to be utilized in :class:`bg.breakpoint_graph.BreakpointGraph`. Expected to store :class:`bg.vertex.BGVertex`.
 
     Main operations:
 
@@ -24,11 +24,11 @@ class BGEdge(object):
         """ Initialization of :class:`BGEdge` object.
 
         :param vertex1: vertex the edges is outgoing from
-        :type vertex1: any hashable python object. :class:`BGVertex` is expected.
+        :type vertex1: any hashable python object. :class:`bg.vertex.BGVertex` is expected.
         :param vertex2: vertex the edges is ingoing to
-        :type vertex2: any hashable python object. :class:`BGVertex` is expected.
+        :type vertex2: any hashable python object. :class:`bg.vertex.BGVertex` is expected.
         :param multicolor: multicolor that this single edge shall posses
-        :type multicolor: :class:`Multicolor`
+        :type multicolor: :class:`bg.multicolor.Multicolor`
         :return: ``None``, performs initialization of respective instance of :class:`BGEdge`
         """
 
@@ -47,7 +47,7 @@ class BGEdge(object):
         :param edge2: second out of two edge information from which is to be merged into a new one
         :type edge2:
         :return: a new undirected with multi-color information merged from two supplied :class:`BGEdge` objects
-        :rtype: class:`BGEdge`
+        :rtype: :class:`BGEdge`
         :raises: ``ValueError``
         """
         if edge1.vertex1 != edge2.vertex1 and edge1.vertex1 != edge2.vertex2:
