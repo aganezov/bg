@@ -1,15 +1,6 @@
 API documentation
 =================
 
-edge.py
-~~~~~~~
-
-.. automodule:: bg.edge
-   :members:
-   :private-members:
-   :special-members:
-   :exclude-members: __dict__, __weakref__
-   :show-inheritance:
 
 breakpoint_graph.py
 ~~~~~~~~~~~~~~~~~~~
@@ -26,6 +17,16 @@ multicolor.py
 ~~~~~~~~~~~~~
 
 .. automodule:: bg.multicolor
+   :members:
+   :private-members:
+   :special-members:
+   :exclude-members: __dict__, __weakref__
+   :show-inheritance:
+
+edge.py
+~~~~~~~
+
+.. automodule:: bg.edge
    :members:
    :private-members:
    :special-members:
