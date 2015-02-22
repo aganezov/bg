@@ -47,7 +47,7 @@ class BGEdge(object):
         :param edge2: second out of two edge information from which is to be merged into a new one
         :type edge2:
         :return: a new undirected with multi-color information merged from two supplied :class:`BGEdge` objects
-        :rtype" :class:`BGEdge`
+        :rtype: class:`BGEdge`
         :raises: ``ValueError``
         """
         if edge1.vertex1 != edge2.vertex1 and edge1.vertex1 != edge2.vertex2:

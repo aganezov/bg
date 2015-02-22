@@ -267,7 +267,7 @@ class Multicolor(object):
         return Multicolor.__left_merge(self, other)
 
     def __eq__(self, other):
-        """ Implementaiton of ``==` operation for :class:`Multicolor`
+        """ Implementation of ``==`` operation for :class:`Multicolor`
 
         Two :class:`Multicolor` objects are called to be equal if colors that both of them contain and respective colors multiplicity are equal.
         :class:`Multicolor` instance never equals to non-:class:`Multicolor` object.
