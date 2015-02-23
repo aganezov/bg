@@ -14,7 +14,7 @@ Code is written with the philosophy of TDD and requires Python v3.3+ for correct
 The package is created and maintained by Sergey Aganezov, Ph.D. student of Department of Mathematics and Computational Biology institute (CBI),
 George Washington University (GWU), Washington, DC, USA.
 
-Author is very grateful for thoughtful and dedicated mentoring of `Dr. Max A. Alekseyev <http://home.gwu.edu/~maxal/>`_,
+Author is very grateful for thoughtful and dedicated leadership of `Dr. Max A. Alekseyev <http://home.gwu.edu/~maxal/>`_,
 Associate Professor at Department of Mathematics & CBI, GWU.
 
 Contents:
