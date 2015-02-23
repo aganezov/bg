@@ -6,3 +6,5 @@ Breakpoint Graph
 [![Supported Python versions](https://pypip.in/py_versions/bg/badge.svg?style=flat)](https://pypi.python.org/pypi/bg/) 
 [![Wheel Status](https://pypip.in/wheel/bg/badge.svg?style=flat)](https://pypi.python.org/pypi/bg/)
 [![License](https://pypip.in/license/bg/badge.svg?style=flat)](https://pypi.python.org/pypi/bg/)
+
+For package documentation please refer to [http://bg.readthedocs.org/](http://bg.readthedocs.org/)
