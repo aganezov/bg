@@ -3,7 +3,7 @@ __author__ = "Sergey Aganezov"
 __email__ = "aganezov(at)gwu.edu"
 __status__ = "develop"
 
-version = "0.9.0.dev2"
+version = "1.0.0a"
 
 __all__ = ["breakpoint_graph",
            "vertex",
