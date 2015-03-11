@@ -31,5 +31,67 @@ class GRIMMReaderTestCase(unittest.TestCase):
         self.assertEqual(GRIMMReader.parse_genome_declaration_string(">genome>genome"), "genome>genome")
         self.assertEqual(GRIMMReader.parse_genome_declaration_string(">genome.!/.#4"), "genome.!/.#4")
 
+    def test_parse_data_string_error(self):
+        data_string_1 = "   a b c d e    "
+        data_string_2 = ""
+        data_string_3 = " a -b -c d -e "
+        data_string_4 = "$"
+        data_string_5 = "@"
+        data_string_6 = "@ a d s d"
+        data_string_7 = "$a d s d"
+        data_string_8 = "$-a d s d"
+        data_string_9 = "@+a d s d"
+        for data_string in [data_string_1, data_string_2, data_string_3, data_string_4, data_string_5,
+                            data_string_6, data_string_7, data_string_8, data_string_9]:
+            with self.assertRaises(ValueError):
+                GRIMMReader.parse_data_string(data_string)
+
+    def test_parse_data_string_correct(self):
+        data_string = "a $"
+        result = GRIMMReader.parse_data_string(data_string)
+        self.assertEqual(result[0], "$")
+        self.assertEqual(result[1][0][0], "+")
+        self.assertEqual(result[1][0][1], "a")
+        self.assertEqual(len(result[0]), 1)
+        self.assertEqual(len(result[1]), 1)
+
+        data_string = "a @"
+        result = GRIMMReader.parse_data_string(data_string)
+        self.assertEqual(result[0], "@")
+        self.assertEqual(result[1][0][0], "+")
+        self.assertEqual(result[1][0][1], "a")
+        self.assertEqual(len(result[0]), 1)
+        self.assertEqual(len(result[1]), 1)
+
+        data_string = "     a -b c -d @ e f     "
+        result = GRIMMReader.parse_data_string(data_string)
+        self.assertEqual(result[0], "@")
+        reference_genes = ["a", "b", "c", "d"]
+        result_genes = [gene[1] for gene in result[1]]
+        referece_signs = ["+", "-", "+", "-"]
+        result_signs = [gene[0] for gene in result[1]]
+        self.assertListEqual(result_genes, reference_genes)
+        self.assertListEqual(result_signs, referece_signs)
+
+        data_string = "     a -b c -d $ e f     "
+        result = GRIMMReader.parse_data_string(data_string)
+        self.assertEqual(result[0], "$")
+        reference_genes = ["a", "b", "c", "d"]
+        result_genes = [gene[1] for gene in result[1]]
+        referece_signs = ["+", "-", "+", "-"]
+        result_signs = [gene[0] for gene in result[1]]
+        self.assertListEqual(result_genes, reference_genes)
+        self.assertListEqual(result_signs, referece_signs)
+
+        data_string = "     a -b c -d @ e f $ g -h    "
+        result = GRIMMReader.parse_data_string(data_string)
+        self.assertEqual(result[0], "@")
+        reference_genes = ["a", "b", "c", "d"]
+        result_genes = [gene[1] for gene in result[1]]
+        referece_signs = ["+", "-", "+", "-"]
+        result_signs = [gene[0] for gene in result[1]]
+        self.assertListEqual(result_genes, reference_genes)
+        self.assertListEqual(result_signs, referece_signs)
+
 if __name__ == '__main__':
     unittest.main()
