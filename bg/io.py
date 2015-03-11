@@ -10,3 +10,8 @@ class GRIMMReader(object):
     def is_genome_declaration_string(data_string):
         data_string = data_string.strip()
         return data_string.startswith(">")
+
+    @staticmethod
+    def parse_genome_declaration_string(data_string):
+        data_string = data_string.strip()
+        return data_string[1:]
