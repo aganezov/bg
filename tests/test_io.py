@@ -1,4 +1,5 @@
-from bg.io import GRIMMReader
+from collections import Counter
+from bg.bg_io import GRIMMReader
 
 __author__ = 'Sergey Aganezov'
 __email__ = "aganezov(at)gwu.edu"
@@ -92,6 +93,17 @@ class GRIMMReaderTestCase(unittest.TestCase):
         result_signs = [gene[0] for gene in result[1]]
         self.assertListEqual(result_genes, reference_genes)
         self.assertListEqual(result_signs, referece_signs)
+
+    def test_get_list_of_edges(self):
+        parsed_data = ("@", [("+", "a"), ("-", "b"), ("-", "a")])
+        result = GRIMMReader.get_edges_from_parsed_data(parsed_data)
+        reference = [("at", "at"), ("ah", "bh"), ("bt", "ah")]
+        self.assertDictEqual(Counter(result), Counter(reference))
+
+        parsed_data = ("$", [("+", "a"), ("-", "b"), ("-", "a")])
+        result = GRIMMReader.get_edges_from_parsed_data(parsed_data)
+        reference = [("at__infinity", "at"), ("ah", "bh"), ("bt", "ah"), ("at", "at__infinity")]
+        self.assertDictEqual(Counter(result), Counter(reference))
 
 if __name__ == '__main__':
     unittest.main()
