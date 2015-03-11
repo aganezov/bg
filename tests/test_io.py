@@ -69,30 +69,30 @@ class GRIMMReaderTestCase(unittest.TestCase):
         self.assertEqual(result[0], "@")
         reference_genes = ["a", "b", "c", "d"]
         result_genes = [gene[1] for gene in result[1]]
-        referece_signs = ["+", "-", "+", "-"]
+        reference_signs = ["+", "-", "+", "-"]
         result_signs = [gene[0] for gene in result[1]]
         self.assertListEqual(result_genes, reference_genes)
-        self.assertListEqual(result_signs, referece_signs)
+        self.assertListEqual(result_signs, reference_signs)
 
         data_string = "     a -b c -d $ e f     "
         result = GRIMMReader.parse_data_string(data_string)
         self.assertEqual(result[0], "$")
         reference_genes = ["a", "b", "c", "d"]
         result_genes = [gene[1] for gene in result[1]]
-        referece_signs = ["+", "-", "+", "-"]
+        reference_signs = ["+", "-", "+", "-"]
         result_signs = [gene[0] for gene in result[1]]
         self.assertListEqual(result_genes, reference_genes)
-        self.assertListEqual(result_signs, referece_signs)
+        self.assertListEqual(result_signs, reference_signs)
 
         data_string = "     a -b c -d @ e f $ g -h    "
         result = GRIMMReader.parse_data_string(data_string)
         self.assertEqual(result[0], "@")
         reference_genes = ["a", "b", "c", "d"]
         result_genes = [gene[1] for gene in result[1]]
-        referece_signs = ["+", "-", "+", "-"]
+        reference_signs = ["+", "-", "+", "-"]
         result_signs = [gene[0] for gene in result[1]]
         self.assertListEqual(result_genes, reference_genes)
-        self.assertListEqual(result_signs, referece_signs)
+        self.assertListEqual(result_signs, reference_signs)
 
     def test_get_list_of_edges(self):
         parsed_data = ("@", [("+", "a"), ("-", "b"), ("-", "a")])
