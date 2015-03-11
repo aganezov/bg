@@ -9,7 +9,7 @@ class GRIMMReader(object):
     @staticmethod
     def is_genome_declaration_string(data_string):
         data_string = data_string.strip()
-        return data_string.startswith(">")
+        return data_string.startswith(">") and len(data_string) > 1
 
     @staticmethod
     def parse_genome_declaration_string(data_string):

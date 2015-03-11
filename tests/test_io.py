@@ -19,6 +19,10 @@ class GRIMMReaderTestCase(unittest.TestCase):
         self.assertFalse(GRIMMReader.is_genome_declaration_string("  t\t>genome"))
         self.assertFalse(GRIMMReader.is_genome_declaration_string("  t>genome"))
         self.assertFalse(GRIMMReader.is_genome_declaration_string("genome"))
+        self.assertFalse(GRIMMReader.is_genome_declaration_string(">"))
+        self.assertFalse(GRIMMReader.is_genome_declaration_string("     >   "))
+        self.assertFalse(GRIMMReader.is_genome_declaration_string("     >"))
+        self.assertFalse(GRIMMReader.is_genome_declaration_string(">   "))
 
     def test_parse_genome_declaration_string(self):
         self.assertEqual(GRIMMReader.parse_genome_declaration_string(">genome"), "genome")
