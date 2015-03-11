@@ -105,5 +105,15 @@ class GRIMMReaderTestCase(unittest.TestCase):
         reference = [("at__infinity", "at"), ("ah", "bh"), ("bt", "ah"), ("at", "at__infinity")]
         self.assertDictEqual(Counter(result), Counter(reference))
 
+        parsed_data = ("@", [("+", "a")])
+        result = GRIMMReader.get_edges_from_parsed_data(parsed_data)
+        reference = [("ah", "at")]
+        self.assertDictEqual(Counter(result), Counter(reference))
+
+        parsed_data = ("$", [("-", "a"), ("-", "a")])
+        result = GRIMMReader.get_edges_from_parsed_data(parsed_data)
+        reference = [("ah__infinity", "ah"), ("at", "ah"), ("at", "at__infinity")]
+        self.assertDictEqual(Counter(result), Counter(reference))
+
 if __name__ == '__main__':
     unittest.main()
