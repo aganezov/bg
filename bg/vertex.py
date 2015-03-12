@@ -3,6 +3,8 @@ __author__ = "Sergey Aganezov"
 __email__ = "aganezov(at)gwu.edu"
 __status__ = "develop"
 
+INFINITY_VERTEX_IDENTIFIER = "__infinity"
+
 
 class BGVertex(object):
     """ A wrapper class used to store information about vertex in the :class:`bg.breakpoint_graph.BreakpointGraph` data structure
