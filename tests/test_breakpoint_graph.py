@@ -92,6 +92,14 @@ class BreakpointGraphTestCase(unittest.TestCase):
         result = list(graph.get_edges_by_vertex(vertex=v1))
         self.assertTrue(edge1 in result)
         self.assertTrue(edge2 in result)
+        edge_1_key = min(graph.bg[v1][v2].keys())
+        edge_2_key = min(graph.bg[v1][v3].keys())
+        result = list(graph.get_edges_by_vertex(vertex=v1, keys=True))
+        for res_bgedge, res_key in result:
+            if res_bgedge == edge1:
+                self.assertEqual(edge_1_key, res_key)
+            else:
+                self.assertEqual(edge_2_key, res_key)
 
     def test_add_edge_with_already_existing_merge(self):
         graph = BreakpointGraph()
