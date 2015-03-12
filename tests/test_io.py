@@ -1,4 +1,6 @@
 from collections import Counter
+import io
+from bg import BreakpointGraph, Multicolor
 from bg.bg_io import GRIMMReader
 
 __author__ = 'Sergey Aganezov'
@@ -114,6 +116,62 @@ class GRIMMReaderTestCase(unittest.TestCase):
         result = GRIMMReader.get_edges_from_parsed_data(parsed_data)
         reference = [("ah__infinity", "ah"), ("at", "ah"), ("at", "at__infinity")]
         self.assertDictEqual(Counter(result), Counter(reference))
+
+    def test_get_breakpoint_from_file(self):
+        data = ["",
+                "\t",
+                ">genome_name_1",
+                "a b $",
+                "\tc -a @\t",
+                "\t>genome_name_2",
+                "a $",
+                "",
+                "\n\t"]
+        file_like = io.StringIO("\n".join(data))
+        result_bg = GRIMMReader.get_breakpoint_graph(file_like)
+        self.assertTrue(isinstance(result_bg, BreakpointGraph))
+        self.assertEqual(len(list(result_bg.connected_components_subgraphs())), 3)
+        self.assertEqual(len(list(result_bg.edges())), 6)
+        self.assertEqual(len(list(result_bg.nodes())), 9)
+        multicolors = [Multicolor("genome_name_1", "genome_name_2"),
+                       Multicolor("genome_name_1"),
+                       Multicolor("genome_name_2")]
+        for bgedge in result_bg.edges():
+            self.assertTrue(bgedge.multicolor in multicolors)
+        infinity_edges = [bgedge for bgedge in result_bg.edges() if bgedge.is_infinity_edge]
+        self.assertEqual(len(infinity_edges), 3)
+
+        data = [">genome_1",
+                "a $",
+                ">genome_2",
+                "a b $",
+                ">genome_3",
+                "a b c $",
+                ">genome_4",
+                "b c $",
+                ">genome_5",
+                "c $"]
+        file_like = io.StringIO("\n".join(data))
+        result_bg = GRIMMReader.get_breakpoint_graph(file_like)
+        self.assertTrue(isinstance(result_bg, BreakpointGraph))
+        self.assertEqual(len(list(result_bg.connected_components_subgraphs())), 4)
+        self.assertEqual(len(list(result_bg.edges())), 8)
+        self.assertEqual(len(list(result_bg.nodes())), 12)
+        multicolors = [Multicolor("genome_1", "genome_2", "genome_3"),
+                       Multicolor("genome_1"),
+                       Multicolor("genome_2", "genome_3"),
+                       Multicolor("genome_2"),
+                       Multicolor("genome_3", "genome_4"),
+                       Multicolor("genome_3", "genome_4", "genome_5"),
+                       Multicolor("genome_4"),
+                       Multicolor("genome_5")]
+        for bgedge in result_bg.edges():
+            self.assertTrue(bgedge.multicolor in multicolors)
+        infinity_edges = [bgedge for bgedge in result_bg.edges() if bgedge.is_infinity_edge]
+        self.assertEqual(len(infinity_edges), 6)
+        infinity_multicolors = [multicolor for multicolor in multicolors if len(multicolor.multicolors) != 2]
+        for bgedge in infinity_edges:
+            self.assertTrue(bgedge.multicolor in infinity_multicolors)
 
 if __name__ == '__main__':
     unittest.main()
