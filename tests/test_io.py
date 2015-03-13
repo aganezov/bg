@@ -117,6 +117,15 @@ class GRIMMReaderTestCase(unittest.TestCase):
         reference = [("ah__infinity", "ah"), ("at", "ah"), ("at", "at__infinity")]
         self.assertDictEqual(Counter(result), Counter(reference))
 
+    def test_is_comment_string(self):
+        self.assertTrue(GRIMMReader.is_comment_string("#"))
+        self.assertTrue(GRIMMReader.is_comment_string("     #"))
+        self.assertTrue(GRIMMReader.is_comment_string("#    "))
+        self.assertTrue(GRIMMReader.is_comment_string("     #    "))
+        self.assertTrue(GRIMMReader.is_comment_string("#  aaa  "))
+        self.assertFalse(GRIMMReader.is_comment_string("a# "))
+        self.assertTrue(GRIMMReader.is_comment_string("    ##  "))
+
     def test_get_breakpoint_from_file(self):
         data = ["",
                 "\t",

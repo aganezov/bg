@@ -42,6 +42,10 @@ class GRIMMReader(object):
         return data_string.startswith(">") and len(data_string) > 1
 
     @staticmethod
+    def is_comment_string(data_string):
+        return data_string.strip().startswith("#")
+
+    @staticmethod
     def parse_genome_declaration_string(data_string):
         data_string = data_string.strip()
         return data_string[1:]
