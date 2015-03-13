@@ -27,10 +27,12 @@ class GRIMMReader(object):
             4.5.2) block can be described by a regular expression ``^((-|\+).+$)|([^-\+]+$)`` and viewed as follows:
                 if the sign (``+`` or ``-``) is present as a first character, then it must be followed by a nonempty block name string
                 if sign is not present, everything is assumed to be a block name, and ``+`` orientation is assigned to it automatically
+    5) comment string starts with ``#`` sign and is ignored during data processing
 
     Main operations:
 
-    *   :meth:`GRIMMReader.is_genome_declaration_string`: checks is supplied string after stripping corresponds to ``genome declaration``
+    *   :meth:`GRIMMReader.is_genome_declaration_string`: checks if supplied string after stripping corresponds to ``genome declaration``
+    *   :meth:`GRIMMReader.is_comment_string`: check if supplied string after stripping corresponds to comment and shall thus be ignored in data processing
     *   :meth:`GRIMMReader.parse_genome_declaration_string`: parses a string marked as ``genome declaration`` and returns a corresponding genome name
     *   :meth:`GRIMMReader.parse_data_string`: parses a string assumed to contain gene order data, retrieving information about fragment type, gene order, blocks names and their orientation
     *   :meth:`GRIMMReader.get_edges_from_parsed_data`: taking into account fragment type (circular|linear) and retrieved gene order information translates adjacencies between blocks into edges for addition to the :class:`BreakpointGraph`
