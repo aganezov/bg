@@ -13,21 +13,26 @@ class GRIMMReader(object):
     For now GRIMM format is a bit simplified and straightened from the version provided at http://grimm.ucsd.edu/GRIMM/grimm_instr.html
 
     Supported GRIMM format:
-    1) all strings are stripped from both sides for tabs, spaces, etc. Below when said "string", stripped string is assumed
-    2) ``genome declaration`` is specified on a string that starts with ``>``
-        2.1) ``genome name`` is everything, that follows ``>`` sign
-    3) all input data before the next genome declaration (or EOF) will be attributed to this genome by its ``genome name``
-    4) a data string (containing information about gene orders) is a string that is not a genome declaration, comment, empty string
-        4.1) every new genomic fragments (chromosome/scaffold/contig/etc) must be specified on a new string
-        4.2) every data string must contain a ``$`` (for linear case) or ``@`` (for circular case) gene order terminator, that indicates the end of current genomic fragment
-        4.3) everything after the gene order terminator is ignored
-        4.4) if no gene order before gene order terminator is specified an error would be raised
-        4.5) gene order:
-            4.5.1) gene order is a sequence of space separated block name strings with optional orientation declaration
-            4.5.2) block can be described by a regular expression ``^((-|\+).+$)|([^-\+]+$)`` and viewed as follows:
+
+    #) all strings are stripped from both sides for tabs, spaces, etc. Below when said "string", stripped string is assumed
+    #) ``genome declaration`` is specified on a string that starts with ``>``
+
+       #) ``genome name`` is everything, that follows ``>`` sign
+
+    #) all input data before the next genome declaration (or EOF) will be attributed to this genome by its ``genome name``
+    #) a data string (containing information about gene orders) is a string that is not a genome declaration, comment, empty string
+
+        #) every new genomic fragments (chromosome/scaffold/contig/etc) must be specified on a new string
+        #) every data string must contain a ``$`` (for linear case) or ``@`` (for circular case) gene order terminator, that indicates the end of current genomic fragment
+        #) everything after the gene order terminator is ignored
+        #) if no gene order before gene order terminator is specified an error would be raised
+        #) gene order:
+            #) gene order is a sequence of space separated block name strings with optional orientation declaration
+            #) block can be described by a regular expression ``^((-|\+).+$)|([^-\+]+$)`` and viewed as follows:
                 if the sign (``+`` or ``-``) is present as a first character, then it must be followed by a nonempty block name string
                 if sign is not present, everything is assumed to be a block name, and ``+`` orientation is assigned to it automatically
-    5) comment string starts with ``#`` sign and is ignored during data processing
+
+    #) comment string starts with ``#`` sign and is ignored during data processing
 
     Main operations:
 
