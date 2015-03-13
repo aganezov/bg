@@ -32,28 +32,63 @@ class GRIMMReader(object):
     Main operations:
 
     *   :meth:`GRIMMReader.is_genome_declaration_string`: checks if supplied string after stripping corresponds to ``genome declaration``
-    *   :meth:`GRIMMReader.is_comment_string`: check if supplied string after stripping corresponds to comment and shall thus be ignored in data processing
+    *   :meth:`GRIMMReader.is_comment_string`: checks if supplied string after stripping corresponds to comment and shall thus be ignored in data processing
     *   :meth:`GRIMMReader.parse_genome_declaration_string`: parses a string marked as ``genome declaration`` and returns a corresponding genome name
     *   :meth:`GRIMMReader.parse_data_string`: parses a string assumed to contain gene order data, retrieving information about fragment type, gene order, blocks names and their orientation
-    *   :meth:`GRIMMReader.get_edges_from_parsed_data`: taking into account fragment type (circular|linear) and retrieved gene order information translates adjacencies between blocks into edges for addition to the :class:`BreakpointGraph`
-    *   :meth:`GRIMMReader.get_breakpoint_graph`: taking a file-like object transforms supplied gene order data into the language of
+    *   :meth:`GRIMMReader.get_edges_from_parsed_data`: taking into account fragment type (circular|linear) and retrieved gene order information translates adjacencies between blocks into edges for addition to the :class:`bg.breakpoint_graph.BreakpointGraph`
+    *   :meth:`GRIMMReader.get_breakpoint_graph`: taking a file-like object transforms supplied gene order data into the language of BreakpointGraph
     """
     @staticmethod
     def is_genome_declaration_string(data_string):
+        """ Checks if supplied string after stripping corresponds to ``genome declaration``
+
+        :param data_string: a string to check genome name declaration in
+        :type data_string: ``str``
+        :return: a flag indicating if supplied string corresponds to genome name declaration
+        :rtype: ``Boolean``
+        """
         data_string = data_string.strip()
         return data_string.startswith(">") and len(data_string) > 1
 
     @staticmethod
     def is_comment_string(data_string):
+        """ Checks if supplied string after stripping corresponds to comment and shall thus be ignored in data processing
+
+        :param data_string: a string to check if it is a pure comment string
+        :type data_string: ``str``
+        :return: a flag indicating if supplied string is a pure comment string
+        :rtype: ``Boolean``
+        """
         return data_string.strip().startswith("#")
 
     @staticmethod
     def parse_genome_declaration_string(data_string):
+        """ Parses a string marked as ``genome declaration`` and returns a corresponding genome name
+
+        :param data_string: a string to retrieve genome name from
+        :type data_string: ``str``
+        :return: genome name from supplied genome declaration string
+        :rtype: ``str``
+        """
         data_string = data_string.strip()
         return data_string[1:]
 
     @staticmethod
     def parse_data_string(data_string):
+        """ Parses a string assumed to contain gene order data, retrieving information about fragment type, gene order, blocks names and their orientation
+
+        First checks if gene order termination signs are present.
+        Selects the earliest one.
+        Checks that information preceding is not empty and contains gene order.
+        Generates results structure by retrieving information about fragment type, blocks names and orientations.
+
+        **NOTE:** comment signs do not work in data strings. Rather use the fact that after first gene order termination sign everything is ignored for processing
+
+        :param data_string: a string to retrieve gene order information from
+        :type data_string: ``str``
+        :return: (``$``|``@``, [(``+``|``-``, block_name),...]) formatted structure corresponding to gene order in supplied data string and containing fragments type
+        :rtype: ``tuple(str, list((str, str), ...))``
+        """
         data_string = data_string.strip()
         linear_terminator_index = data_string.index("$") if "$" in data_string else -1
         circular_terminator_index = data_string.index("@") if "@" in data_string else -1
@@ -77,12 +112,30 @@ class GRIMMReader(object):
 
     @staticmethod
     def __assign_vertex_pair(block):
+        """ Assigns usual BreakpointGraph type vertices to supplied block.
+
+        Vertices are labeled as "block_name" + "h" and "block_name" + "t" according to blocks orientation.
+
+        :param block: information about a genomic block to create a pair of vertices for in a format of (``+``|``-``, block_name)
+        :type block: ``(str, str)``
+        :return: a pair of vertices labeled according to supplied blocks name (respecting blocks orientation)
+        :rtype: ``(str, str)``
+        """
         sign, name = block
         tail, head = name + "t", name + "h"
         return (tail, head) if sign == "+" else (head, tail)
 
     @staticmethod
     def get_edges_from_parsed_data(parsed_data):
+        """ Taking into account fragment type (circular|linear) and retrieved gene order information translates adjacencies between blocks into edges for addition to the :class:`bg.breakpoint_graph.BreakpointGraph`
+
+        In case supplied fragment is linear (``$``) special artificial vertices (with ``__infinity`` suffix) are introduced to denote fragment extremities
+
+        :param parsed_data: (``$``|``@``, [(``+``|``-``, block_name),...]) formatted data about fragment type and ordered list of oriented blocks
+        :type parsed_data: ``tuple(str, list((str, str), ...))``
+        :return: a list of vertices pairs that would correspond to edges in :class:`bg.breakpoint_graph.BreakpointGraph`
+        :rtype: ``list((str, str), ...)``
+        """
         chr_type, blocks = parsed_data
         vertices = []
         for block in blocks:
@@ -100,6 +153,13 @@ class GRIMMReader(object):
 
     @staticmethod
     def get_breakpoint_graph(stream):
+        """ Taking a file-like object transforms supplied gene order data into the language of
+
+        :param stream: any iterable object where each iteration produces a ``str`` object
+        :type stream: ``iterable`` ver ``str``
+        :return: an instance of a BreakpointGraph that contains information about adjacencies in genome specified in GRIMM formatted input
+        :rtype: :class:`bg.breakpoint_graph.BreakpointGraph`
+        """
         result = BreakpointGraph()
         current_genome_name = None
         for line in stream:
