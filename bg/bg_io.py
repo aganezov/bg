@@ -7,6 +7,35 @@ __status__ = "develop"
 
 
 class GRIMMReader(object):
+    """ Class providing a staticmethod based implementation of reading GRIMM formatted data file-like object and obtain a :class:`BreakpointGraph` instance.
+
+    There are no private methods implementations for all public methods so inheritance shall be performed with caution.
+    For now GRIMM format is a bit simplified and straightened from the version provided at http://grimm.ucsd.edu/GRIMM/grimm_instr.html
+
+    Supported GRIMM format:
+    1) all strings are stripped from both sides for tabs, spaces, etc. Below when said "string", stripped string is assumed
+    2) ``genome declaration`` is specified on a string that starts with ``>``
+        2.1) ``genome name`` is everything, that follows ``>`` sign
+    3) all input data before the next genome declaration (or EOF) will be attributed to this genome by its ``genome name``
+    4) a data string (containing information about gene orders) is a string that is not a genome declaration, comment, empty string
+        4.1) every new genomic fragments (chromosome/scaffold/contig/etc) must be specified on a new string
+        4.2) every data string must contain a ``$`` (for linear case) or ``@`` (for circular case) gene order terminator, that indicates the end of current genomic fragment
+        4.3) everything after the gene order terminator is ignored
+        4.4) if no gene order before gene order terminator is specified an error would be raised
+        4.5) gene order:
+            4.5.1) gene order is a sequence of space separated block name strings with optional orientation declaration
+            4.5.2) block can be described by a regular expression ``^((-|\+).+$)|([^-\+]+$)`` and viewed as follows:
+                if the sign (``+`` or ``-``) is present as a first character, then it must be followed by a nonempty block name string
+                if sign is not present, everything is assumed to be a block name, and ``+`` orientation is assigned to it automatically
+
+    Main operations:
+
+    *   :meth:`GRIMMReader.is_genome_declaration_string`: checks is supplied string after stripping corresponds to ``genome declaration``
+    *   :meth:`GRIMMReader.parse_genome_declaration_string`: parses a string marked as ``genome declaration`` and returns a corresponding genome name
+    *   :meth:`GRIMMReader.parse_data_string`: parses a string assumed to contain gene order data, retrieving information about fragment type, gene order, blocks names and their orientation
+    *   :meth:`GRIMMReader.get_edges_from_parsed_data`: taking into account fragment type (circular|linear) and retrieved gene order information translates adjacencies between blocks into edges for addition to the :class:`BreakpointGraph`
+    *   :meth:`GRIMMReader.get_breakpoint_graph`: taking a file-like object transforms supplied gene order data into the language of
+    """
     @staticmethod
     def is_genome_declaration_string(data_string):
         data_string = data_string.strip()
