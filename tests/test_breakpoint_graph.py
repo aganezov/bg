@@ -62,6 +62,25 @@ class BreakpointGraphTestCase(unittest.TestCase):
         self.assertEqual(graph.bg.edges(v1, data=True)[0][2]["multicolor"], multicolor)
         self.assertEqual(graph.bg.edges(v2, data=True)[0][2]["multicolor"], multicolor)
 
+    def test_edges(self):
+        graph = BreakpointGraph()
+        v1 = BGVertex("v1")
+        v2 = BGVertex("v2")
+        v3 = BGVertex("v3")
+        multicolor1 = Multicolor("red")
+        multicolor2 = Multicolor("black")
+        edge1 = BGEdge(vertex1=v1, vertex2=v2, multicolor=multicolor1)
+        edge2 = BGEdge(vertex1=v1, vertex2=v3, multicolor=multicolor2)
+        graph.add_edge(vertex1=v1, vertex2=v2, multicolor=multicolor1)
+        graph.add_edge(vertex1=v1, vertex2=v3, multicolor=multicolor2)
+        edge_1_key = min(graph.bg[v2][v1].keys())
+        edge_2_key = min(graph.bg[v3][v1].keys())
+        for bgedge, key in graph.edges(keys=True):
+            if bgedge == edge1:
+                self.assertEqual(edge_1_key, key)
+            elif bgedge == edge2:
+                self.assertEqual(edge_2_key, key)
+
     def test_get_edge_by_two_vertices(self):
         graph = BreakpointGraph()
         v1 = BGVertex("v1")
