@@ -56,7 +56,7 @@ class GRIMMReader(object):
         linear_terminator_index = data_string.index("$") if "$" in data_string else -1
         circular_terminator_index = data_string.index("@") if "@" in data_string else -1
         if linear_terminator_index < 0 and circular_terminator_index < 0:
-            raise ValueError("Invalid data string. No chromosome termination sign (+|-_ found.")
+            raise ValueError("Invalid data string. No chromosome termination sign (+|-) found.")
         if linear_terminator_index == 0 or circular_terminator_index == 0:
             raise ValueError("Invalid data string. No data found before chromosome was terminated.")
         if linear_terminator_index < 0 or 0 < circular_terminator_index < linear_terminator_index:
@@ -106,6 +106,8 @@ class GRIMMReader(object):
                 continue
             if GRIMMReader.is_genome_declaration_string(data_string=line):
                 current_genome_name = GRIMMReader.parse_genome_declaration_string(data_string=line)
+            elif GRIMMReader.is_comment_string(data_string=line):
+                continue
             elif current_genome_name is not None:
                 parsed_data = GRIMMReader.parse_data_string(data_string=line)
                 edges = GRIMMReader.get_edges_from_parsed_data(parsed_data=parsed_data)
