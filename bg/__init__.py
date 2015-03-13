@@ -8,9 +8,11 @@ version = "1.0.0a"
 __all__ = ["breakpoint_graph",
            "vertex",
            "multicolor",
-           "edge"]
+           "edge",
+           "bg_io"]
 
 from bg.breakpoint_graph import BreakpointGraph
 from bg.vertex import BGVertex
 from bg.edge import BGEdge
 from bg.multicolor import Multicolor
+from bg.bg_io import GRIMMReader
