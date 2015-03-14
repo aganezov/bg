@@ -112,6 +112,8 @@ class GRIMMReader(object):
         blocks = []
         for block in split_data:
             cut_index = 1 if block.startswith("-") or block.startswith("+") else 0
+            if cut_index == 1 and len(block) == 1:
+                raise ValueError("Empty block name definition")
             blocks.append(("-" if block.startswith("-") else "+", block[cut_index:]))
         return chr_type, blocks
 

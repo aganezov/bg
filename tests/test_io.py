@@ -44,8 +44,9 @@ class GRIMMReaderTestCase(unittest.TestCase):
         data_string_7 = "$a d s d"
         data_string_8 = "$-a d s d"
         data_string_9 = "@+a d s d"
+        data_string_10 = "a b - -c d e $"
         for data_string in [data_string_1, data_string_2, data_string_3, data_string_4, data_string_5,
-                            data_string_6, data_string_7, data_string_8, data_string_9]:
+                            data_string_6, data_string_7, data_string_8, data_string_9, data_string_10]:
             with self.assertRaises(ValueError):
                 GRIMMReader.parse_data_string(data_string)
 
