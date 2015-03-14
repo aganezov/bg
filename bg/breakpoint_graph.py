@@ -7,7 +7,7 @@ from bg.vertex import BGVertex
 
 __author__ = "Sergey Aganezov"
 __email__ = "aganezov(at)gwu.edu"
-__status__ = "develop"
+__status__ = "production"
 from networkx import MultiGraph
 import networkx as nx
 
@@ -59,30 +59,38 @@ class BreakpointGraph(object):
         else:
             self.bg = graph
 
-    def __edges(self, nbunch=None):
+    def __edges(self, nbunch=None, keys=False):
         """ Iterates over edges in current :class:`BreakpointGraph` instance.
 
         Returns a generator over the edges in current :class:`BreakpointGraph` instance producing instances of :class:`bg.edge.BGEdge` instances wrapping around information in underlying MultiGraph object.
 
         :param nbunch: a vertex to iterate over edges outgoing from, if not provided,iteration over all edges is performed.
         :type nbuch: any hashable python object
+        :param keys: a flag to indicate if information about unique edge's ids has to be returned alongside with edge
+        :type keys: ``Boolean``
         :return: generator over edges in current :class:`BreakpointGraph`
         :rtype: ``generator``
         """
-        for v1, v2, data in self.bg.edges_iter(nbunch=nbunch, data=True):
-            yield BGEdge(vertex1=v1, vertex2=v2, multicolor=data["multicolor"])
+        for v1, v2, key, data in self.bg.edges_iter(nbunch=nbunch, data=True, keys=True):
+            bgedge = BGEdge(vertex1=v1, vertex2=v2, multicolor=data["multicolor"])
+            if not keys:
+                yield bgedge
+            else:
+                yield bgedge, key
 
-    def edges(self, nbunch=None):
+    def edges(self, nbunch=None, keys=False):
         """ Iterates over edges in current :class:`BreakpointGraph` instance.
 
         Proxies a call to :meth:`BreakpointGraph._BreakpointGraph__edges`.
 
         :param nbunch: a vertex to iterate over edges outgoing from, if not provided,iteration over all edges is performed.
         :type nbuch: any hashable python object
+        :param keys: a flag to indicate if information about unique edge's ids has to be returned alongside with edge
+        :type keys: ``Boolean``
         :return: generator over edges in current :class:`BreakpointGraph`
         :rtype: ``generator``
         """
-        yield from self.__edges(nbunch=nbunch)
+        yield from self.__edges(nbunch=nbunch, keys=keys)
 
     def nodes(self):
         """ Iterates over nodes in current :class:`BreakpointGraph` instance.
@@ -201,32 +209,39 @@ class BreakpointGraph(object):
         """
         return self.__get_edge_by_two_vertices(vertex1=vertex1, vertex2=vertex2, key=key)
 
-    def __get_edges_by_vertex(self, vertex):
+    def __get_edges_by_vertex(self, vertex, keys=False):
         """ Iterates over edges that are incident to supplied vertex argument in current :class:`BreakpointGraph`
 
         Checks that the supplied vertex argument exists in underlying MultiGraph object as a vertex, then iterates over all edges that are incident to it. Wraps each yielded object into :class:`bg.edge.BGEdge` object.
 
         :param vertex: a vertex object in current :class:`BreakpointGraph` object
         :type vertex: any hashable object. :class:`bg.vertex.BGVertex` object is expected.
-        :return: generator over edges in current :class:`BreakpointGraph` wrapped in :class:`bg.vertex.BGEVertex`
+        :param keys: a flag to indicate if information about unique edge's ids has to be returned alongside with edge
+        :type keys: ``Boolean``
+        :return: generator over edges (tuples ``edge, edge_id`` if keys specified) in current :class:`BreakpointGraph` wrapped in :class:`bg.vertex.BGEVertex`
         :rtype: ``generator``
         """
         if vertex in self.bg:
             for vertex2, edges in self.bg[vertex].items():
-                for _, data in self.bg[vertex][vertex2].items():
-                    yield BGEdge(vertex1=vertex, vertex2=vertex2, multicolor=data["multicolor"])
+                for key, data in self.bg[vertex][vertex2].items():
+                    if keys:
+                        yield BGEdge(vertex1=vertex, vertex2=vertex2, multicolor=data["multicolor"]), key
+                    else:
+                        yield BGEdge(vertex1=vertex, vertex2=vertex2, multicolor=data["multicolor"])
 
-    def get_edges_by_vertex(self, vertex):
+    def get_edges_by_vertex(self, vertex, keys=False):
         """ Iterates over edges that are incident to supplied vertex argument in current :class:`BreakpointGraph`
 
         Proxies a call to :meth:`Breakpoint._Breakpoint__get_edges_by_vertex` method.
 
         :param vertex: a vertex object in current :class:`BreakpointGraph` object
         :type vertex: any hashable object. :class:`bg.vertex.BGVertex` object is expected.
-        :return: generator over edges in current :class:`BreakpointGraph` wrapped in :class:`bg.vertex.BGEVertex`
+        :param keys: a flag to indicate if information about unique edge's ids has to be returned alongside with edge
+        :type keys: ``Boolean``
+        :return: generator over edges (tuples ``edge, edge_id`` if keys specified) in current :class:`BreakpointGraph` wrapped in :class:`bg.vertex.BGEVertex`
         :rtype: ``generator``
         """
-        yield from self.__get_edges_by_vertex(vertex=vertex)
+        yield from self.__get_edges_by_vertex(vertex=vertex, keys=keys)
 
     def connected_components_subgraphs(self, copy=True):
         """ Iterates over connected components in current :class:`BreakpointGraph` object, and yields new instances of :class:`BreakpointGraph` with respective information deep-copied by default (week reference is possible of specified in method call).

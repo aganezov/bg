@@ -1,7 +1,9 @@
 # -*- coding: utf-8 -*-
+from bg.vertex import INFINITY_VERTEX_IDENTIFIER
+
 __author__ = "Sergey Aganezov"
 __email__ = "aganezov(at)gwu.edu"
-__status__ = "develop"
+__status__ = "production"
 
 
 class BGEdge(object):
@@ -79,3 +81,7 @@ class BGEdge(object):
             return self.vertex2 == other.vertex2 and multicolor_equality
         else:
             return self.vertex2 == other.vertex1 and multicolor_equality
+
+    @property
+    def is_infinity_edge(self):
+        return INFINITY_VERTEX_IDENTIFIER in self.vertex1.name or INFINITY_VERTEX_IDENTIFIER in self.vertex2.name

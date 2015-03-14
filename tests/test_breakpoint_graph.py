@@ -5,7 +5,7 @@ from bg.vertex import BGVertex
 
 __author__ = "Sergey Aganezov"
 __email__ = "aganezov(at)gwu.edu"
-__status__ = "develop"
+__status__ = "production"
 
 import unittest
 from bg.breakpoint_graph import BreakpointGraph
@@ -62,6 +62,25 @@ class BreakpointGraphTestCase(unittest.TestCase):
         self.assertEqual(graph.bg.edges(v1, data=True)[0][2]["multicolor"], multicolor)
         self.assertEqual(graph.bg.edges(v2, data=True)[0][2]["multicolor"], multicolor)
 
+    def test_edges(self):
+        graph = BreakpointGraph()
+        v1 = BGVertex("v1")
+        v2 = BGVertex("v2")
+        v3 = BGVertex("v3")
+        multicolor1 = Multicolor("red")
+        multicolor2 = Multicolor("black")
+        edge1 = BGEdge(vertex1=v1, vertex2=v2, multicolor=multicolor1)
+        edge2 = BGEdge(vertex1=v1, vertex2=v3, multicolor=multicolor2)
+        graph.add_edge(vertex1=v1, vertex2=v2, multicolor=multicolor1)
+        graph.add_edge(vertex1=v1, vertex2=v3, multicolor=multicolor2)
+        edge_1_key = min(graph.bg[v2][v1].keys())
+        edge_2_key = min(graph.bg[v3][v1].keys())
+        for bgedge, key in graph.edges(keys=True):
+            if bgedge == edge1:
+                self.assertEqual(edge_1_key, key)
+            elif bgedge == edge2:
+                self.assertEqual(edge_2_key, key)
+
     def test_get_edge_by_two_vertices(self):
         graph = BreakpointGraph()
         v1 = BGVertex("v1")
@@ -92,6 +111,14 @@ class BreakpointGraphTestCase(unittest.TestCase):
         result = list(graph.get_edges_by_vertex(vertex=v1))
         self.assertTrue(edge1 in result)
         self.assertTrue(edge2 in result)
+        edge_1_key = min(graph.bg[v1][v2].keys())
+        edge_2_key = min(graph.bg[v1][v3].keys())
+        result = list(graph.get_edges_by_vertex(vertex=v1, keys=True))
+        for res_bgedge, res_key in result:
+            if res_bgedge == edge1:
+                self.assertEqual(edge_1_key, res_key)
+            else:
+                self.assertEqual(edge_2_key, res_key)
 
     def test_add_edge_with_already_existing_merge(self):
         graph = BreakpointGraph()

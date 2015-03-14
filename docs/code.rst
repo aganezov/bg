@@ -2,6 +2,17 @@ API documentation
 =================
 
 
+bg_io.py
+~~~~~~~~
+
+.. automodule:: bg.bg_io
+   :members:
+   :private-members:
+   :special-members:
+   :exclude-members: __dict__, __weakref__
+   :show-inheritance:
+
+
 breakpoint_graph.py
 ~~~~~~~~~~~~~~~~~~~
 

@@ -1,7 +1,9 @@
 # -*- coding: utf-8 -*-
 __author__ = "Sergey Aganezov"
 __email__ = "aganezov(at)gwu.edu"
-__status__ = "develop"
+__status__ = "production"
+
+INFINITY_VERTEX_IDENTIFIER = "__infinity"
 
 
 class BGVertex(object):

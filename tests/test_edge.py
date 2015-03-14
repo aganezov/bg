@@ -4,7 +4,7 @@ from bg.vertex import BGVertex
 
 __author__ = "Sergey Aganezov"
 __email__ = "aganezov(at)gwu.edu"
-__status__ = "develop"
+__status__ = "production"
 
 import unittest
 from bg.edge import BGEdge
@@ -88,6 +88,22 @@ class BGEdgeTestCase(unittest.TestCase):
         self.assertNotEqual(edge1, 5)
         edge6 = BGEdge(vertex1=v3, vertex2=v1, multicolor=multicolor)
         self.assertNotEqual(edge1, edge6)
+
+    def test_is_infinity_edge(self):
+        v1 = BGVertex("v1")
+        v2 = BGVertex("v2")
+        v3 = BGVertex("v3__infinity")
+        multicolor = Multicolor("blue")
+        edge1 = BGEdge(vertex1=v1, vertex2=v2, multicolor=multicolor)
+        edge2 = BGEdge(vertex1=v1, vertex2=v3, multicolor=multicolor)
+        edge3 = BGEdge(vertex1=v3, vertex2=v1, multicolor=multicolor)
+        edge4 = BGEdge(vertex1=v3, vertex2=v3, multicolor=multicolor)
+        self.assertFalse(edge1.is_infinity_edge)
+        self.assertTrue(edge2.is_infinity_edge)
+        self.assertTrue(edge3.is_infinity_edge)
+        self.assertTrue(edge4.is_infinity_edge)
+
+
 
 if __name__ == '__main__':  # pragma: no cover
     unittest.main()         # pragma: no cover
