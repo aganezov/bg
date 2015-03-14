@@ -5,7 +5,7 @@ from bg.vertex import BGVertex
 
 __author__ = "Sergey Aganezov"
 __email__ = "aganezov(at)gwu.edu"
-__status__ = "develop"
+__status__ = "production"
 
 import unittest
 from bg.breakpoint_graph import BreakpointGraph
