@@ -15,7 +15,7 @@ setup(
     keywords=["breakpoint graph", "data structures", "python"],
     url="https://github.com/sergey-aganezov-jr/bg",
     classifiers=[
-        "Development Status :: 2 - Pre-Alpha",
+        "Development Status :: 5 - Production/Stable",
         "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
         'Programming Language :: Python',
         'Programming Language :: Python :: 3',
