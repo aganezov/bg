@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 from collections import Counter
-from bg import BGEdge
+
 
 __author__ = "Sergey Aganezov"
 __email__ = "aganezov(at)gwu.edu"
