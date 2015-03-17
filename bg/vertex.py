@@ -49,3 +49,9 @@ class BGVertex(object):
         if not isinstance(other, BGVertex):
             return False
         return self.name == other.name
+
+    @staticmethod
+    def construct_infinity_vertex_companion(vertex):
+        if isinstance(vertex, BGVertex):
+            return BGVertex(vertex.name + INFINITY_VERTEX_IDENTIFIER)
+        return vertex + INFINITY_VERTEX_IDENTIFIER
