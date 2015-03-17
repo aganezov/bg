@@ -59,5 +59,29 @@ class KBreakTestCase(unittest.TestCase):
         end_edges = [(v1, v1), (v2, v2), (v3, v3)]
         self.assertTrue(KBreak.valid_kbreak_matchings(start_edges, end_edges))
 
+    def test_initialization_incorrect_bad_edge_sets(self):
+        # case when initialization is overall correct, in terms of cardinality of supplied sets of vertices
+        # all arguments are present
+        # but supplied edges in terms of vertices do not correspond to correct k-break
+        v1, v2, v3, v4 = BGVertex("v1"), BGVertex("v2"), BGVertex("v3"), BGVertex("v4")
+        mock_multicolor = Mock(spec=Multicolor)
+        start_edges = [(v1, v2), (v3, v4)]
+        end_edges = [(v1, v3), (v2, v2)]
+        with self.assertRaises(ValueError):
+            KBreak(start_edges=start_edges,
+                   result_edges=end_edges,
+                   multicolor=mock_multicolor)
+        end_edges = [(v1, v3), (v2, v4), (v1, v3)]
+        with self.assertRaises(ValueError):
+            KBreak(start_edges=start_edges,
+                   result_edges=end_edges,
+                   multicolor=mock_multicolor)
+        start_edges = [(v1, v2), (v2, v3), (v1, v3)]
+        end_edges = [(v1, v2), (v2, v3), (v2, v3)]
+        with self.assertRaises(ValueError):
+            KBreak(start_edges=start_edges,
+                   result_edges=end_edges,
+                   multicolor=mock_multicolor)
+
 if __name__ == '__main__':
     unittest.main()

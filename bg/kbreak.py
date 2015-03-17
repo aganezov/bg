@@ -22,6 +22,11 @@ class KBreak(object):
                 raise ValueError("Expected edges in a form of pairs of vertices.\n "
                                  "Not a pair of vertices ({issue}) in result edges."
                                  "".format(issue=str(vertex_pair)))
+        if not KBreak.valid_kbreak_matchings(start_edges=self.start_edges,
+                                             result_edges=self.result_edges):
+            raise ValueError("Supplied sets of start and result edges do not correspond to "
+                             "correct k-break operation (either the set of vertices is not consistent, or "
+                             "the degrees of vertices change)")
 
     @staticmethod
     def valid_kbreak_matchings(start_edges, result_edges):
