@@ -38,6 +38,7 @@ class GRIMMReader(object):
     *   :meth:`GRIMMReader.get_edges_from_parsed_data`: taking into account fragment type (circular|linear) and retrieved gene order information translates adjacencies between blocks into edges for addition to the :class:`bg.breakpoint_graph.BreakpointGraph`
     *   :meth:`GRIMMReader.get_breakpoint_graph`: taking a file-like object transforms supplied gene order data into the language of BreakpointGraph
     """
+
     @staticmethod
     def is_genome_declaration_string(data_string):
         """ Checks if supplied string after stripping corresponds to ``genome declaration``
@@ -146,7 +147,8 @@ class GRIMMReader(object):
             vertex = vertices.pop()
             vertices.insert(0, vertex)
         else:
-            infty_vertex1, infty_vertex2 = vertices[0] + "__infinity", vertices[-1] + "__infinity"
+            infty_vertex1, infty_vertex2 = BGVertex.construct_infinity_vertex_companion(
+                vertices[0]), BGVertex.construct_infinity_vertex_companion(vertices[-1])
             vertices.insert(0, infty_vertex1)
             vertices.append(infty_vertex2)
         return [(v1, v2) for v1, v2 in zip(vertices[::2], vertices[1::2])]
