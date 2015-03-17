@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+from collections import Counter
 from bg import BGEdge
 
 __author__ = "Sergey Aganezov"
@@ -21,3 +22,9 @@ class KBreak(object):
                 raise ValueError("Expected edges in a form of pairs of vertices.\n "
                                  "Not a pair of vertices ({issue}) in result edges."
                                  "".format(issue=str(vertex_pair)))
+
+    @staticmethod
+    def valid_kbreak_matchings(start_edges, result_edges):
+        start_stats = Counter(vertex for vertex_pair in start_edges for vertex in vertex_pair)
+        result_stats = Counter(vertex for vertex_pair in result_edges for vertex in vertex_pair)
+        return start_stats == result_stats
