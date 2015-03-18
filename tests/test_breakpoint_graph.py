@@ -1884,5 +1884,24 @@ class BreakpointGraphTestCase(unittest.TestCase):
         with self.assertRaises(ValueError):
             bg.apply_kbreak(kbreak=kbreak)
 
+    def test_apply_kbreak_incorrect_non_existing_vertices(self):
+        # usual vertices that are specified in KBreak (both in starting and resulting edges)
+        # must be present in BreakpointGraph instance
+        bg = BreakpointGraph()
+        v1, v2, v3, v4 = BGVertex("v1"), BGVertex("v2"), BGVertex("v3"), BGVertex("v4")
+        v5 = BGVertex("v5")
+        multicolor = Multicolor("green")
+        bgedge1 = BGEdge(vertex1=v1, vertex2=v2, multicolor=multicolor)
+        bgedge2 = BGEdge(vertex1=v3, vertex2=v4, multicolor=multicolor)
+        bg.add_bgedge(bgedge1)
+        bg.add_bgedge(bgedge2)
+        start_edges = [(v1, v5), (v3, v4)]
+        end_edges = [(v1, v3), (v5, v4)]
+        kbreak = KBreak(start_edges=start_edges,
+                        result_edges=end_edges,
+                        multicolor=multicolor)
+        with self.assertRaises(ValueError):
+            bg.apply_kbreak(kbreak=kbreak)
+
 if __name__ == '__main__':  # pragma: no cover
     unittest.main()  # pragma: no cover

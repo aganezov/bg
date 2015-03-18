@@ -46,6 +46,7 @@ class BreakpointGraph(object):
     *   :meth:`BreakpointGraph.merge`: merges two :class:`BreakpointGraph` instances with respect to vertices, edges, and multicolors.
     *   :meth:`BreakpointGraph.update`: updates information in current :class:`BreakpointGraph` instance by adding new :class:`bg.edge.BGEdge` instances form supplied :class:`BreakpointGraph`.
     """
+
     def __init__(self, graph=None):
         """ Initialization of a :class:`BreakpointGraph` object.
 
@@ -567,3 +568,9 @@ class BreakpointGraph(object):
             raise TypeError("Only KBreak and derivatives are allowed as kbreak argument")
         if not KBreak.valid_kbreak_matchings(kbreak.start_edges, kbreak.result_edges):
             raise ValueError("Supplied KBreak is not valid form perspective of starting/resulting sets of vertices")
+        for vertex_set in (kbreak.start_edges, kbreak.result_edges):
+            for vertex1, vertex2 in vertex_set:
+                if vertex1 not in self.bg or vertex2 not in self.bg:
+                    raise ValueError("Supplied KBreak targets vertices (`{v1}` and `{v2}`) at least one of which "
+                                     "does not exist in current BreakpointGraph"
+                                     "".format(v1=vertex1.name, v2=vertex2.name))
