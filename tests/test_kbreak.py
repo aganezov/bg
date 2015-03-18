@@ -83,5 +83,17 @@ class KBreakTestCase(unittest.TestCase):
                    result_edges=end_edges,
                    multicolor=mock_multicolor)
 
+    def test_initialization(self):
+        v1, v2, v3, v4 = BGVertex("v1"), BGVertex("v2"), BGVertex("v3"), BGVertex("v4")
+        mock_multicolor = Mock(spec=Multicolor)
+        start_edges = [(v1, v2), (v3, v4)]
+        end_edges = [(v1, v3), (v2, v4)]
+        kbreak = KBreak(start_edges=start_edges,
+                        result_edges=end_edges,
+                        multicolor=mock_multicolor)
+        self.assertListEqual(kbreak.start_edges, start_edges)
+        self.assertListEqual(kbreak.result_edges, end_edges)
+        self.assertEqual(kbreak.multicolor, mock_multicolor)
+
 if __name__ == '__main__':
     unittest.main()
