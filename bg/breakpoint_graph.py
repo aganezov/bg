@@ -2,6 +2,7 @@
 from copy import deepcopy
 import itertools
 from bg.edge import BGEdge
+from bg.kbreak import KBreak
 from bg.multicolor import Multicolor
 from bg.vertex import BGVertex
 
@@ -560,3 +561,9 @@ class BreakpointGraph(object):
         """
         self.__update(breakpoint_graph=breakpoint_graph,
                       merge_edges=merge_edges)
+
+    def apply_kbreak(self, kbreak):
+        if not isinstance(kbreak, KBreak):
+            raise TypeError("Only KBreak and derivatives are allowed as kbreak argument")
+        if not KBreak.valid_kbreak_matchings(kbreak.start_edges, kbreak.result_edges):
+            raise ValueError("Supplied KBreak is not valid form perspective of starting/resulting sets of vertices")

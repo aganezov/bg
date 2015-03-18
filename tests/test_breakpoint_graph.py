@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
+from unittest.mock import Mock
 from bg.edge import BGEdge
+from bg.kbreak import KBreak
 from bg.multicolor import Multicolor
 from bg.vertex import BGVertex
 
@@ -1851,6 +1853,36 @@ class BreakpointGraphTestCase(unittest.TestCase):
         self.assertEqual(len(bgedges), 4)
         for bgedge in bgedges:
             self.assertTrue(bgedge.multicolor in multicolors)
+
+    def test_apply_kbreak_incorrect_argument_type(self):
+        # only KBreak instances and derivatives are allowed as ``kbreak`` argument to
+        # BreakpointGraph.apply_kbreak method
+        bg = BreakpointGraph()
+        bad_arguments = [1, "a", (1,), [1]]
+        for argument in bad_arguments:
+            with self.assertRaises(TypeError):
+                bg.apply_kbreak(kbreak=argument)
+
+    def test_apply_kbreak_incorrect_invalid_kbreak(self):
+        # a case when kbreak attributes were changed after its creation
+        # the validity check has to be performed before a kbreak is applied
+        bg = BreakpointGraph()
+        v1, v2, v3, v4 = BGVertex("v1"), BGVertex("v2"), BGVertex("v3"), BGVertex("v4")
+        mock_multicolor = Mock(spec=Multicolor)
+        start_edges = [(v1, v2), (v3, v4)]
+        end_edges = [(v1, v3), (v2, v4)]
+        kbreak = KBreak(start_edges=start_edges,
+                        result_edges=end_edges,
+                        multicolor=mock_multicolor)
+        kbreak.result_edges = [(v1, v3), (v2, v2)]
+        with self.assertRaises(ValueError):
+            bg.apply_kbreak(kbreak=kbreak)
+        kbreak = KBreak(start_edges=start_edges,
+                        result_edges=end_edges,
+                        multicolor=mock_multicolor)
+        kbreak.start_edges = [(v2, v2), (v1, v3)]
+        with self.assertRaises(ValueError):
+            bg.apply_kbreak(kbreak=kbreak)
 
 if __name__ == '__main__':  # pragma: no cover
     unittest.main()  # pragma: no cover
