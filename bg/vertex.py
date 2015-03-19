@@ -67,4 +67,11 @@ class BGVertex(object):
 
     @staticmethod
     def is_infinity_vertex(vertex):
+        """ Check is supplied vertex is an "infinity" vertex in :class:`bg.breakpoint_graph.BreakpointGraph`
+
+        :param vertex: a vertex to check "infinity" properties in
+        :type vertex: any with ``name`` attribute, :class:`BGVertex` is expected
+        :return: a flag indicating if supplied vertex is an "infinity" vertex
+        :rtype: ``Boolean``
+        """
         return INFINITY_VERTEX_IDENTIFIER in vertex.name
