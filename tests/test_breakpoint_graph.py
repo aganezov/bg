@@ -1854,6 +1854,50 @@ class BreakpointGraphTestCase(unittest.TestCase):
         for bgedge in bgedges:
             self.assertTrue(bgedge.multicolor in multicolors)
 
+    def test_edges_between_two_vertices(self):
+        bg = BreakpointGraph()
+        v1 = BGVertex("v1")
+        v2 = BGVertex("v2")
+        v3 = BGVertex("v3")
+        m = Multicolor("green")
+        m2 = Multicolor("black")
+        bgedge1 = BGEdge(vertex1=v1, vertex2=v2, multicolor=m)
+        bgedge2 = BGEdge(vertex1=v1, vertex2=v2, multicolor=m2)
+        bgedge3 = BGEdge(vertex1=v1, vertex2=v3, multicolor=m)
+        bg.add_bgedge(bgedge=bgedge1)
+        bg.add_bgedge(bgedge=bgedge1, merge=False)
+        bg.add_bgedge(bgedge=bgedge2, merge=False)
+        bg.add_bgedge(bgedge=bgedge3)
+        ref_edges = [bgedge1, bgedge2]
+        ref_keys = list(bg.bg[v1][v2].keys())
+        for bgedge in bg.edges_between_two_vertices(vertex1=v1, vertex2=v2):
+            self.assertTrue(bgedge in ref_edges)
+        for bgedge, key in bg.edges_between_two_vertices(vertex1=v1, vertex2=v2, keys=True):
+            self.assertTrue(bgedge in ref_edges)
+            self.assertTrue(key in ref_keys)
+        for bgedge in bg.edges_between_two_vertices(vertex1=v2, vertex2=v1):
+            self.assertTrue(bgedge in ref_edges)
+        for bgedge, key in bg.edges_between_two_vertices(vertex1=v2, vertex2=v1, keys=True):
+            self.assertTrue(bgedge in ref_edges)
+            self.assertTrue(key in ref_keys)
+
+    def test_edges_between_two_vertices_incorrect(self):
+        bg = BreakpointGraph()
+        v1 = BGVertex("v1")
+        v2 = BGVertex("v2")
+        v3 = BGVertex("v3")
+        m = Multicolor("green")
+        bgedge1 = BGEdge(vertex1=v1, vertex2=v2, multicolor=m)
+        bg.add_bgedge(bgedge=bgedge1)
+        with self.assertRaises(ValueError):
+            next(bg.edges_between_two_vertices(vertex1=v1, vertex2=v3))
+        with self.assertRaises(ValueError):
+            next(bg.edges_between_two_vertices(vertex1=v1, vertex2=v3, keys=True))
+        with self.assertRaises(ValueError):
+            next(bg.edges_between_two_vertices(vertex1=v3, vertex2=v1))
+        with self.assertRaises(ValueError):
+            next(bg.edges_between_two_vertices(vertex1=v3, vertex2=v1, keys=True))
+
     def test_apply_kbreak_incorrect_argument_type(self):
         # only KBreak instances and derivatives are allowed as ``kbreak`` argument to
         # BreakpointGraph.apply_kbreak method
@@ -1902,6 +1946,60 @@ class BreakpointGraphTestCase(unittest.TestCase):
                         multicolor=multicolor)
         with self.assertRaises(ValueError):
             bg.apply_kbreak(kbreak=kbreak)
+
+    def test_apply_kbreak_incorrect_non_existing_edge(self):
+        # case when all targeted by kbreak vertices are present but not all pairs of starting edges with specified
+        # multicolor actually correspond to existing edges (no subedge_allowed option is specified)
+        bg = BreakpointGraph()
+        v1, v2, v3, v4 = BGVertex("v1"), BGVertex("v2"), BGVertex("v3"), BGVertex("v4")
+        multicolor = Multicolor("green")
+        bgedge1 = BGEdge(vertex1=v1, vertex2=v2, multicolor=multicolor)
+        bgedge2 = BGEdge(vertex1=v3, vertex2=v4, multicolor=multicolor)
+        bg.add_bgedge(bgedge1)
+        bg.add_bgedge(bgedge2)
+        start_edges = [(v1, v3), (v2, v4)]
+        end_edges = [(v1, v3), (v2, v4)]
+        kbreak = KBreak(start_edges=start_edges,
+                        result_edges=end_edges,
+                        multicolor=multicolor)
+        with self.assertRaises(ValueError):
+            bg.apply_kbreak(kbreak=kbreak)
+        # case when all targeted edges exists (in terms of pairs of vertices), but not all of
+        # them comply with kbreak multicolor
+        bg = BreakpointGraph()
+        v1, v2, v3, v4 = BGVertex("v1"), BGVertex("v2"), BGVertex("v3"), BGVertex("v4")
+        multicolor = Multicolor("green")
+        multicolor2 = Multicolor("black")
+        bgedge1 = BGEdge(vertex1=v1, vertex2=v1, multicolor=multicolor)
+        bgedge2 = BGEdge(vertex1=v3, vertex2=v4, multicolor=multicolor)
+        bgedge3 = BGEdge(vertex1=v1, vertex2=v2, multicolor=multicolor2)
+        bg.add_bgedge(bgedge1)
+        bg.add_bgedge(bgedge2)
+        bg.add_bgedge(bgedge3)
+        with self.assertRaises(ValueError):
+            bg.apply_kbreak(kbreak=kbreak)
+
+    def test_apply_kbreak_incorrect_non_existing_single_start_infinity_vertex(self):
+        # infinity vertices can be created if needed, but must be present at start, if infinity edges are targeted
+        # ======================================================================
+        # the only exception if a pair of non-existing infinity vertices are targeted together
+        # (a desire to create two new infinity edges, by breaking an imaginary edge between two infinity edges)
+        # will be tested later
+        bg = BreakpointGraph()
+        v1, v2, v3 = BGVertex("v1"), BGVertex("v2"), BGVertex("v3")
+        iv1 = BGVertex.construct_infinity_vertex_companion(v1)
+        multicolor = Multicolor("green")
+        bgedge1 = BGEdge(vertex1=v1, vertex2=v2, multicolor=multicolor)
+        bgedge2 = BGEdge(vertex1=v1, vertex2=v2, multicolor=multicolor)
+        bg.add_bgedge(bgedge1)
+        bg.add_bgedge(bgedge2)
+        start_edges = [(v1, iv1), (v1, v2)]
+        end_edges = [(iv1, v2), (v1, v1)]
+        kbreak = KBreak(start_edges=start_edges,
+                        result_edges=end_edges,
+                        multicolor=multicolor)
+        with self.assertRaises(ValueError):
+            bg.apply_kbreak(kbreak)
 
 if __name__ == '__main__':  # pragma: no cover
     unittest.main()  # pragma: no cover

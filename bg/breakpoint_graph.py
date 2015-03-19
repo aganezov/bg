@@ -245,6 +245,21 @@ class BreakpointGraph(object):
         """
         yield from self.__get_edges_by_vertex(vertex=vertex, keys=keys)
 
+    def __edges_between_two_vertices(self, vertex1, vertex2, keys=False):
+        for vertex in vertex1, vertex2:
+            if vertex not in self.bg:
+                raise ValueError("Supplied vertex ({vertex_name}) is not present in current BreakpointGraph"
+                                 "".format(vertex_name=str(vertex.name)))
+        for bgedge, key in self.__get_edges_by_vertex(vertex=vertex1, keys=True):
+            if bgedge.vertex1 == vertex2 or bgedge.vertex2 == vertex2:
+                if keys:
+                    yield bgedge, key
+                else:
+                    yield bgedge
+
+    def edges_between_two_vertices(self, vertex1, vertex2, keys=False):
+        yield from self.__edges_between_two_vertices(vertex1=vertex1, vertex2=vertex2, keys=keys)
+
     def connected_components_subgraphs(self, copy=True):
         """ Iterates over connected components in current :class:`BreakpointGraph` object, and yields new instances of :class:`BreakpointGraph` with respective information deep-copied by default (week reference is possible of specified in method call).
 
@@ -574,3 +589,11 @@ class BreakpointGraph(object):
                     raise ValueError("Supplied KBreak targets vertices (`{v1}` and `{v2}`) at least one of which "
                                      "does not exist in current BreakpointGraph"
                                      "".format(v1=vertex1.name, v2=vertex2.name))
+        for vertex1, vertex2 in kbreak.start_edges:
+            if BGVertex.is_infinity_vertex(vertex1) and BGVertex.is_infinity_vertex(vertex2):
+                continue
+            for bgedge in self.__edges_between_two_vertices(vertex1=vertex1, vertex2=vertex2):
+                if bgedge.multicolor == kbreak.multicolor:
+                    break
+            else:
+                raise ValueError("Some targeted by kbreak edge with specified multicolor does not exists")
