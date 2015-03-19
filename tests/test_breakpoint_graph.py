@@ -2098,5 +2098,97 @@ class BreakpointGraphTestCase(unittest.TestCase):
         self.assertEqual(len(list(bg.edges_between_two_vertices(vertex1=v3, vertex2=v4))), 1)
         self.assertEqual(len(list(bg.edges_between_two_vertices(vertex1=v5, vertex2=v6))), 1)
 
+    def test_apply_kbreak_correct_paired_infinity_vertices(self):
+        # cases when at least one of start or result edges in kbreak is specified by a pair of infinity vertices
+        # if such double-infinity-edge is targeted for destruction, nothing shall happen,
+        # while if such edge is targeted for creation, bo such edges shall be created
+        # ========================================================================
+        # case 1, simple 2-break, single edges between all targeted pairs of vertices
+        # start edges contain a paired infinity vertices
+        bg = BreakpointGraph()
+        v1, v2, = BGVertex("v1"), BGVertex("v2")
+        i_v1, i_v2 = BGVertex.construct_infinity_vertex_companion(v1), BGVertex.construct_infinity_vertex_companion(v2)
+        multicolor = Multicolor("green")
+        bgedge1 = BGEdge(vertex1=v1, vertex2=v2, multicolor=multicolor)
+        bg.add_bgedge(bgedge1)
+        start_edges = [(v1, v2), (i_v1, i_v2)]
+        end_edges = [(v1, i_v1), (v2, i_v2)]
+        kbreak = KBreak(start_edges=start_edges,
+                        result_edges=end_edges,
+                        multicolor=multicolor)
+        bg.apply_kbreak(kbreak=kbreak)
+        self.assertEqual(len(list(bg.nodes())), 4)
+        ref_edges = [BGEdge(vertex1=vertex1, vertex2=vertex2, multicolor=multicolor) for vertex1, vertex2 in end_edges]
+        res_edges = []
+        for vertex1, vertex2 in end_edges:
+            for bgedge in bg.edges_between_two_vertices(vertex1=vertex1, vertex2=vertex2):
+                res_edges.append(bgedge)
+        self.assertListEqual(res_edges, ref_edges)
+        self.assertEqual(len(list(bg.edges_between_two_vertices(vertex1=v1, vertex2=v2))), 0)
+        self.assertEqual(len(list(bg.edges_between_two_vertices(vertex1=i_v1, vertex2=i_v2))), 0)
+        # case 2, simple 2-break, single edges between all targeted pairs of vertices
+        # result edges contain a paired infinity vertices
+        bg = BreakpointGraph()
+        v1, v2, = BGVertex("v1"), BGVertex("v2")
+        i_v1, i_v2 = BGVertex.construct_infinity_vertex_companion(v1), BGVertex.construct_infinity_vertex_companion(v2)
+        multicolor = Multicolor("green")
+        bgedge1 = BGEdge(vertex1=v1, vertex2=i_v1, multicolor=multicolor)
+        bgedge2 = BGEdge(vertex1=v2, vertex2=i_v2, multicolor=multicolor)
+        bg.add_bgedge(bgedge1)
+        bg.add_bgedge(bgedge2)
+        start_edges = [(v1, i_v1), (v2, i_v2)]
+        end_edges = [(v1, v2), (i_v1, i_v2)]
+        kbreak = KBreak(start_edges=start_edges,
+                        result_edges=end_edges,
+                        multicolor=multicolor)
+        bg.apply_kbreak(kbreak=kbreak)
+        ref_edges = [BGEdge(vertex1=vertex1, vertex2=vertex2, multicolor=multicolor) for vertex1, vertex2 in end_edges
+                     if not (BGVertex.is_infinity_vertex(vertex1) and BGVertex(vertex2))]
+        res_edges = []
+        for vertex1, vertex2 in end_edges:
+            if BGVertex.is_infinity_vertex(vertex1) and BGVertex.is_infinity_vertex(vertex2):
+                continue
+            for bgedge in bg.edges_between_two_vertices(vertex1=vertex1, vertex2=vertex2):
+                res_edges.append(bgedge)
+        self.assertListEqual(res_edges, ref_edges)
+        self.assertEqual(len(list(bg.nodes())), 2)  # infinity vertices shall not be present if there are no in/out edges
+        # case 3, simple 3-break, multiple edges between all targeted pairs of vertices
+        # start edges contain a paired infinity vertices
+        # result edges contain a paired infinity vertices
+        bg = BreakpointGraph()
+        v1, v2, v3 = BGVertex("v1"), BGVertex("v2"), BGVertex("v3")
+        i_v1, i_v2, i_v3 = [BGVertex.construct_infinity_vertex_companion(vertex) for vertex in (v1, v2, v3)]
+        multicolor = Multicolor("green")
+        multicolor2 = Multicolor("black")
+        bgedge1 = BGEdge(vertex1=v1, vertex2=i_v1, multicolor=multicolor)
+        bgedge2 = BGEdge(vertex1=v2, vertex2=v3, multicolor=multicolor)
+        d_bgedge1 = BGEdge(vertex1=v1, vertex2=i_v1, multicolor=multicolor2)
+        d_bgedge2 = BGEdge(vertex1=v1, vertex2=v2, multicolor=multicolor2)
+        d_bgedge3 = BGEdge(vertex1=v2, vertex2=v3, multicolor=multicolor2)
+        bg.add_bgedge(bgedge1)
+        bg.add_bgedge(bgedge2)
+        bg.add_bgedge(d_bgedge1, merge=False)
+        bg.add_bgedge(d_bgedge2, merge=False)
+        bg.add_bgedge(d_bgedge3, merge=False)
+        start_edges = [(v1, i_v1), (v2, v3), (i_v2, i_v3)]
+        end_edges = [(v1, v2), (i_v1, i_v2), (v3, i_v3)]
+        kbreak = KBreak(start_edges=start_edges,
+                        result_edges=end_edges,
+                        multicolor=multicolor)
+        bg.apply_kbreak(kbreak=kbreak, merge=False)
+        self.assertEqual(len(list(bg.nodes())), 5)
+        ref_edges = [BGEdge(vertex1=vertex1, vertex2=vertex2, multicolor=multicolor) for vertex1, vertex2 in end_edges
+                     if not (BGVertex.is_infinity_vertex(vertex1) and BGVertex.is_infinity_vertex(vertex2))]
+        res_edges = []
+        for vertex1, vertex2 in end_edges:
+            if BGVertex.is_infinity_vertex(vertex1) and BGVertex.is_infinity_vertex(vertex2):
+                continue
+            for bgedge in bg.edges_between_two_vertices(vertex1=vertex1, vertex2=vertex2):
+                if bgedge.multicolor == kbreak.multicolor:
+                    res_edges.append(bgedge)
+        self.assertListEqual(res_edges, ref_edges)
+        self.assertEqual(bg.get_edge_by_two_vertices(vertex1=v1, vertex2=v2).multicolor, multicolor2)
+        self.assertEqual(len(list(bg.edges_between_two_vertices(vertex1=v1, vertex2=v2))), 2)
+
 if __name__ == '__main__':  # pragma: no cover
     unittest.main()  # pragma: no cover

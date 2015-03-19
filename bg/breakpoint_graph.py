@@ -578,17 +578,26 @@ class BreakpointGraph(object):
         self.__update(breakpoint_graph=breakpoint_graph,
                       merge_edges=merge_edges)
 
-    def apply_kbreak(self, kbreak):
+    def apply_kbreak(self, kbreak, merge=True):
         if not isinstance(kbreak, KBreak):
             raise TypeError("Only KBreak and derivatives are allowed as kbreak argument")
         if not KBreak.valid_kbreak_matchings(kbreak.start_edges, kbreak.result_edges):
             raise ValueError("Supplied KBreak is not valid form perspective of starting/resulting sets of vertices")
-        for vertex_set in (kbreak.start_edges, kbreak.result_edges):
-            for vertex1, vertex2 in vertex_set:
-                if vertex1 not in self.bg or vertex2 not in self.bg:
-                    raise ValueError("Supplied KBreak targets vertices (`{v1}` and `{v2}`) at least one of which "
-                                     "does not exist in current BreakpointGraph"
-                                     "".format(v1=vertex1.name, v2=vertex2.name))
+        for vertex1, vertex2 in kbreak.start_edges:
+            if BGVertex.is_infinity_vertex(vertex1) and BGVertex.is_infinity_vertex(vertex2):
+                continue
+            if vertex1 not in self.bg or vertex2 not in self.bg:
+                raise ValueError("Supplied KBreak targets vertices (`{v1}` and `{v2}`) at least one of which "
+                                 "does not exist in current BreakpointGraph"
+                                 "".format(v1=vertex1.name, v2=vertex2.name))
+        for vertex_set in kbreak.result_edges:
+            for vertex in vertex_set:
+                if BGVertex.is_infinity_vertex(vertex):
+                    continue
+                if vertex not in self.bg:
+                    raise ValueError("Supplied KBreak result target vertex (`{v}`) "
+                                     "is not present in current BreakpointGraph"
+                                     "".format(v=vertex))
         for vertex1, vertex2 in kbreak.start_edges:
             if BGVertex.is_infinity_vertex(vertex1) and BGVertex.is_infinity_vertex(vertex2):
                 continue
@@ -598,6 +607,15 @@ class BreakpointGraph(object):
             else:
                 raise ValueError("Some targeted by kbreak edge with specified multicolor does not exists")
         for vertex1, vertex2 in kbreak.start_edges:
+            if BGVertex.is_infinity_vertex(vertex1) and BGVertex.is_infinity_vertex(vertex2):
+                continue
             self.__delete_bgedge(BGEdge(vertex1=vertex1, vertex2=vertex2, multicolor=kbreak.multicolor))
+        for vertex_set in kbreak.start_edges:
+            for vertex in vertex_set:
+                if BGVertex.is_infinity_vertex(vertex) and vertex in self.bg:
+                    if len(list(self.get_edges_by_vertex(vertex=vertex))) == 0:
+                        self.bg.remove_node(vertex)
         for vertex1, vertex2 in kbreak.result_edges:
-            self.__add_bgedge(BGEdge(vertex1=vertex1, vertex2=vertex2, multicolor=kbreak.multicolor))
+            if BGVertex.is_infinity_vertex(vertex1) and BGVertex.is_infinity_vertex(vertex2):
+                continue
+            self.__add_bgedge(BGEdge(vertex1=vertex1, vertex2=vertex2, multicolor=kbreak.multicolor), merge=merge)
