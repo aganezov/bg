@@ -1976,6 +1976,11 @@ class BreakpointGraphTestCase(unittest.TestCase):
         bg.add_bgedge(bgedge1)
         bg.add_bgedge(bgedge2)
         bg.add_bgedge(bgedge3)
+        start_edges = [(v1, v2), (v3, v4)]
+        end_edges = [(v1, v3), (v2, v4)]
+        kbreak = KBreak(start_edges=start_edges,
+                        result_edges=end_edges,
+                        multicolor=multicolor2)
         with self.assertRaises(ValueError):
             bg.apply_kbreak(kbreak=kbreak)
 
