@@ -92,7 +92,7 @@ class GRIMMReader(object):
 
         :param data_string: a string to retrieve gene order information from
         :type data_string: ``str``
-        :return: (``$``|``@``, [(``+``|``-``, block_name),...]) formatted structure corresponding to gene order in supplied data string and containing fragments type
+        :return: (``$`` | ``@``, [(``+`` | ``-``, block_name),...]) formatted structure corresponding to gene order in supplied data string and containing fragments type
         :rtype: ``tuple(str, list((str, str), ...))``
         """
         data_string = data_string.strip()
@@ -124,7 +124,7 @@ class GRIMMReader(object):
 
         Vertices are labeled as "block_name" + "h" and "block_name" + "t" according to blocks orientation.
 
-        :param block: information about a genomic block to create a pair of vertices for in a format of (``+``|``-``, block_name)
+        :param block: information about a genomic block to create a pair of vertices for in a format of ( ``+`` | ``-``, block_name)
         :type block: ``(str, str)``
         :return: a pair of vertices labeled according to supplied blocks name (respecting blocks orientation)
         :rtype: ``(str, str)``
@@ -139,7 +139,7 @@ class GRIMMReader(object):
 
         In case supplied fragment is linear (``$``) special artificial vertices (with ``__infinity`` suffix) are introduced to denote fragment extremities
 
-        :param parsed_data: (``$``|``@``, [(``+``|``-``, block_name),...]) formatted data about fragment type and ordered list of oriented blocks
+        :param parsed_data: (``$`` | ``@``, [(``+`` | ``-``, block_name),...]) formatted data about fragment type and ordered list of oriented blocks
         :type parsed_data: ``tuple(str, list((str, str), ...))``
         :return: a list of vertices pairs that would correspond to edges in :class:`bg.breakpoint_graph.BreakpointGraph`
         :rtype: ``list((str, str), ...)``
