@@ -607,6 +607,25 @@ class BreakpointGraph(object):
                       merge_edges=merge_edges)
 
     def apply_kbreak(self, kbreak, merge=True):
+        """ Check validity of supplied k-break and then applies it to current :class:`BreakpointGraph`
+
+        Only :class:`bg.kbreak.KBreak` (or its heirs) instances are allowed as ``kbreak`` argument.
+        KBreak must correspond to the valid kbreak and, since some chanegs to its internals might have been done since its creation, a validity check in terms of starting/resulting edges is performed.
+        All vertices in supplied KBreak (except for paired infinity vertices) must be present in current :class:`BreakpointGraph`.
+        For all supplied pairs of vertices (except for paired infinity vertices), there must be edges between such pairs of vertices, at least one of which must have a multicolor matching a multicolor of supplied kbreak.
+
+        Edges of specified in kbreak multicolor are deleted between supplied pairs of vertices in kbreak.start_edges (except for paired infinity vertices).
+        New edges of specified in kbreak multicolor are added between all pairs of vertices in kbreak.result_edges (except for paired infinity vertices).
+        If after the kbreak application there is an infinity vertex, that now has no edges incident to it, it is deleted form the current :class:`BreakpointGraph`.
+
+        :param kbreak: a k-break to be applied to current :class:`BreakpointGraph`
+        :type kbreak: `bg.kbreak.KBreak`
+        :param merge: a flag to indicate on how edges, that will be created by a k-break, will be added to current :class:`BreakpointGraph`
+        :type merge: ``Boolean``
+        :return: nothing, performs inplace changes
+        :rtype: ``None``
+        :raises: ``ValueError``, ``TypeError``
+        """
         if not isinstance(kbreak, KBreak):
             raise TypeError("Only KBreak and derivatives are allowed as kbreak argument")
         if not KBreak.valid_kbreak_matchings(kbreak.start_edges, kbreak.result_edges):
