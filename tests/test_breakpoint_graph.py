@@ -2006,5 +2006,97 @@ class BreakpointGraphTestCase(unittest.TestCase):
         with self.assertRaises(ValueError):
             bg.apply_kbreak(kbreak)
 
+    def test_apply_kbreak_correct_no_infinity_vertices(self):
+        # cases when no infinity vertices will be affected (from perspective of start edges)
+        # by supplied k-break
+        # ========================================================================
+        # case 1, simple 2-break, single edges between all targeted pairs of vertices
+        bg = BreakpointGraph()
+        v1, v2, v3, v4 = BGVertex("v1"), BGVertex("v2"), BGVertex("v3"), BGVertex("v4")
+        multicolor = Multicolor("green")
+        bgedge1 = BGEdge(vertex1=v1, vertex2=v2, multicolor=multicolor)
+        bgedge2 = BGEdge(vertex1=v3, vertex2=v4, multicolor=multicolor)
+        bg.add_bgedge(bgedge1)
+        bg.add_bgedge(bgedge2)
+        start_edges = [(v1, v2), (v3, v4)]
+        end_edges = [(v1, v3), (v2, v4)]
+        kbreak = KBreak(start_edges=start_edges,
+                        result_edges=end_edges,
+                        multicolor=multicolor)
+        bg.apply_kbreak(kbreak=kbreak)
+        self.assertEqual(len(list(bg.nodes())), 4)
+        ref_edges = [BGEdge(vertex1=vertex1, vertex2=vertex2, multicolor=multicolor) for vertex1, vertex2 in end_edges]
+        res_edges = []
+        for vertex1, vertex2 in end_edges:
+            for bgedge in bg.edges_between_two_vertices(vertex1=vertex1, vertex2=vertex2):
+                res_edges.append(bgedge)
+        self.assertEqual(len(res_edges), 2)
+        self.assertListEqual(res_edges, ref_edges)
+        self.assertEqual(len(list(bg.edges_between_two_vertices(vertex1=v1, vertex2=v2))), 0)
+        self.assertEqual(len(list(bg.edges_between_two_vertices(vertex1=v3, vertex2=v4))), 0)
+        # case 2, simple 3-break, single edges between all targeted pairs of vertices
+        bg = BreakpointGraph()
+        names = ["v1", "v2", "v3", "v4", "v5", "v6"]
+        v1, v2, v3, v4, v5, v6 = (BGVertex(name) for name in names)
+        multicolor = Multicolor("green")
+        bgedge1 = BGEdge(vertex1=v1, vertex2=v2, multicolor=multicolor)
+        bgedge2 = BGEdge(vertex1=v3, vertex2=v4, multicolor=multicolor)
+        bgedge3 = BGEdge(vertex1=v5, vertex2=v6, multicolor=multicolor)
+        bg.add_bgedge(bgedge1)
+        bg.add_bgedge(bgedge2)
+        bg.add_bgedge(bgedge3)
+        start_edges = [(v1, v2), (v3, v4), (v5, v6)]
+        end_edges = [(v1, v3), (v2, v5), (v4, v6)]
+        kbreak = KBreak(start_edges=start_edges,
+                        result_edges=end_edges,
+                        multicolor=multicolor)
+        bg.apply_kbreak(kbreak=kbreak)
+        self.assertEqual(len(list(bg.nodes())), 6)
+        ref_edges = [BGEdge(vertex1=vertex1, vertex2=vertex2, multicolor=multicolor) for vertex1, vertex2 in end_edges]
+        res_edges = []
+        for vertex1, vertex2 in end_edges:
+            for bgedge in bg.edges_between_two_vertices(vertex1=vertex1, vertex2=vertex2):
+                res_edges.append(bgedge)
+        self.assertEqual(len(res_edges), 3)
+        self.assertListEqual(res_edges, ref_edges)
+        self.assertEqual(len(list(bg.edges_between_two_vertices(vertex1=v1, vertex2=v2))), 0)
+        self.assertEqual(len(list(bg.edges_between_two_vertices(vertex1=v3, vertex2=v4))), 0)
+        self.assertEqual(len(list(bg.edges_between_two_vertices(vertex1=v5, vertex2=v6))), 0)
+        # case 3, a 3-break, multiple edges exist between targeted pairs of vertices
+        bg = BreakpointGraph()
+        names = ["v1", "v2", "v3", "v4", "v5", "v6"]
+        v1, v2, v3, v4, v5, v6 = (BGVertex(name) for name in names)
+        multicolor = Multicolor("green")
+        bgedge1 = BGEdge(vertex1=v1, vertex2=v2, multicolor=multicolor)
+        bgedge2 = BGEdge(vertex1=v3, vertex2=v4, multicolor=multicolor)
+        bgedge3 = BGEdge(vertex1=v5, vertex2=v6, multicolor=multicolor)
+        d_bgedge1 = BGEdge(vertex1=v1, vertex2=v2, multicolor=multicolor)
+        d_bgedge2 = BGEdge(vertex1=v3, vertex2=v4, multicolor=multicolor)
+        d_bgedge3 = BGEdge(vertex1=v5, vertex2=v6, multicolor=multicolor)
+        bg.add_bgedge(bgedge1)
+        bg.add_bgedge(bgedge2)
+        bg.add_bgedge(bgedge3)
+        bg.add_bgedge(d_bgedge1, merge=False)
+        bg.add_bgedge(d_bgedge2, merge=False)
+        bg.add_bgedge(d_bgedge3, merge=False)
+        start_edges = [(v1, v2), (v3, v4), (v5, v6)]
+        end_edges = [(v1, v3), (v2, v5), (v4, v6)]
+        kbreak = KBreak(start_edges=start_edges,
+                        result_edges=end_edges,
+                        multicolor=multicolor)
+        bg.apply_kbreak(kbreak=kbreak)
+        self.assertEqual(len(list(bg.nodes())), 6)
+        edges = list(bg.edges())
+        ref_edges = [BGEdge(vertex1=vertex1, vertex2=vertex2, multicolor=multicolor) for vertex1, vertex2 in end_edges]
+        self.assertEqual(len(edges), 6)
+        res_edges = []
+        for vertex1, vertex2 in end_edges:
+            for bgedge in bg.edges_between_two_vertices(vertex1=vertex1, vertex2=vertex2):
+                res_edges.append(bgedge)
+        self.assertListEqual(res_edges, ref_edges)
+        self.assertEqual(len(list(bg.edges_between_two_vertices(vertex1=v1, vertex2=v2))), 1)
+        self.assertEqual(len(list(bg.edges_between_two_vertices(vertex1=v3, vertex2=v4))), 1)
+        self.assertEqual(len(list(bg.edges_between_two_vertices(vertex1=v5, vertex2=v6))), 1)
+
 if __name__ == '__main__':  # pragma: no cover
     unittest.main()  # pragma: no cover

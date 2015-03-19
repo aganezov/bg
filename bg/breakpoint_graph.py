@@ -251,7 +251,7 @@ class BreakpointGraph(object):
                 raise ValueError("Supplied vertex ({vertex_name}) is not present in current BreakpointGraph"
                                  "".format(vertex_name=str(vertex.name)))
         for bgedge, key in self.__get_edges_by_vertex(vertex=vertex1, keys=True):
-            if bgedge.vertex1 == vertex2 or bgedge.vertex2 == vertex2:
+            if bgedge.vertex2 == vertex2:
                 if keys:
                     yield bgedge, key
                 else:
@@ -597,3 +597,7 @@ class BreakpointGraph(object):
                     break
             else:
                 raise ValueError("Some targeted by kbreak edge with specified multicolor does not exists")
+        for vertex1, vertex2 in kbreak.start_edges:
+            self.__delete_bgedge(BGEdge(vertex1=vertex1, vertex2=vertex2, multicolor=kbreak.multicolor))
+        for vertex1, vertex2 in kbreak.result_edges:
+            self.__add_bgedge(BGEdge(vertex1=vertex1, vertex2=vertex2, multicolor=kbreak.multicolor))
