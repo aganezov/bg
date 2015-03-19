@@ -33,6 +33,7 @@ class BreakpointGraph(object):
     *   :meth:`BreakpointGraph.get_vertex_by_name`: returns a :class:`bg.vertex.BGVertex` instance by provided ``name`` argument
     *   :meth:`BreakpointGraph.get_edge_by_two_vertices`: returns a first edge (order is determined by ``key`` NetworkX MultiGraph edge attribute) between two supplied :class:`bg.vertex.BGVertex`
     *   :meth:`BreakpointGraph.get_edges_by_vertex`: returns a generator yielding :class:`bg.edge.BGEdge`
+    *   :meth:`BreakpointGraph.edges_between_two_vertices`: returns a generator yielding :class:`bg.edge.BGEdge`  between two supplied vertices
     *   :meth:`BreakpointGraph.connected_components_subgraphs`: returns a generator of :class:`BreakpointGraph` object, that represent connected components of a current :class:`BreakpointGraph` object, deep copying(by default) all information of current :class:`BreakpointGraph`
     *   :meth:`BreakpointGraph.delete_edge`: deletes and edge from perspective of multi-color substitution of supplied vertices
     *   :meth:`BreakpointGraph.delete_bgedge`: deletes a supplied :class:`bg.edge.BGEdge` instance from perspective of substituting multi-colors.
@@ -246,6 +247,20 @@ class BreakpointGraph(object):
         yield from self.__get_edges_by_vertex(vertex=vertex, keys=keys)
 
     def __edges_between_two_vertices(self, vertex1, vertex2, keys=False):
+        """ Iterates over edges between two supplied vertices in current :class:`BreakpointGraph`
+
+        Checks that both supplied vertices are present in current breakpoint graph and then yield all edges that are located between two supplied vertices.
+        If keys option is specified, then not just edges are yielded, but rather pairs (edge, edge_id) are yielded
+
+        :param vertex1: a first vertex out of two, edges of interest are incident to
+        :type vertex1: any hashable object, :class:`bg.vertex.BGVertex` is expected
+        :param vertex2: a second vertex out of two, edges of interest are incident to
+        :type vertex2: any hashable object, :class:`bg.vertex.BGVertex` is expected
+        :param keys: a flag to indicate if information about unique edge's ids has to be returned alongside with edge
+        :type keys: ``Boolean``
+        :return: generator over edges (tuples ``edge, edge_id`` if keys specified) between two supplied vertices in current :class:`BreakpointGraph` wrapped in :class:`bg.vertex.BGVertex`
+        :rtype: ``generator``
+        """
         for vertex in vertex1, vertex2:
             if vertex not in self.bg:
                 raise ValueError("Supplied vertex ({vertex_name}) is not present in current BreakpointGraph"
@@ -258,6 +273,19 @@ class BreakpointGraph(object):
                     yield bgedge
 
     def edges_between_two_vertices(self, vertex1, vertex2, keys=False):
+        """ Iterates over edges between two supplied vertices in current :class:`BreakpointGraph`
+
+        Proxies a call to :meth:`Breakpoint._Breakpoint__edges_between_two_vertices` method.
+
+        :param vertex1: a first vertex out of two, edges of interest are incident to
+        :type vertex1: any hashable object, :class:`bg.vertex.BGVertex` is expected
+        :param vertex2: a second vertex out of two, edges of interest are incident to
+        :type vertex2: any hashable object, :class:`bg.vertex.BGVertex` is expected
+        :param keys: a flag to indicate if information about unique edge's ids has to be returned alongside with edge
+        :type keys: ``Boolean``
+        :return: generator over edges (tuples ``edge, edge_id`` if keys specified) between two supplied vertices in current :class:`BreakpointGraph` wrapped in :class:`bg.vertex.BGVertex`
+        :rtype: ``generator``
+        """
         yield from self.__edges_between_two_vertices(vertex1=vertex1, vertex2=vertex2, keys=keys)
 
     def connected_components_subgraphs(self, copy=True):
