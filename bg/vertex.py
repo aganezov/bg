@@ -55,3 +55,7 @@ class BGVertex(object):
         if isinstance(vertex, BGVertex):
             return BGVertex(vertex.name + INFINITY_VERTEX_IDENTIFIER)
         return vertex + INFINITY_VERTEX_IDENTIFIER
+
+    @staticmethod
+    def is_infinity_vertex(vertex):
+        return INFINITY_VERTEX_IDENTIFIER in vertex.name

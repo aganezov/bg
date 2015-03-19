@@ -55,6 +55,12 @@ class BGVertexTestCase(unittest.TestCase):
         self.assertTrue(isinstance(result, BGVertex))
         self.assertEqual(result, BGVertex("vertex__infinity"))
 
+    def test_is_infinity_vertex(self):
+        v1 = BGVertex("v1")
+        i_v1 = BGVertex.construct_infinity_vertex_companion(v1)
+        self.assertTrue(BGVertex.is_infinity_vertex(i_v1))
+        self.assertFalse(BGVertex.is_infinity_vertex(v1))
+
 
 if __name__ == '__main__':  # pragma: no cover
     unittest.main()         # pragma: no cover
