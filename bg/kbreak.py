@@ -41,6 +41,7 @@ class KBreak(object):
         :type multicolor: :class:`bg.multicolor.Multicolor`
         :return: a new instance of :class:`Kbreak`
         :rtype: :class:`KBreak`
+        :raises: ``ValueError``
         """
         self.start_edges = start_edges
         self.result_edges = result_edges
