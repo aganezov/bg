@@ -56,7 +56,7 @@ class BreakpointGraph(object):
         :param graph: is supplied, :class:`BreakpointGraph` is initialized with supplied or brand new (empty) instance of NetworkX MultiGraph.
         :type graph: instance of NetworkX MultiGraph is expected.
         :return: a new instance of :class:`BreakpointGraph`
-        :rtype: :class:`BreakpointGraph`x
+        :rtype: :class:`BreakpointGraph`
         """
         if graph is None:
             self.bg = MultiGraph()
