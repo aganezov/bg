@@ -2,6 +2,7 @@
 from copy import deepcopy
 import itertools
 from bg.edge import BGEdge
+from bg.kbreak import KBreak
 from bg.multicolor import Multicolor
 from bg.vertex import BGVertex
 
@@ -32,6 +33,7 @@ class BreakpointGraph(object):
     *   :meth:`BreakpointGraph.get_vertex_by_name`: returns a :class:`bg.vertex.BGVertex` instance by provided ``name`` argument
     *   :meth:`BreakpointGraph.get_edge_by_two_vertices`: returns a first edge (order is determined by ``key`` NetworkX MultiGraph edge attribute) between two supplied :class:`bg.vertex.BGVertex`
     *   :meth:`BreakpointGraph.get_edges_by_vertex`: returns a generator yielding :class:`bg.edge.BGEdge`
+    *   :meth:`BreakpointGraph.edges_between_two_vertices`: returns a generator yielding :class:`bg.edge.BGEdge`  between two supplied vertices
     *   :meth:`BreakpointGraph.connected_components_subgraphs`: returns a generator of :class:`BreakpointGraph` object, that represent connected components of a current :class:`BreakpointGraph` object, deep copying(by default) all information of current :class:`BreakpointGraph`
     *   :meth:`BreakpointGraph.delete_edge`: deletes and edge from perspective of multi-color substitution of supplied vertices
     *   :meth:`BreakpointGraph.delete_bgedge`: deletes a supplied :class:`bg.edge.BGEdge` instance from perspective of substituting multi-colors.
@@ -45,6 +47,7 @@ class BreakpointGraph(object):
     *   :meth:`BreakpointGraph.merge`: merges two :class:`BreakpointGraph` instances with respect to vertices, edges, and multicolors.
     *   :meth:`BreakpointGraph.update`: updates information in current :class:`BreakpointGraph` instance by adding new :class:`bg.edge.BGEdge` instances form supplied :class:`BreakpointGraph`.
     """
+
     def __init__(self, graph=None):
         """ Initialization of a :class:`BreakpointGraph` object.
 
@@ -52,7 +55,8 @@ class BreakpointGraph(object):
 
         :param graph: is supplied, :class:`BreakpointGraph` is initialized with supplied or brand new (empty) instance of NetworkX MultiGraph.
         :type graph: instance of NetworkX MultiGraph is expected.
-        :return: ``None``, performs initialization of respective instance of :class:`BreakpointGraph`
+        :return: a new instance of :class:`BreakpointGraph`
+        :rtype: :class:`BreakpointGraph`
         """
         if graph is None:
             self.bg = MultiGraph()
@@ -242,6 +246,48 @@ class BreakpointGraph(object):
         :rtype: ``generator``
         """
         yield from self.__get_edges_by_vertex(vertex=vertex, keys=keys)
+
+    def __edges_between_two_vertices(self, vertex1, vertex2, keys=False):
+        """ Iterates over edges between two supplied vertices in current :class:`BreakpointGraph`
+
+        Checks that both supplied vertices are present in current breakpoint graph and then yield all edges that are located between two supplied vertices.
+        If keys option is specified, then not just edges are yielded, but rather pairs (edge, edge_id) are yielded
+
+        :param vertex1: a first vertex out of two, edges of interest are incident to
+        :type vertex1: any hashable object, :class:`bg.vertex.BGVertex` is expected
+        :param vertex2: a second vertex out of two, edges of interest are incident to
+        :type vertex2: any hashable object, :class:`bg.vertex.BGVertex` is expected
+        :param keys: a flag to indicate if information about unique edge's ids has to be returned alongside with edge
+        :type keys: ``Boolean``
+        :return: generator over edges (tuples ``edge, edge_id`` if keys specified) between two supplied vertices in current :class:`BreakpointGraph` wrapped in :class:`bg.vertex.BGVertex`
+        :rtype: ``generator``
+        """
+        for vertex in vertex1, vertex2:
+            if vertex not in self.bg:
+                raise ValueError("Supplied vertex ({vertex_name}) is not present in current BreakpointGraph"
+                                 "".format(vertex_name=str(vertex.name)))
+        for bgedge, key in self.__get_edges_by_vertex(vertex=vertex1, keys=True):
+            if bgedge.vertex2 == vertex2:
+                if keys:
+                    yield bgedge, key
+                else:
+                    yield bgedge
+
+    def edges_between_two_vertices(self, vertex1, vertex2, keys=False):
+        """ Iterates over edges between two supplied vertices in current :class:`BreakpointGraph`
+
+        Proxies a call to :meth:`Breakpoint._Breakpoint__edges_between_two_vertices` method.
+
+        :param vertex1: a first vertex out of two, edges of interest are incident to
+        :type vertex1: any hashable object, :class:`bg.vertex.BGVertex` is expected
+        :param vertex2: a second vertex out of two, edges of interest are incident to
+        :type vertex2: any hashable object, :class:`bg.vertex.BGVertex` is expected
+        :param keys: a flag to indicate if information about unique edge's ids has to be returned alongside with edge
+        :type keys: ``Boolean``
+        :return: generator over edges (tuples ``edge, edge_id`` if keys specified) between two supplied vertices in current :class:`BreakpointGraph` wrapped in :class:`bg.vertex.BGVertex`
+        :rtype: ``generator``
+        """
+        yield from self.__edges_between_two_vertices(vertex1=vertex1, vertex2=vertex2, keys=keys)
 
     def connected_components_subgraphs(self, copy=True):
         """ Iterates over connected components in current :class:`BreakpointGraph` object, and yields new instances of :class:`BreakpointGraph` with respective information deep-copied by default (week reference is possible of specified in method call).
@@ -560,3 +606,56 @@ class BreakpointGraph(object):
         """
         self.__update(breakpoint_graph=breakpoint_graph,
                       merge_edges=merge_edges)
+
+    def apply_kbreak(self, kbreak, merge=True):
+        """ Check validity of supplied k-break and then applies it to current :class:`BreakpointGraph`
+
+        Only :class:`bg.kbreak.KBreak` (or its heirs) instances are allowed as ``kbreak`` argument.
+        KBreak must correspond to the valid kbreak and, since some changes to its internals might have been done since its creation, a validity check in terms of starting/resulting edges is performed.
+        All vertices in supplied KBreak (except for paired infinity vertices) must be present in current :class:`BreakpointGraph`.
+        For all supplied pairs of vertices (except for paired infinity vertices), there must be edges between such pairs of vertices, at least one of which must have a multicolor matching a multicolor of supplied kbreak.
+
+        Edges of specified in kbreak multicolor are deleted between supplied pairs of vertices in kbreak.start_edges (except for paired infinity vertices).
+        New edges of specified in kbreak multicolor are added between all pairs of vertices in kbreak.result_edges (except for paired infinity vertices).
+        If after the kbreak application there is an infinity vertex, that now has no edges incident to it, it is deleted form the current :class:`BreakpointGraph`.
+
+        :param kbreak: a k-break to be applied to current :class:`BreakpointGraph`
+        :type kbreak: `bg.kbreak.KBreak`
+        :param merge: a flag to indicate on how edges, that will be created by a k-break, will be added to current :class:`BreakpointGraph`
+        :type merge: ``Boolean``
+        :return: nothing, performs inplace changes
+        :rtype: ``None``
+        :raises: ``ValueError``, ``TypeError``
+        """
+        if not isinstance(kbreak, KBreak):
+            raise TypeError("Only KBreak and derivatives are allowed as kbreak argument")
+        if not KBreak.valid_kbreak_matchings(kbreak.start_edges, kbreak.result_edges):
+            raise ValueError("Supplied KBreak is not valid form perspective of starting/resulting sets of vertices")
+        for vertex1, vertex2 in kbreak.start_edges:
+            if BGVertex.is_infinity_vertex(vertex1) and BGVertex.is_infinity_vertex(vertex2):
+                continue
+            if vertex1 not in self.bg or vertex2 not in self.bg:
+                raise ValueError("Supplied KBreak targets vertices (`{v1}` and `{v2}`) at least one of which "
+                                 "does not exist in current BreakpointGraph"
+                                 "".format(v1=vertex1.name, v2=vertex2.name))
+        for vertex1, vertex2 in kbreak.start_edges:
+            if BGVertex.is_infinity_vertex(vertex1) and BGVertex.is_infinity_vertex(vertex2):
+                continue
+            for bgedge in self.__edges_between_two_vertices(vertex1=vertex1, vertex2=vertex2):
+                if bgedge.multicolor == kbreak.multicolor:
+                    break
+            else:
+                raise ValueError("Some targeted by kbreak edge with specified multicolor does not exists")
+        for vertex1, vertex2 in kbreak.start_edges:
+            if BGVertex.is_infinity_vertex(vertex1) and BGVertex.is_infinity_vertex(vertex2):
+                continue
+            self.__delete_bgedge(BGEdge(vertex1=vertex1, vertex2=vertex2, multicolor=kbreak.multicolor))
+        for vertex_set in kbreak.start_edges:
+            for vertex in vertex_set:
+                if BGVertex.is_infinity_vertex(vertex) and vertex in self.bg:
+                    if len(list(self.get_edges_by_vertex(vertex=vertex))) == 0:
+                        self.bg.remove_node(vertex)
+        for vertex1, vertex2 in kbreak.result_edges:
+            if BGVertex.is_infinity_vertex(vertex1) and BGVertex.is_infinity_vertex(vertex2):
+                continue
+            self.__add_bgedge(BGEdge(vertex1=vertex1, vertex2=vertex2, multicolor=kbreak.multicolor), merge=merge)

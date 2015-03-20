@@ -43,6 +43,24 @@ class BGVertexTestCase(unittest.TestCase):
         self.assertNotEqual(v2, v3)
         self.assertNotEqual(v1, 5)
 
+    def test_construct_infinity_vertex(self):
+        with self.assertRaises(TypeError):
+            BGVertex.construct_infinity_vertex_companion()
+        string_vertex = "vertex"
+        result = BGVertex.construct_infinity_vertex_companion(string_vertex)
+        self.assertTrue(isinstance(result, str))
+        self.assertEqual(result, "vertex__infinity")
+        bgvertex = BGVertex("vertex")
+        result = BGVertex.construct_infinity_vertex_companion(bgvertex)
+        self.assertTrue(isinstance(result, BGVertex))
+        self.assertEqual(result, BGVertex("vertex__infinity"))
+
+    def test_is_infinity_vertex(self):
+        v1 = BGVertex("v1")
+        i_v1 = BGVertex.construct_infinity_vertex_companion(v1)
+        self.assertTrue(BGVertex.is_infinity_vertex(i_v1))
+        self.assertFalse(BGVertex.is_infinity_vertex(v1))
+
 
 if __name__ == '__main__':  # pragma: no cover
     unittest.main()         # pragma: no cover
