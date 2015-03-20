@@ -8,7 +8,7 @@ from bg.vertex import BGVertex
 
 __author__ = "Sergey Aganezov"
 __email__ = "aganezov(at)gwu.edu"
-__status__ = "production"
+__status__ = "develop"
 from networkx import MultiGraph
 import networkx as nx
 

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 __author__ = "Sergey Aganezov"
 __email__ = "aganezov(at)gwu.edu"
-__status__ = "production"
+__status__ = "develop"
 
 INFINITY_VERTEX_IDENTIFIER = "__infinity"
 
