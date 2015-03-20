@@ -3,11 +3,11 @@ from bg import BreakpointGraph, BGVertex, Multicolor
 
 __author__ = "Sergey Aganezov"
 __email__ = "aganezov(at)gwu.edu"
-__status__ = "production"
+__status__ = "develop"
 
 
 class GRIMMReader(object):
-    """ Class providing a staticmethod based implementation of reading GRIMM formatted data file-like object and obtain a :class:`BreakpointGraph` instance.
+    """ Class providing a staticmethod based implementation of reading GRIMM formatted data file-like object and obtain a :class:`bg.breakpoint_graph.BreakpointGraph` instance.
 
     There are no private methods implementations for all public methods so inheritance shall be performed with caution.
     For now GRIMM format is a bit simplified and straightened from the version provided at http://grimm.ucsd.edu/GRIMM/grimm_instr.html
