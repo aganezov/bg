@@ -610,7 +610,7 @@ class BreakpointGraph(object):
         """ Check validity of supplied k-break and then applies it to current :class:`BreakpointGraph`
 
         Only :class:`bg.kbreak.KBreak` (or its heirs) instances are allowed as ``kbreak`` argument.
-        KBreak must correspond to the valid kbreak and, since some chanegs to its internals might have been done since its creation, a validity check in terms of starting/resulting edges is performed.
+        KBreak must correspond to the valid kbreak and, since some changes to its internals might have been done since its creation, a validity check in terms of starting/resulting edges is performed.
         All vertices in supplied KBreak (except for paired infinity vertices) must be present in current :class:`BreakpointGraph`.
         For all supplied pairs of vertices (except for paired infinity vertices), there must be edges between such pairs of vertices, at least one of which must have a multicolor matching a multicolor of supplied kbreak.
 
@@ -637,14 +637,6 @@ class BreakpointGraph(object):
                 raise ValueError("Supplied KBreak targets vertices (`{v1}` and `{v2}`) at least one of which "
                                  "does not exist in current BreakpointGraph"
                                  "".format(v1=vertex1.name, v2=vertex2.name))
-        for vertex_set in kbreak.result_edges:
-            for vertex in vertex_set:
-                if BGVertex.is_infinity_vertex(vertex):
-                    continue
-                if vertex not in self.bg:
-                    raise ValueError("Supplied KBreak result target vertex (`{v}`) "
-                                     "is not present in current BreakpointGraph"
-                                     "".format(v=vertex))
         for vertex1, vertex2 in kbreak.start_edges:
             if BGVertex.is_infinity_vertex(vertex1) and BGVertex.is_infinity_vertex(vertex2):
                 continue
