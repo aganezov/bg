@@ -23,6 +23,16 @@ breakpoint_graph.py
    :exclude-members: __dict__, __weakref__
    :show-inheritance:
 
+kbreak.py
+~~~~~~~~~
+
+.. automodule:: bg.kbreak
+   :members:
+   :private-members:
+   :special-members:
+   :exclude-members: __dict__, __weakref__
+   :show-inheritance:
+
 
 multicolor.py
 ~~~~~~~~~~~~~
