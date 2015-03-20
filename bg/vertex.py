@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 __author__ = "Sergey Aganezov"
 __email__ = "aganezov(at)gwu.edu"
-__status__ = "production"
+__status__ = "develop"
 
 INFINITY_VERTEX_IDENTIFIER = "__infinity"
 
@@ -51,8 +51,8 @@ class BGVertex(object):
             return False
         return self.name == other.name
 
-    @staticmethod
-    def construct_infinity_vertex_companion(vertex):
+    @classmethod
+    def construct_infinity_vertex_companion(cls, vertex):
         """ Creates a new vertex, that would correspond to the infinity vertex for supplied one
 
         In :class:`bg.breakpoint_graph.BreakpointGraph` is a vertex correspond to the blocks end, that is the outermost on some fragment, in breakpoint graph this fragment extremity is denoted by the the infinity edge to the infinity vertex, that accompanies respected gene extremity vertex.
@@ -62,8 +62,8 @@ class BGVertex(object):
         :return: an infinity vertex instance that accompanies supplied vertex in :class:`bg.breakpoint_graph.BreakpointGraph`
         :rtype: ``str`` or :class:`BGVertex`
         """
-        if isinstance(vertex, BGVertex):
-            return BGVertex(vertex.name + INFINITY_VERTEX_IDENTIFIER)
+        if isinstance(vertex, cls):
+            return cls(vertex.name + INFINITY_VERTEX_IDENTIFIER)
         return vertex + INFINITY_VERTEX_IDENTIFIER
 
     @staticmethod
