@@ -21,7 +21,8 @@ class BGVertex(object):
         :type name: any hashable object
         :param info: additional data about the vertex
         :type info: assumed to be {key:value} typed object
-        :return: ``None``, performs initialization of respective instance of :class:`BGVertex`
+        :return: a new instance of :class:`BGVertex`
+        :rtype: :class:`BGVertex`
         """
         self.name = name
         if info is None:
