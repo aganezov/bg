@@ -3,7 +3,7 @@ from collections import Counter
 
 __author__ = "Sergey Aganezov"
 __email__ = "aganezov(at)gwu.edu"
-__status__ = "develop"
+__status__ = "production"
 
 
 class Multicolor(object):

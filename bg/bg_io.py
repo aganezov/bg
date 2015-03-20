@@ -3,7 +3,7 @@ from bg import BreakpointGraph, BGVertex, Multicolor
 
 __author__ = "Sergey Aganezov"
 __email__ = "aganezov(at)gwu.edu"
-__status__ = "develop"
+__status__ = "production"
 
 
 class GRIMMReader(object):
