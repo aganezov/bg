@@ -3,7 +3,7 @@ from bg.vertex import INFINITY_VERTEX_IDENTIFIER
 
 __author__ = "Sergey Aganezov"
 __email__ = "aganezov(at)gwu.edu"
-__status__ = "production"
+__status__ = "develop"
 
 
 class BGEdge(object):
@@ -31,7 +31,8 @@ class BGEdge(object):
         :type vertex2: any hashable python object. :class:`bg.vertex.BGVertex` is expected.
         :param multicolor: multicolor that this single edge shall posses
         :type multicolor: :class:`bg.multicolor.Multicolor`
-        :return: ``None``, performs initialization of respective instance of :class:`BGEdge`
+        :return: a new instance of :class:`BGEdge`
+        :rtype: :class:`BGEdge`
         """
 
         self.vertex1 = vertex1
