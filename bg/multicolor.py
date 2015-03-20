@@ -3,7 +3,7 @@ from collections import Counter
 
 __author__ = "Sergey Aganezov"
 __email__ = "aganezov(at)gwu.edu"
-__status__ = "production"
+__status__ = "develop"
 
 
 class Multicolor(object):
@@ -34,7 +34,8 @@ class Multicolor(object):
 
         :param args: variable number of colors to contain information about
         :type args: any hashable python object
-        :return: ``None``, performs initialization of respective instance of :class:`Multicolor`
+        :return: a new instance of :class:`Multicolor`
+        :rtype: :class:`Multicolor`
         """
         self.multicolors = Counter(arg for arg in args)
 
