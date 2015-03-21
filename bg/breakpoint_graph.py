@@ -8,7 +8,7 @@ from bg.vertex import BGVertex
 
 __author__ = "Sergey Aganezov"
 __email__ = "aganezov(at)gwu.edu"
-__status__ = "production"
+__status__ = "develop"
 from networkx import MultiGraph
 import networkx as nx
 
@@ -557,11 +557,13 @@ class BreakpointGraph(object):
         for v1, v2 in itertools.combinations(self.bg.nodes_iter(), 2):
             self.__merge_all_bgedges_between_two_vertices(vertex1=v1, vertex2=v2)
 
-    @staticmethod
-    def merge(breakpoint_graph1, breakpoint_graph2, merge_edges=False):
+    @classmethod
+    def merge(cls, breakpoint_graph1, breakpoint_graph2, merge_edges=False):
         """ Merges two given instances of :class`BreakpointGraph` into a new one, that gather all available information from both supplied objects.
 
         Depending of a ``merge_edges`` flag, while merging of two dat structures is occurring, edges between similar vertices can be merged during the creation of a result :class`BreakpointGraph` obejct.
+
+        Accounts for subclassing.
 
         :param breakpoint_graph1: a first out of two :class`BreakpointGraph` instances to gather information from
         :type breakpoint_graph1: :class`BreakpointGraph`
@@ -572,11 +574,11 @@ class BreakpointGraph(object):
         :return: a new breakpoint graph object that contains all information gathered from both supplied breakpoint graphs
         :rtype: :class`BreakpointGraph`
         """
-        result = BreakpointGraph()
+        result = cls()
         for bgedge in breakpoint_graph1.edges():
-            result.__add_bgedge(bgedge=deepcopy(bgedge), merge=merge_edges)
+            result.__add_bgedge(bgedge=bgedge, merge=merge_edges)
         for bgedge in breakpoint_graph2.edges():
-            result.__add_bgedge(bgedge=deepcopy(bgedge), merge=merge_edges)
+            result.__add_bgedge(bgedge=bgedge, merge=merge_edges)
         return result
 
     def __update(self, breakpoint_graph, merge_edges=False):
