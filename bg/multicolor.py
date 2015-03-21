@@ -56,6 +56,8 @@ class Multicolor(object):
 
         Works as proxy to respective call to private static method :meth:`Multicolor._Multicolor__left_merge` for purposes of inheritance compatibility.
 
+        Accounts for subclassing.
+
         :param multicolor1: instance to update information in
         :type multicolor1: :class:`Multicolor`
         :param multicolor2: instance to use information for update from
@@ -112,6 +114,8 @@ class Multicolor(object):
         """ Produces a new :class:`Multicolor` object resulting from gathering information from all supplied :class:`Multicolor` instances.
 
         New :class:`Multicolor` is created and its :attr:`Multicolor.multicolors` attribute is updated with similar attributes of supplied :class:`Multicolor` objects.
+
+        Accounts for subclassing.
 
         :param multicolors: variable number of :class:`Multicolor` objects
         :type multicolors: :class:`Multicolor`
@@ -171,6 +175,8 @@ class Multicolor(object):
         After this two iterations, the rest of :attr:`Multicolor.multicolors` is recorded as non-tackled and is recorded on its own.
 
         Multiplicity of all separated colors in respective chunks is preserved.
+
+        Accounts for subclassing.
 
         :param multicolor: an instance information about colors in which is to be split
         :type multicolor: :class:`Multicolor`
