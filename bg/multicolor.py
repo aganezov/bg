@@ -3,7 +3,7 @@ from collections import Counter
 
 __author__ = "Sergey Aganezov"
 __email__ = "aganezov(at)gwu.edu"
-__status__ = "production"
+__status__ = "develop"
 
 
 class Multicolor(object):
@@ -50,8 +50,8 @@ class Multicolor(object):
         """
         self.multicolors = self.multicolors + Counter(arg for arg in args)
 
-    @staticmethod
-    def left_merge(multicolor1, multicolor2):
+    @classmethod
+    def left_merge(cls, multicolor1, multicolor2):
         """ Updates first supplied :class:`Multicolor` instance with information from second supplied :class:`Multicolor` instance.
 
         Works as proxy to respective call to private static method :meth:`Multicolor._Multicolor__left_merge` for purposes of inheritance compatibility.
@@ -63,10 +63,10 @@ class Multicolor(object):
         :return: updated first supplied :class:`Multicolor` instance
         :rtype: :class:`Multicolor`
         """
-        return Multicolor.__left_merge(multicolor1, multicolor2)
+        return cls.__left_merge(multicolor1, multicolor2)
 
-    @staticmethod
-    def merge(*multicolors):
+    @classmethod
+    def merge(cls, *multicolors):
         """ Produces a new :class:`Multicolor` object resulting from gathering information from all supplied :class:`Multicolor` instances.
 
         Works as proxy to respective call to private static method :meth:`Multicolor._Multicolor__merge` for purposes of inheritance compatibility.
@@ -76,7 +76,7 @@ class Multicolor(object):
         :return: object containing gathered information from all supplied arguments
         :rtype: :class:`Multicolor`
         """
-        return Multicolor.__merge(*multicolors)
+        return cls.__merge(*multicolors)
 
     def delete(self, multicolor):
         """ Reduces information :class:`Multicolor` attribute by iterating over supplied colors data.
@@ -107,8 +107,8 @@ class Multicolor(object):
             to_delete = Counter(color for color in multicolor)
         self.multicolors = self.multicolors - to_delete
 
-    @staticmethod
-    def __merge(*multicolors):
+    @classmethod
+    def __merge(cls, *multicolors):
         """ Produces a new :class:`Multicolor` object resulting from gathering information from all supplied :class:`Multicolor` instances.
 
         New :class:`Multicolor` is created and its :attr:`Multicolor.multicolors` attribute is updated with similar attributes of supplied :class:`Multicolor` objects.
@@ -118,7 +118,7 @@ class Multicolor(object):
         :return: object containing gathered information from all supplied arguments
         :rtype: :class:`Multicolor`
         """
-        result = Multicolor()
+        result = cls()
         for multicolor in multicolors:
             result.multicolors = result.multicolors + multicolor.multicolors
         return result
@@ -158,8 +158,8 @@ class Multicolor(object):
                 result += min(value, multicolor2.multicolors[key])
         return result
 
-    @staticmethod
-    def split_colors(multicolor, guidance=None):
+    @classmethod
+    def split_colors(cls, multicolor, guidance=None):
         """ Produces several new instances of :class:`Multicolor` object by splitting information about colors by using provided guidance iterable set-like object.
 
         Guidance is an iterable type of object where each entry has information about groups of colors that has to be separated for current :attr:`Multicolor.multicolors` chunk.
@@ -200,7 +200,7 @@ class Multicolor(object):
             colors = []
             for color in color_set:
                 colors.extend([color for _ in range(multicolor.multicolors[color])])
-            result.append(Multicolor(*colors))
+            result.append(cls(*colors))
         return result
 
     def __sub__(self, other):
