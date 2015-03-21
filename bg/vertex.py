@@ -57,6 +57,8 @@ class BGVertex(object):
 
         In :class:`bg.breakpoint_graph.BreakpointGraph` is a vertex correspond to the blocks end, that is the outermost on some fragment, in breakpoint graph this fragment extremity is denoted by the the infinity edge to the infinity vertex, that accompanies respected gene extremity vertex.
 
+        Accounts for subclassing.
+
         :param vertex: a vertex instance, to which a companion infinity vertex has to bre created
         :type vertex: ``str`` or :class:`BGVertex`
         :return: an infinity vertex instance that accompanies supplied vertex in :class:`bg.breakpoint_graph.BreakpointGraph`
