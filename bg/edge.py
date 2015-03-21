@@ -3,7 +3,7 @@ from bg.vertex import INFINITY_VERTEX_IDENTIFIER
 
 __author__ = "Sergey Aganezov"
 __email__ = "aganezov(at)gwu.edu"
-__status__ = "production"
+__status__ = "develop"
 
 
 class BGEdge(object):
@@ -39,11 +39,13 @@ class BGEdge(object):
         self.vertex2 = vertex2
         self.multicolor = multicolor
 
-    @staticmethod
-    def merge(edge1, edge2):
+    @classmethod
+    def merge(cls, edge1, edge2):
         """ Merges multi-color information from two supplied :class:`BGEdge` instances into a new :class:`BGEdge`
 
         Since :class:`BGEdge` represents an undirected edge, created edge's vertices are assign accordint to the order in first supplied edge.
+
+        Accounts for subclassing.
 
         :param edge1: first out of two edge information from which is to be merged into a new one
         :type edge1:
@@ -60,7 +62,7 @@ class BGEdge(object):
             raise ValueError("Edges to be merged do not connect same vertices")
         elif not forward and edge1.vertex2 != edge2.vertex1:
             raise ValueError("Edges to be merged do not connect same vertices")
-        return BGEdge(vertex1=edge1.vertex1, vertex2=edge1.vertex2, multicolor=edge1.multicolor + edge2.multicolor)
+        return cls(vertex1=edge1.vertex1, vertex2=edge1.vertex2, multicolor=edge1.multicolor + edge2.multicolor)
 
     def __eq__(self, other):
         """ Implementation of ``==`` operation for :class:`BGEdge`
