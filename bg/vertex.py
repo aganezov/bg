@@ -78,3 +78,7 @@ class BGVertex(object):
         :rtype: ``Boolean``
         """
         return INFINITY_VERTEX_IDENTIFIER in vertex.name
+
+    @property
+    def json_id(self):
+        return self.__hash__()

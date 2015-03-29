@@ -61,6 +61,20 @@ class BGVertexTestCase(unittest.TestCase):
         self.assertTrue(BGVertex.is_infinity_vertex(i_v1))
         self.assertFalse(BGVertex.is_infinity_vertex(v1))
 
+    def test_json_identifier(self):
+        # json identifier shall be unique per BGVertex and be of `int` type
+        # json identifier is implemented as a property on BGVertex object
+        # __hash__ is used
+        v = BGVertex("name")
+        json_id = v.json_id
+        self.assertTrue(isinstance(json_id, int))
+        self.assertEqual(json_id, hash(v))
+        v.name = "name1"
+        new_json_id = v.json_id
+        self.assertTrue(isinstance(new_json_id, int))
+        self.assertEqual(new_json_id, hash(v))
+        self.assertNotEqual(json_id, new_json_id)
+
 
 if __name__ == '__main__':  # pragma: no cover
     unittest.main()         # pragma: no cover
