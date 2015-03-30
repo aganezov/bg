@@ -88,3 +88,10 @@ class BGEdge(object):
     @property
     def is_infinity_edge(self):
         return INFINITY_VERTEX_IDENTIFIER in self.vertex1.name or INFINITY_VERTEX_IDENTIFIER in self.vertex2.name
+
+    def colors_json_ids(self):
+        for color in self.multicolor.multicolors.elements():
+            if hasattr(color, "json_id"):
+                yield color.json_id
+            else:
+                yield hash(color)
