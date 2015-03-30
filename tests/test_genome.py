@@ -30,6 +30,13 @@ class BGGenomeTestCase(unittest.TestCase):
         self.assertTrue(isinstance(json_id, int))
         self.assertNotEqual(json_id, new_json_id)
 
+    def test__eq__(self):
+        g1 = BGGenome("name1")
+        g2 = BGGenome("name2")
+        self.assertNotEqual(g1, g2)
+        g2.name = "name1"
+        self.assertEqual(g1, g2)
+
 
 if __name__ == '__main__':
     unittest.main()
