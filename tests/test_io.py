@@ -2,6 +2,7 @@ from collections import Counter
 import io
 from bg import BreakpointGraph, Multicolor
 from bg.bg_io import GRIMMReader
+from bg.genome import BGGenome
 
 __author__ = 'Sergey Aganezov'
 __email__ = "aganezov(at)gwu.edu"
@@ -28,11 +29,11 @@ class GRIMMReaderTestCase(unittest.TestCase):
         self.assertFalse(GRIMMReader.is_genome_declaration_string(">   "))
 
     def test_parse_genome_declaration_string(self):
-        self.assertEqual(GRIMMReader.parse_genome_declaration_string(">genome"), "genome")
-        self.assertEqual(GRIMMReader.parse_genome_declaration_string("  >genome  "), "genome")
-        self.assertEqual(GRIMMReader.parse_genome_declaration_string(">genome__genome"), "genome__genome")
-        self.assertEqual(GRIMMReader.parse_genome_declaration_string(">genome>genome"), "genome>genome")
-        self.assertEqual(GRIMMReader.parse_genome_declaration_string(">genome.!/.#4"), "genome.!/.#4")
+        self.assertEqual(GRIMMReader.parse_genome_declaration_string(">genome"), BGGenome("genome"))
+        self.assertEqual(GRIMMReader.parse_genome_declaration_string("  >genome  "), BGGenome("genome"))
+        self.assertEqual(GRIMMReader.parse_genome_declaration_string(">genome__genome"), BGGenome("genome__genome"))
+        self.assertEqual(GRIMMReader.parse_genome_declaration_string(">genome>genome"), BGGenome("genome>genome"))
+        self.assertEqual(GRIMMReader.parse_genome_declaration_string(">genome.!/.#4"), BGGenome("genome.!/.#4"))
 
     def test_parse_data_string_error(self):
         data_string_1 = "   a b c d e    "
@@ -146,9 +147,9 @@ class GRIMMReaderTestCase(unittest.TestCase):
         self.assertEqual(len(list(result_bg.connected_components_subgraphs())), 3)
         self.assertEqual(len(list(result_bg.edges())), 6)
         self.assertEqual(len(list(result_bg.nodes())), 9)
-        multicolors = [Multicolor("genome_name_1", "genome_name_2"),
-                       Multicolor("genome_name_1"),
-                       Multicolor("genome_name_2")]
+        multicolors = [Multicolor(BGGenome("genome_name_1"), BGGenome("genome_name_2")),
+                       Multicolor(BGGenome("genome_name_1")),
+                       Multicolor(BGGenome("genome_name_2"))]
         for bgedge in result_bg.edges():
             self.assertTrue(bgedge.multicolor in multicolors)
         infinity_edges = [bgedge for bgedge in result_bg.edges() if bgedge.is_infinity_edge]
@@ -172,14 +173,16 @@ class GRIMMReaderTestCase(unittest.TestCase):
         self.assertEqual(len(list(result_bg.connected_components_subgraphs())), 4)
         self.assertEqual(len(list(result_bg.edges())), 8)
         self.assertEqual(len(list(result_bg.nodes())), 12)
-        multicolors = [Multicolor("genome_1", "genome_2", "genome_3"),
-                       Multicolor("genome_1"),
-                       Multicolor("genome_2", "genome_3"),
-                       Multicolor("genome_2"),
-                       Multicolor("genome_3", "genome_4"),
-                       Multicolor("genome_3", "genome_4", "genome_5"),
-                       Multicolor("genome_4"),
-                       Multicolor("genome_5")]
+        genome1, genome2, genome3 = BGGenome("genome_1"), BGGenome("genome_2"), BGGenome("genome_3")
+        genome4, genome5 = BGGenome("genome_4"), BGGenome("genome_5")
+        multicolors = [Multicolor(genome1, genome2, genome3),
+                       Multicolor(genome1),
+                       Multicolor(genome2, genome3),
+                       Multicolor(genome2),
+                       Multicolor(genome3, genome4),
+                       Multicolor(genome3, genome4, genome5),
+                       Multicolor(genome4),
+                       Multicolor(genome5)]
         for bgedge in result_bg.edges():
             self.assertTrue(bgedge.multicolor in multicolors)
         infinity_edges = [bgedge for bgedge in result_bg.edges() if bgedge.is_infinity_edge]

@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 from bg import BreakpointGraph, BGVertex, Multicolor
+from bg.genome import BGGenome
 
 __author__ = "Sergey Aganezov"
 __email__ = "aganezov(at)gwu.edu"
@@ -69,15 +70,15 @@ class GRIMMReader(object):
 
     @staticmethod
     def parse_genome_declaration_string(data_string):
-        """ Parses a string marked as ``genome declaration`` and returns a corresponding genome name
+        """ Parses a string marked as ``genome declaration`` and returns a corresponding :class:`bg.genome.BGGenome`
 
         :param data_string: a string to retrieve genome name from
         :type data_string: ``str``
         :return: genome name from supplied genome declaration string
-        :rtype: ``str``
+        :rtype: :class:`bg.genome.BGGenome`
         """
         data_string = data_string.strip()
-        return data_string[1:]
+        return BGGenome(data_string[1:])
 
     @staticmethod
     def parse_data_string(data_string):
@@ -170,19 +171,19 @@ class GRIMMReader(object):
         :rtype: :class:`bg.breakpoint_graph.BreakpointGraph`
         """
         result = BreakpointGraph()
-        current_genome_name = None
+        current_genome = None
         for line in stream:
             line = line.strip()
             if len(line) == 0:
                 continue
             if GRIMMReader.is_genome_declaration_string(data_string=line):
-                current_genome_name = GRIMMReader.parse_genome_declaration_string(data_string=line)
+                current_genome = GRIMMReader.parse_genome_declaration_string(data_string=line)
             elif GRIMMReader.is_comment_string(data_string=line):
                 continue
-            elif current_genome_name is not None:
+            elif current_genome is not None:
                 parsed_data = GRIMMReader.parse_data_string(data_string=line)
                 edges = GRIMMReader.get_edges_from_parsed_data(parsed_data=parsed_data)
                 for v1, v2 in edges:
                     result.add_edge(vertex1=BGVertex(v1), vertex2=BGVertex(v2),
-                                    multicolor=Multicolor(current_genome_name))
+                                    multicolor=Multicolor(current_genome))
         return result
