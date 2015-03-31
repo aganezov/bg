@@ -104,9 +104,14 @@ class BGVertex(object):
         return self.json_schema.__class__.__name__
 
     def to_json(self, schema_info=True):
-        json_exclude_fields = [] if schema_info else [BGVertex_JSON_SCHEMA_JSON_KEY]
-        self.json_schema.exclude = json_exclude_fields
-        return self.json_schema.dump(self).data
+        old_exclude_fields = self.json_schema.exclude
+        new_exclude_fields = list(old_exclude_fields)
+        if not schema_info:
+            new_exclude_fields.append(BGVertex_JSON_SCHEMA_JSON_KEY)
+        self.json_schema.exclude = new_exclude_fields
+        result = self.json_schema.dump(self).data
+        self.json_schema.exclude = old_exclude_fields
+        return result
 
     @classmethod
     def from_json(cls, data, json_schema_class=None):
