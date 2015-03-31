@@ -6,6 +6,8 @@ __author__ = "Sergey Aganezov"
 __email__ = "aganezov(at)gwu.edu"
 __status__ = "develop"
 
+BGEdge_JSON_SCHEMA_JSON_KEY = "_py__bg_edge_json_schema"
+
 
 class BGEdge(object):
     """ A wrapper class for edges in :class:`bg.breakpoint_graph.BreakpointGraph`
@@ -25,6 +27,7 @@ class BGEdge(object):
     """
 
     class BGEdgeJSONSchema(Schema):
+        _py__bg_edge_json_schema = fields.String(attribute="json_schema_name")
         vertex1_id = fields.Int(attribute="vertex1_json_id")
         vertex2_id = fields.Int(attribute="vertex2_json_id")
         multicolor = fields.List(fields.Int, attribute="colors_json_ids", allow_none=False)
@@ -98,6 +101,10 @@ class BGEdge(object):
     def is_infinity_edge(self):
         return INFINITY_VERTEX_IDENTIFIER in self.vertex1.name or INFINITY_VERTEX_IDENTIFIER in self.vertex2.name
 
+    @property
+    def json_schema_name(self):
+        return self.json_schema.__class__.__name__
+
     @staticmethod
     def __vertex_json_id(vertex):
         if hasattr(vertex, "json_id"):
@@ -116,5 +123,12 @@ class BGEdge(object):
     def colors_json_ids(self):
         return [color.json_id if hasattr(color, "json_id") else hash(color) for color in self.multicolor.multicolors.elements()]
 
-    def to_json(self):
-        return self.json_schema.dump(self).data
+    def to_json(self, schema_info=True):
+        old_exclude_fields = self.json_schema.exclude
+        new_exclude_fields = list(old_exclude_fields)
+        if not schema_info:
+            new_exclude_fields.append(BGEdge_JSON_SCHEMA_JSON_KEY)
+        self.json_schema.exclude = new_exclude_fields
+        result = self.json_schema.dump(self).data
+        self.json_schema.exclude = old_exclude_fields
+        return result

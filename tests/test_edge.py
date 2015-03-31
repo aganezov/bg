@@ -11,7 +11,7 @@ __email__ = "aganezov(at)gwu.edu"
 __status__ = "develop"
 
 import unittest
-from bg.edge import BGEdge
+from bg.edge import BGEdge, BGEdge_JSON_SCHEMA_JSON_KEY
 
 
 class BGEdgeTestCase(unittest.TestCase):
@@ -171,7 +171,7 @@ class BGEdgeTestCase(unittest.TestCase):
             "vertex2_id": v2.json_id,
             "multicolor": [color1.json_id]
         }
-        self.assertDictEqual(edge.to_json(), ref_result)
+        self.assertDictEqual(edge.to_json(schema_info=False), ref_result)
         # case where multiple colors are present, multiplicity is 1 for every of them
         color2 = BGGenome("genome2")
         multicolor = Multicolor(color1, color2)
@@ -181,11 +181,12 @@ class BGEdgeTestCase(unittest.TestCase):
         self.assertEqual(result["vertex1_id"], v1.json_id)
         self.assertEqual(result["vertex2_id"], v2.json_id)
         self.assertSetEqual(set(result["multicolor"]), {color1.json_id, color2.json_id})
+        self.assertEqual(result[BGEdge_JSON_SCHEMA_JSON_KEY], edge.json_schema_name)
         # case where multiple colors are present, multiplicity is both 1 and greater than 1
         color3 = BGGenome("genome3")
         multicolor = Multicolor(color1, color1, color1, color2, color2, color3)
         edge = BGEdge(vertex1=v1, vertex2=v2, multicolor=multicolor)
-        result = edge.to_json()
+        result = edge.to_json(schema_info=False)
         self.assertTrue(isinstance(result, dict))
         self.assertEqual(result["vertex1_id"], v1.json_id)
         self.assertEqual(result["vertex2_id"], v2.json_id)
@@ -199,6 +200,7 @@ class BGEdgeTestCase(unittest.TestCase):
         self.assertEqual(result["vertex1_id"], v1.json_id)
         self.assertEqual(result["vertex2_id"], hash(1))
         self.assertListEqual(result["multicolor"], [color1.json_id])
+        self.assertEqual(result[BGEdge_JSON_SCHEMA_JSON_KEY], edge.json_schema_name)
 
 
 if __name__ == '__main__':  # pragma: no cover
