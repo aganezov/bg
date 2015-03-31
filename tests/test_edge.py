@@ -123,9 +123,9 @@ class BGEdgeTestCase(unittest.TestCase):
         genomes = [self.genome1, self.genome1, self.genome2, self.genome3, self.genome2]
         multicolor = Multicolor(*genomes)
         bgedge = BGEdge(vertex1=v1, vertex2=v2, multicolor=multicolor)
-        json_ids_gen = bgedge.colors_json_ids()
-        self.assertTrue(isinstance(json_ids_gen, types.GeneratorType))
-        json_ids_list = list(json_ids_gen)
+        json_ids = bgedge.colors_json_ids
+        self.assertTrue(isinstance(json_ids, list))
+        json_ids_list = json_ids
         self.assertEqual(len(json_ids_list), 5)
         ref_json_ids = Counter(genome.json_id for genome in genomes)
         res_json_ids = Counter(json_ids_list)
@@ -136,9 +136,9 @@ class BGEdgeTestCase(unittest.TestCase):
         colors = ["red", "red", "green", "black", "yellow", "green"]
         multicolor = Multicolor(*colors)
         bgedge = BGEdge(vertex1=v1, vertex2=v2, multicolor=multicolor)
-        json_ids_gen = bgedge.colors_json_ids()
-        self.assertTrue(isinstance(json_ids_gen, types.GeneratorType))
-        json_ids_list = list(json_ids_gen)
+        json_ids = bgedge.colors_json_ids
+        self.assertTrue(isinstance(json_ids, list))
+        json_ids_list = json_ids
         self.assertEqual(len(json_ids_list), 6)
         ref_json_ids = Counter(hash(genome) for genome in colors)
         res_json_ids = Counter(json_ids_list)
@@ -152,13 +152,54 @@ class BGEdgeTestCase(unittest.TestCase):
         colors = [self.genome1, mock1, self.genome2, "black", mock2, self.genome2]
         multicolor = Multicolor(*colors)
         bgedge = BGEdge(vertex1=v1, vertex2=v2, multicolor=multicolor)
-        json_ids_gen = bgedge.colors_json_ids()
-        self.assertTrue(isinstance(json_ids_gen, types.GeneratorType))
-        json_ids_list = list(json_ids_gen)
+        json_ids = bgedge.colors_json_ids
+        self.assertTrue(isinstance(json_ids, list))
+        json_ids_list = list(json_ids)
         self.assertEqual(len(json_ids_list), 6)
         ref_json_ids = Counter(genome.json_id if hasattr(genome, "json_id") else hash(genome) for genome in colors)
         res_json_ids = Counter(json_ids_list)
         self.assertDictEqual(ref_json_ids, res_json_ids)
+
+    def test_json_serialization(self):
+        # simple case of serialization, single color, no multiplicity
+        v1, v2 = BGVertex("v1"), BGVertex("v2")
+        color1 = BGGenome("genome1")
+        multicolor = Multicolor(color1)
+        edge = BGEdge(vertex1=v1, vertex2=v2, multicolor=multicolor)
+        ref_result = {
+            "vertex1_id": v1.json_id,
+            "vertex2_id": v2.json_id,
+            "multicolor": [color1.json_id]
+        }
+        self.assertDictEqual(edge.to_json(), ref_result)
+        # case where multiple colors are present, multiplicity is 1 for every of them
+        color2 = BGGenome("genome2")
+        multicolor = Multicolor(color1, color2)
+        edge = BGEdge(vertex1=v1, vertex2=v2, multicolor=multicolor)
+        result = edge.to_json()
+        self.assertTrue(isinstance(result, dict))
+        self.assertEqual(result["vertex1_id"], v1.json_id)
+        self.assertEqual(result["vertex2_id"], v2.json_id)
+        self.assertSetEqual(set(result["multicolor"]), {color1.json_id, color2.json_id})
+        # case where multiple colors are present, multiplicity is both 1 and greater than 1
+        color3 = BGGenome("genome3")
+        multicolor = Multicolor(color1, color1, color1, color2, color2, color3)
+        edge = BGEdge(vertex1=v1, vertex2=v2, multicolor=multicolor)
+        result = edge.to_json()
+        self.assertTrue(isinstance(result, dict))
+        self.assertEqual(result["vertex1_id"], v1.json_id)
+        self.assertEqual(result["vertex2_id"], v2.json_id)
+        self.assertSetEqual(set(result["multicolor"]), {color1.json_id, color2.json_id, color3.json_id})
+        self.assertDictEqual(Counter(result["multicolor"]), Counter(color.json_id for color in multicolor.multicolors.elements()))
+        # weird case when a vertex1/vertex attribute in edge is not an instance of BGVertex
+        # and moreover it does not have "json_id" attribute
+        edge = BGEdge(vertex1=v1, vertex2=1, multicolor=Multicolor(color1))
+        result = edge.to_json()
+        self.assertTrue(isinstance(result, dict))
+        self.assertEqual(result["vertex1_id"], v1.json_id)
+        self.assertEqual(result["vertex2_id"], hash(1))
+        self.assertListEqual(result["multicolor"], [color1.json_id])
+
 
 if __name__ == '__main__':  # pragma: no cover
     unittest.main()         # pragma: no cover

@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+from marshmallow import Schema, fields
 from bg.vertex import INFINITY_VERTEX_IDENTIFIER
 
 __author__ = "Sergey Aganezov"
@@ -22,6 +23,14 @@ class BGEdge(object):
     *   ``==``
     *   :meth:`BGEdge.merge`: produces a new BGEdge with multi-color information being merged from them
     """
+
+    class BGEdgeJSONSchema(Schema):
+        vertex1_id = fields.Int(attribute="vertex1_json_id")
+        vertex2_id = fields.Int(attribute="vertex2_json_id")
+        multicolor = fields.List(fields.Int, attribute="colors_json_ids", allow_none=False)
+
+    json_schema = BGEdgeJSONSchema()
+
     def __init__(self, vertex1, vertex2, multicolor):
         """ Initialization of :class:`BGEdge` object.
 
@@ -89,9 +98,23 @@ class BGEdge(object):
     def is_infinity_edge(self):
         return INFINITY_VERTEX_IDENTIFIER in self.vertex1.name or INFINITY_VERTEX_IDENTIFIER in self.vertex2.name
 
+    @staticmethod
+    def __vertex_json_id(vertex):
+        if hasattr(vertex, "json_id"):
+            return vertex.json_id
+        return hash(vertex)
+
+    @property
+    def vertex1_json_id(self):
+        return self.__vertex_json_id(self.vertex1)
+
+    @property
+    def vertex2_json_id(self):
+        return self.__vertex_json_id(self.vertex2)
+
+    @property
     def colors_json_ids(self):
-        for color in self.multicolor.multicolors.elements():
-            if hasattr(color, "json_id"):
-                yield color.json_id
-            else:
-                yield hash(color)
+        return [color.json_id if hasattr(color, "json_id") else hash(color) for color in self.multicolor.multicolors.elements()]
+
+    def to_json(self):
+        return self.json_schema.dump(self).data
