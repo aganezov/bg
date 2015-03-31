@@ -36,6 +36,9 @@ class BGGenomeTestCase(unittest.TestCase):
         self.assertNotEqual(g1, g2)
         g2.name = "name1"
         self.assertEqual(g1, g2)
+        self.assertNotEqual(g1, 5)
+        self.assertNotEqual(g1, "name1")
+        self.assertNotEqual(g1, [g1])
 
 
 if __name__ == '__main__':
