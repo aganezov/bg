@@ -1,9 +1,12 @@
 # -*- coding: utf-8 -*-
+from marshmallow import Schema, fields
+
 __author__ = "Sergey Aganezov"
 __email__ = "aganezov(at)gwu.edu"
 __status__ = "develop"
 
 INFINITY_VERTEX_IDENTIFIER = "__infinity"
+BGVertex_JSON_SCHEMA_JSON_KEY = "_py__bg_vertex_json_schema"
 
 
 class BGVertex(object):
@@ -14,6 +17,19 @@ class BGVertex(object):
     *    :attr:`BGVertex.name`: main field used for vertex label and is used for comparison
     *    :attr:`BGVertex.info`: key:value type storage that might be sued to store additional information about respective vertex
     """
+    class BGVertexJSONSchema(Schema):
+        name = fields.String(required=True, attribute="name")
+        v_id = fields.Int(required=True, attribute="json_id")
+        _py__bg_vertex_json_schema = fields.String(attribute="json_schema_name")
+
+        def make_object(self, data):
+            try:
+                return BGVertex(name=data["name"])
+            except KeyError as err:
+                raise err
+
+    json_schema = BGVertexJSONSchema()
+
     def __init__(self, name, info=None):
         """ Initialization of BGVertex instance
 
@@ -81,4 +97,19 @@ class BGVertex(object):
 
     @property
     def json_id(self):
-        return self.__hash__()
+        return hash(self)
+
+    @property
+    def json_schema_name(self):
+        return self.json_schema.__class__.__name__
+
+    def to_json(self, schema_info=True):
+        json_exclude_fields = [] if schema_info else [BGVertex_JSON_SCHEMA_JSON_KEY]
+        self.json_schema.exclude = json_exclude_fields
+        return self.json_schema.dump(self).data
+
+    @classmethod
+    def from_json(cls, data, json_schema_class=None):
+        schema = cls.json_schema if json_schema_class is None else json_schema_class()
+        return schema.load(data).data
+
