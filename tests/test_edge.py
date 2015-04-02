@@ -202,7 +202,7 @@ class BGEdgeTestCase(unittest.TestCase):
         self.assertListEqual(result["multicolor"], [color1.json_id])
         self.assertEqual(result[BGEdge_JSON_SCHEMA_JSON_KEY], edge.json_schema_name)
 
-    def test_deserialization_default_schema(self):
+    def test_json_deserialization_default_schema(self):
         # with no scheme is supplied, default scheme for the BGVertex is applied
         # deserialization for vertices and multicolor shall be performed as is, but then it will be resupplied from
         # the overviewing BreakpointGraph
@@ -251,7 +251,7 @@ class BGEdgeTestCase(unittest.TestCase):
         with self.assertRaises(ValueError):
             BGEdge.from_json(data=json_object)
 
-    def test_deserialization_supplied_schema(self):
+    def test_json_deserialization_supplied_schema(self):
         # when a scheme is supplied it shall be used for deserialization
         # correct case no information in json object about schema
         class BGEdgeJSONSchemeDefaultVertex1(BGEdge.BGEdgeJSONSchema):
