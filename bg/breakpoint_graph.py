@@ -1,10 +1,11 @@
 # -*- coding: utf-8 -*-
 from copy import deepcopy
 import itertools
-from bg.edge import BGEdge
+from bg.edge import BGEdge, BGEdge_JSON_SCHEMA_JSON_KEY
+from bg.genome import BGGenome, BGGenome_JSON_SCHEMA_JSON_KEY
 from bg.kbreak import KBreak
 from bg.multicolor import Multicolor
-from bg.vertex import BGVertex
+from bg.vertex import BGVertex, BGVertex_JSON_SCHEMA_JSON_KEY
 
 __author__ = "Sergey Aganezov"
 __email__ = "aganezov(at)gwu.edu"
@@ -47,6 +48,10 @@ class BreakpointGraph(object):
     *   :meth:`BreakpointGraph.merge`: merges two :class:`BreakpointGraph` instances with respect to vertices, edges, and multicolors.
     *   :meth:`BreakpointGraph.update`: updates information in current :class:`BreakpointGraph` instance by adding new :class:`bg.edge.BGEdge` instances form supplied :class:`BreakpointGraph`.
     """
+
+    genomes_json_schemas = {"BGGenomeJSONSchema": BGGenome.BGGenomeJSONSchema}
+    edges_json_schemas = {"BGEdgeJSONSchema": BGEdge.BGEdgeJSONSchema}
+    vertices_json_schemas = {"BGVertexJSONSchema": BGVertex.BGVertexJSONSchema}
 
     def __init__(self, graph=None):
         """ Initialization of a :class:`BreakpointGraph` object.
@@ -672,3 +677,31 @@ class BreakpointGraph(object):
         result["vertices"] = [bgvertex.to_json(schema_info=schema_info) for bgvertex in self.nodes()]
         result["genomes"] = [bggenome.to_json(schema_info=schema_info) for bggenome in genomes]
         return result
+
+    @classmethod
+    def from_json(cls, data, genomes_data=None, genomes_deserialization_required=True):
+        result = cls()
+        merge = False
+        vertices_dict = {}
+        genomes_dict = genomes_data if genomes_data is not None and not genomes_deserialization_required else None
+        if genomes_dict is None:
+            genomes_dict = {}
+            source = genomes_data if genomes_data is not None and genomes_deserialization_required else data["genomes"]
+            for g_dict in source:
+                schema_name = g_dict.get(BGGenome_JSON_SCHEMA_JSON_KEY, None)
+                schema_class = None if schema_name is None else cls.genomes_json_schemas.get(schema_name, None)
+                genomes_dict[g_dict["g_id"]] = BGGenome.from_json(data=g_dict, json_schema_class=schema_class)
+        for vertex_dict in data["vertices"]:
+            schema_name = vertex_dict.get(BGVertex_JSON_SCHEMA_JSON_KEY, None)
+            schema_class = None if schema_name is None else cls.vertices_json_schemas.get(schema_name, None)
+            vertices_dict[vertex_dict["v_id"]] = BGVertex.from_json(data=vertex_dict, json_schema_class=schema_class)
+        for edge_dict in data["edges"]:
+            schema_name = edge_dict.get(BGEdge_JSON_SCHEMA_JSON_KEY, None)
+            schema = None if schema_name is None else cls.edges_json_schemas.get(schema_name, None)
+            edge = BGEdge.from_json(data=edge_dict, json_schema_class=schema)
+            edge.vertex1 = vertices_dict[edge.vertex1]
+            edge.vertex2 = vertices_dict[edge.vertex2]
+            edge.multicolor = Multicolor(*[genomes_dict[g_id] for g_id in edge.multicolor])
+            result.__add_bgedge(edge, merge=merge)
+        return result
+

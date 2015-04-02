@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 from unittest.mock import Mock
+from collections import Counter
 from bg.edge import BGEdge, BGEdge_JSON_SCHEMA_JSON_KEY
 from bg.genome import BGGenome, BGGenome_JSON_SCHEMA_JSON_KEY
 from bg.kbreak import KBreak
@@ -2255,7 +2256,7 @@ class BreakpointGraphTestCase(unittest.TestCase):
                 if ref_dict["vertex1_id"] == edge_dict["vertex1_id"] and ref_dict["vertex2_id"] == edge_dict["vertex2_id"]:
                     ref_edge_dict = ref_dict
                     break
-            self.assertDictEqual(edge_dict, ref_edge_dict)
+            self.assertDictEqual(Counter(edge_dict["multicolor"]), Counter(ref_edge_dict["multicolor"]))
         for vertex_dict in result["vertices"]:
             ref_vertex_dict = None
             for ref_dict in doubled_ref_result["vertices"]:
@@ -2263,6 +2264,50 @@ class BreakpointGraphTestCase(unittest.TestCase):
                     ref_vertex_dict = ref_dict
                     break
             self.assertDictEqual(vertex_dict, ref_vertex_dict)
+
+    def test_json_deserialization(self):
+        # simple case
+        bg = BreakpointGraph()
+        result = bg.to_json(schema_info=False)
+        ref_result = {
+            "edges": [],
+            "vertices": [],
+            "genomes": []
+        }
+        self.assertDictEqual(result, ref_result)
+        # case with BreakpointGraph with a single edge and only two multicolors in it
+        # multiplicity of colors is set to 1 and 2
+
+        class BGVertexJSONShcemaWithSpecialAttribute(BGVertex.BGVertexJSONSchema):
+            def make_object(self, data):
+                new_vertex = super().make_object(data=data)
+                new_vertex.special_attribute = "special_attribute"
+                return new_vertex
+
+        BreakpointGraph.vertices_json_schemas["BGVertexJSONShcemaWithSpecialAttribute"] = BGVertexJSONShcemaWithSpecialAttribute
+        v1, v2, v3 = BGVertex("v1"), BGVertex("v2"), BGVertex("v3")
+        v1.json_schema = BGVertexJSONShcemaWithSpecialAttribute()
+
+        color1, color2 = BGGenome("genome1"), BGGenome("genome2")
+        bg = BreakpointGraph()
+        bgedge1 = BGEdge(vertex1=v1, vertex2=v2, multicolor=Multicolor(color1, color2))
+        bgedge2 = BGEdge(vertex1=v1, vertex2=v3, multicolor=Multicolor(color1))
+        bgedge3 = BGEdge(vertex1=v2, vertex2=v3, multicolor=Multicolor(color2))
+        bg.add_bgedge(bgedge1)
+        bg.add_bgedge(bgedge2)
+        bg.add_bgedge(bgedge3)
+        object = bg.to_json()
+        new_bg = BreakpointGraph.from_json(object)
+        self.assertEqual(len(list(new_bg.nodes())), 3)
+        self.assertEqual(len(list(new_bg.edges())), 3)
+        for vertex in new_bg.nodes():
+            if vertex.name == "v1":
+                self.assertTrue(vertex, "special_attribute")
+                self.assertEqual(vertex.special_attribute, "special_attribute")
+            self.assertTrue(vertex in [v1, v2, v3])
+        for bgedge in new_bg.edges():
+            self.assertTrue(bgedge in [bgedge1, bgedge2, bgedge3])
+
 
 if __name__ == '__main__':  # pragma: no cover
     unittest.main()  # pragma: no cover
