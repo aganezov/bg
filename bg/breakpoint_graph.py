@@ -661,3 +661,14 @@ class BreakpointGraph(object):
             if BGVertex.is_infinity_vertex(vertex1) and BGVertex.is_infinity_vertex(vertex2):
                 continue
             self.__add_bgedge(BGEdge(vertex1=vertex1, vertex2=vertex2, multicolor=kbreak.multicolor), merge=merge)
+
+    def to_json(self, schema_info=True):
+        genomes = set()
+        result = {}
+        result["edges"] = []
+        for bgedge in self.edges():
+            genomes |= bgedge.multicolor.colors
+            result["edges"].append(bgedge.to_json(schema_info=schema_info))
+        result["vertices"] = [bgvertex.to_json(schema_info=schema_info) for bgvertex in self.nodes()]
+        result["genomes"] = [bggenome.to_json(schema_info=schema_info) for bggenome in genomes]
+        return result

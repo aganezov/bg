@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
 from unittest.mock import Mock
-from bg.edge import BGEdge
-from bg.genome import BGGenome
+from bg.edge import BGEdge, BGEdge_JSON_SCHEMA_JSON_KEY
+from bg.genome import BGGenome, BGGenome_JSON_SCHEMA_JSON_KEY
 from bg.kbreak import KBreak
 from bg.multicolor import Multicolor
-from bg.vertex import BGVertex
+from bg.vertex import BGVertex, BGVertex_JSON_SCHEMA_JSON_KEY
 
 __author__ = "Sergey Aganezov"
 __email__ = "aganezov(at)gwu.edu"
@@ -2197,6 +2197,72 @@ class BreakpointGraphTestCase(unittest.TestCase):
         self.assertListEqual(res_edges, ref_edges)
         self.assertEqual(bg.get_edge_by_two_vertices(vertex1=v1, vertex2=v2).multicolor, multicolor2)
         self.assertEqual(len(list(bg.edges_between_two_vertices(vertex1=v1, vertex2=v2))), 2)
+
+    def test_json_serialization_no_subclassing(self):
+        # breakpoint graph shall be serialized into json format, by utilizing to_json methods of its edges and vertices
+        # BreakpointGraph does not utilize a simple json schema, but rather a more complex workflow
+        # case with empty BreakpointGraph instance
+        bg = BreakpointGraph()
+        result = bg.to_json(schema_info=False)
+        ref_result = {
+            "edges": [],
+            "vertices": [],
+            "genomes": []
+        }
+        self.assertDictEqual(result, ref_result)
+        # case with BreakpointGraph with a single edge and only two multicolors in it
+        # multiplicity of colors is set to 1 and 2
+        v1, v2, v3 = BGVertex("v1"), BGVertex("v2"), BGVertex("v3")
+        color1, color2 = BGGenome("genome1"), BGGenome("genome2")
+        bg = BreakpointGraph()
+        bgedge1 = BGEdge(vertex1=v1, vertex2=v2, multicolor=Multicolor(color1, color2))
+        bgedge1_reversed = BGEdge(vertex1=v2, vertex2=v1, multicolor=Multicolor(color1, color2))
+        bgedge2 = BGEdge(vertex1=v1, vertex2=v3, multicolor=Multicolor(color1))
+        bgedge2_reversed = BGEdge(vertex1=v3, vertex2=v1, multicolor=Multicolor(color1))
+        bgedge3 = BGEdge(vertex1=v2, vertex2=v3, multicolor=Multicolor(color2))
+        bgedge3_reversed = BGEdge(vertex1=v3, vertex2=v2, multicolor=Multicolor(color2))
+        bg.add_bgedge(bgedge1)
+        bg.add_bgedge(bgedge2)
+        bg.add_bgedge(bgedge3)
+        doubled_ref_result = {
+            "edges": [
+                # since BreakpointGraph stores undirected edges, both ways of representing an edges is acceptable
+                bgedge1.to_json(),
+                bgedge1_reversed.to_json(),
+                bgedge2.to_json(),
+                bgedge2_reversed.to_json(),
+                bgedge3.to_json(),
+                bgedge3_reversed.to_json()
+            ],
+            "vertices": [
+                v1.to_json(),
+                v2.to_json(),
+                v3.to_json()
+            ],
+            "genomes": [
+                color1.to_json(),
+                color2.to_json()
+            ]
+        }
+        result = bg.to_json()
+        self.assertTrue("edges" in result)
+        self.assertEqual(len(result["edges"]), 3)
+        self.assertTrue("vertices" in result)
+        self.assertEqual(len(result["vertices"]), 3)
+        for edge_dict in result["edges"]:
+            ref_edge_dict = None
+            for ref_dict in doubled_ref_result["edges"]:
+                if ref_dict["vertex1_id"] == edge_dict["vertex1_id"] and ref_dict["vertex2_id"] == edge_dict["vertex2_id"]:
+                    ref_edge_dict = ref_dict
+                    break
+            self.assertDictEqual(edge_dict, ref_edge_dict)
+        for vertex_dict in result["vertices"]:
+            ref_vertex_dict = None
+            for ref_dict in doubled_ref_result["vertices"]:
+                if ref_dict["v_id"] == vertex_dict["v_id"]:
+                    ref_vertex_dict = ref_dict
+                    break
+            self.assertDictEqual(vertex_dict, ref_vertex_dict)
 
 if __name__ == '__main__':  # pragma: no cover
     unittest.main()  # pragma: no cover
