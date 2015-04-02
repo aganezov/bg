@@ -3,7 +3,7 @@ __email__ = "aganezov(at)gwu.edu"
 __status__ = "develop"
 
 import unittest
-from bg.genome import BGGenome
+from bg.genome import BGGenome, BGGenome_JSON_SCHEMA_JSON_KEY
 
 
 class BGGenomeTestCase(unittest.TestCase):
@@ -39,6 +39,41 @@ class BGGenomeTestCase(unittest.TestCase):
         self.assertNotEqual(g1, 5)
         self.assertNotEqual(g1, "name1")
         self.assertNotEqual(g1, [g1])
+
+    def test_json_serialization_no_subclassing(self):
+        g = BGGenome("name1")
+        ref_result = {
+            "name": "name1",
+            "g_id": g.json_id
+        }
+        self.assertDictEqual(g.to_json(schema_info=False), ref_result)
+        ref_result[BGGenome_JSON_SCHEMA_JSON_KEY] = g.json_schema_name
+        self.assertDictEqual(g.to_json(), ref_result)
+
+    def test_json_deserialization_no_subclassing(self):
+        # simple case
+        json_object = {
+            "name": "name1",
+            "g_id": 1
+        }
+        result = BGGenome.from_json(data=json_object)
+        self.assertEqual(result.name, "name1")
+        # g_id is not mandatory for genome deserialization itself, but is required by the supervising class
+        self.assertEqual(BGGenome.from_json(data={"name": "name1"}).name, "name1")
+        # BGGenome scheme info shall be ignored at this level, as it is supplied by the supervising class
+        self.assertEqual(BGGenome.from_json(data={"name": "name1",
+                                                  BGGenome_JSON_SCHEMA_JSON_KEY: "lalal"}).name, "name1")
+        # error case when "name" is not present
+        with self.assertRaises(ValueError):
+            BGGenome.from_json(data={})
+
+    def test_json_deserialization_subclassing(self):
+        class BGGenomeJSONSchemaNameOptional(BGGenome.BGGenomeJSONSchema):
+            def make_object(self, data):
+                if "name" not in data:
+                    data["name"] = "default_name"
+                return super().make_object(data=data)
+        self.assertEqual(BGGenome.from_json(data={}, json_schema_class=BGGenomeJSONSchemaNameOptional).name, "default_name")
 
 
 if __name__ == '__main__':
