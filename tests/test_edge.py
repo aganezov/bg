@@ -202,6 +202,110 @@ class BGEdgeTestCase(unittest.TestCase):
         self.assertListEqual(result["multicolor"], [color1.json_id])
         self.assertEqual(result[BGEdge_JSON_SCHEMA_JSON_KEY], edge.json_schema_name)
 
+    def test_deserialization_default_schema(self):
+        # with no scheme is supplied, default scheme for the BGVertex is applied
+        # deserialization for vertices and multicolor shall be performed as is, but then it will be resupplied from
+        # the overviewing BreakpointGraph
+        # correct case no information in json object about schema
+        json_object = {
+            "vertex1_id": 1,
+            "vertex2_id": 2,
+            "multicolor": [1, 2, 3, 4]
+        }
+        result = BGEdge.from_json(data=json_object)
+        self.assertTrue(isinstance(result, BGEdge))
+        self.assertEqual(result.vertex1, 1)
+        self.assertEqual(result.vertex2, 2)
+        self.assertListEqual(result.multicolor, [1, 2, 3, 4])
+        # correct case with information about json object schema
+        # such information about json schema shall be ignored at the BGEdge deserialization level
+        json_object = {
+            BGEdge_JSON_SCHEMA_JSON_KEY: "dummy_string",
+            "vertex1_id": 1,
+            "vertex2_id": 2,
+            "multicolor": [1, 2, 3, 4]
+        }
+        result = BGEdge.from_json(data=json_object)
+        self.assertTrue(isinstance(result, BGEdge))
+        self.assertEqual(result.vertex1, 1)
+        self.assertEqual(result.vertex2, 2)
+        self.assertListEqual(result.multicolor, [1, 2, 3, 4])
+        # incorrect case with at least one vertex id not present in json object
+        json_object = {
+            "vertex2_id": 2,
+            "multicolor": [1, 2, 3, 4]
+        }
+        with self.assertRaises(ValueError):
+            BGEdge.from_json(data=json_object)
+        json_object = {
+            "vertex1_id": 2,
+            "multicolor": [1, 2, 3, 4]
+        }
+        with self.assertRaises(ValueError):
+            BGEdge.from_json(data=json_object)
+        # incorrect case with no multicolor present in json object
+        json_object = {
+            "vertex2_id": 2,
+            "vertex1_id": 1,
+        }
+        with self.assertRaises(ValueError):
+            BGEdge.from_json(data=json_object)
+
+    def test_deserialization_supplied_schema(self):
+        # when a scheme is supplied it shall be used for deserialization
+        # correct case no information in json object about schema
+        class BGEdgeJSONSchemeDefaultVertex1(BGEdge.BGEdgeJSONSchema):
+            def make_object(self, data):
+                if "vertex1_json_id" not in data:
+                    data["vertex1_json_id"] = 1
+                return super().make_object(data)
+
+        json_object = {
+            "vertex1_id": 1,
+            "vertex2_id": 2,
+            "multicolor": [1, 2, 3, 4]
+        }
+        result = BGEdge.from_json(data=json_object, json_schema_class=BGEdgeJSONSchemeDefaultVertex1)
+        self.assertTrue(isinstance(result, BGEdge))
+        self.assertEqual(result.vertex1, 1)
+        self.assertEqual(result.vertex2, 2)
+        self.assertListEqual(result.multicolor, [1, 2, 3, 4])
+        # correct case with information about json object schema
+        # such information about json schema shall be ignored at the BGEdge deserialization level
+        json_object = {
+            BGEdge_JSON_SCHEMA_JSON_KEY: "dummy_string",
+            "vertex1_id": 1,
+            "vertex2_id": 2,
+            "multicolor": [1, 2, 3, 4]
+        }
+        result = BGEdge.from_json(data=json_object, json_schema_class=BGEdgeJSONSchemeDefaultVertex1)
+        self.assertTrue(isinstance(result, BGEdge))
+        self.assertEqual(result.vertex1, 1)
+        self.assertEqual(result.vertex2, 2)
+        self.assertListEqual(result.multicolor, [1, 2, 3, 4])
+        # incorrect case with at least one vertex id not present in json object
+        json_object = {
+            "vertex2_id": 2,
+            "multicolor": [1, 2, 3, 4]
+        }
+        result = BGEdge.from_json(data=json_object, json_schema_class=BGEdgeJSONSchemeDefaultVertex1)
+        self.assertTrue(isinstance(result, BGEdge))
+        self.assertEqual(result.vertex1, 1)
+        self.assertEqual(result.vertex2, 2)
+        self.assertListEqual(result.multicolor, [1, 2, 3, 4])
+        json_object = {
+            "vertex1_id": 2,
+            "multicolor": [1, 2, 3, 4]
+        }
+        with self.assertRaises(ValueError):
+            BGEdge.from_json(data=json_object)
+        # incorrect case with no multicolor present in json object
+        json_object = {
+            "vertex2_id": 2,
+            "vertex1_id": 1,
+        }
+        with self.assertRaises(ValueError):
+            BGEdge.from_json(data=json_object)
 
 if __name__ == '__main__':  # pragma: no cover
     unittest.main()         # pragma: no cover

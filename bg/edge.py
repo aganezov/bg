@@ -28,9 +28,21 @@ class BGEdge(object):
 
     class BGEdgeJSONSchema(Schema):
         _py__bg_edge_json_schema = fields.String(attribute="json_schema_name")
-        vertex1_id = fields.Int(attribute="vertex1_json_id")
-        vertex2_id = fields.Int(attribute="vertex2_json_id")
-        multicolor = fields.List(fields.Int, attribute="colors_json_ids", allow_none=False)
+        vertex1_id = fields.Int(attribute="vertex1_json_id", required=True)
+        vertex2_id = fields.Int(attribute="vertex2_json_id", required=True)
+        multicolor = fields.List(fields.Int, attribute="colors_json_ids", allow_none=False, required=True)
+
+        def make_object(self, data):
+            if "vertex1_json_id" not in data:
+                raise ValueError("Error during edge serialization. \"vertex1_id\" key is not present in json object")
+            vertex1 = data["vertex1_json_id"]
+            if "vertex2_json_id" not in data:
+                raise ValueError("Error during edge serialization. \"vertex2_id\" key is not present in json object")
+            vertex2 = data["vertex2_json_id"]
+            if "colors_json_ids" not in data:
+                raise ValueError("Error during edge serialization. \"multicolor\" key is not present in json object")
+            multicolor = data["colors_json_ids"]
+            return BGEdge(vertex1=vertex1, vertex2=vertex2, multicolor=multicolor)
 
     json_schema = BGEdgeJSONSchema()
 
@@ -132,3 +144,8 @@ class BGEdge(object):
         result = self.json_schema.dump(self).data
         self.json_schema.exclude = old_exclude_fields
         return result
+
+    @classmethod
+    def from_json(cls, data, json_schema_class=None):
+        schema = cls.json_schema if json_schema_class is None else json_schema_class()
+        return schema.load(data).data
