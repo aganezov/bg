@@ -686,7 +686,10 @@ class BreakpointGraph(object):
         genomes_dict = genomes_data if genomes_data is not None and not genomes_deserialization_required else None
         if genomes_dict is None:
             genomes_dict = {}
-            source = genomes_data if genomes_data is not None and genomes_deserialization_required else data["genomes"]
+            try:
+                source = genomes_data if genomes_data is not None and genomes_deserialization_required else data["genomes"]
+            except KeyError as exc:
+                raise ValueError("Error during breakpoint graph deserialization. No \"genomes\" information found")
             for g_dict in source:
                 schema_name = g_dict.get(BGGenome_JSON_SCHEMA_JSON_KEY, None)
                 schema_class = None if schema_name is None else cls.genomes_json_schemas.get(schema_name, None)
@@ -701,8 +704,13 @@ class BreakpointGraph(object):
             schema_name = edge_dict.get(BGEdge_JSON_SCHEMA_JSON_KEY, None)
             schema = None if schema_name is None else cls.edges_json_schemas.get(schema_name, None)
             edge = BGEdge.from_json(data=edge_dict, json_schema_class=schema)
-            edge.vertex1 = vertices_dict[edge.vertex1]
-            edge.vertex2 = vertices_dict[edge.vertex2]
+            try:
+                edge.vertex1 = vertices_dict[edge.vertex1]
+                edge.vertex2 = vertices_dict[edge.vertex2]
+            except KeyError:
+                raise ValueError("Error during breakpoint graph deserialization. Deserialized edge references non-present vertex")
+            if len(edge.multicolor) == 0:
+                raise ValueError("Error during breakpoint graph deserialization. Empty multicolor for deserialized edge")
             edge.multicolor = Multicolor(*[genomes_dict[g_id] for g_id in edge.multicolor])
             result.__add_bgedge(edge, merge=merge)
         return result

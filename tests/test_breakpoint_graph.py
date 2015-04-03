@@ -2312,6 +2312,47 @@ class BreakpointGraphTestCase(unittest.TestCase):
         with self.assertRaises(ValueError):
             BreakpointGraph.from_json(data={"edges": []}, genomes_data={})
 
+    def test_deserialization_incorrect_empty_json_object(self):
+        with self.assertRaises(ValueError):
+            BreakpointGraph.from_json(data={})
+
+    def test_deserialization_incorrect_no_genomes_data(self):
+        with self.assertRaises(ValueError):
+            bg = BreakpointGraph()
+            v1 = BGVertex("v1")
+            v2 = BGVertex("v2")
+            genome = BGGenome("genome1")
+            bgedge = BGEdge(vertex1=v1, vertex2=v2, multicolor=Multicolor(genome))
+            bg.add_bgedge(bgedge=bgedge)
+            json_object = bg.to_json(schema_info=False)
+            if "genomes" in json_object:
+                del json_object["genomes"]
+            bg.from_json(data=json_object)
+
+    def test_deserialization_incorrect_no_multicolor_data_in_some_edge_dict(self):
+        with self.assertRaises(ValueError):
+            bg = BreakpointGraph()
+            v1 = BGVertex("v1")
+            v2 = BGVertex("v2")
+            genome = BGGenome("genome1")
+            bgedge = BGEdge(vertex1=v1, vertex2=v2, multicolor=Multicolor(genome))
+            bg.add_bgedge(bgedge=bgedge)
+            json_object = bg.to_json(schema_info=False)
+            json_object["edges"][0]["multicolor"] = []
+            bg.from_json(data=json_object)
+
+    def test_deserialization_incorrect_referencing_non_present_vertex(self):
+        with self.assertRaises(ValueError):
+            bg = BreakpointGraph()
+            v1 = BGVertex("v1")
+            v2 = BGVertex("v2")
+            genome = BGGenome("genome1")
+            bgedge = BGEdge(vertex1=v1, vertex2=v2, multicolor=Multicolor(genome))
+            bg.add_bgedge(bgedge=bgedge)
+            json_object = bg.to_json(schema_info=False)
+            json_object["vertices"] = json_object["vertices"][1:]
+            bg.from_json(data=json_object)
+
 
 if __name__ == '__main__':  # pragma: no cover
     unittest.main()  # pragma: no cover
