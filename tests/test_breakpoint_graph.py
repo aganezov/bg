@@ -2308,6 +2308,10 @@ class BreakpointGraphTestCase(unittest.TestCase):
         for bgedge in new_bg.edges():
             self.assertTrue(bgedge in [bgedge1, bgedge2, bgedge3])
 
+    def test_deserialization_incorrect_no_vertices(self):
+        with self.assertRaises(ValueError):
+            BreakpointGraph.from_json(data={"edges": []}, genomes_data={})
+
 
 if __name__ == '__main__':  # pragma: no cover
     unittest.main()  # pragma: no cover

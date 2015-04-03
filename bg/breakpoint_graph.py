@@ -691,6 +691,8 @@ class BreakpointGraph(object):
                 schema_name = g_dict.get(BGGenome_JSON_SCHEMA_JSON_KEY, None)
                 schema_class = None if schema_name is None else cls.genomes_json_schemas.get(schema_name, None)
                 genomes_dict[g_dict["g_id"]] = BGGenome.from_json(data=g_dict, json_schema_class=schema_class)
+        if "vertices" not in data:
+            raise ValueError("Error during breakpoint graph deserialization. \"vertices\" key is not present in json object")
         for vertex_dict in data["vertices"]:
             schema_name = vertex_dict.get(BGVertex_JSON_SCHEMA_JSON_KEY, None)
             schema_class = None if schema_name is None else cls.vertices_json_schemas.get(schema_name, None)
