@@ -11,23 +11,30 @@ DEFAULT_BRANCH_LENGTH = 1
 
 
 class NewickParser(object):
-    @staticmethod
-    def parse_simple_node(data_string):
-        if len(data_string) == 0:
-            raise ValueError("Parsed simple node can not be empty")
+
+    @classmethod
+    def parse_node(cls, data_string):
         if ":" in data_string:
-            node_name, str_branch_length = map(lambda s: s.strip(), data_string.split(":"))
-            if len(str_branch_length) == 0:
-                str_branch_length = str(DEFAULT_BRANCH_LENGTH)
+            node_name, branch_length_str = data_string.split(":")
+            node_name = node_name.strip()
+            if len(branch_length_str) == 0:
+                branch_length_str = str(DEFAULT_BRANCH_LENGTH)
         else:
             node_name = data_string.strip()
-            str_branch_length = str(DEFAULT_BRANCH_LENGTH)
-        genome = BGGenome(node_name)
-        branch_length = int(str_branch_length) if "." not in str_branch_length else float(str_branch_length)
-        return genome, branch_length
+            branch_length_str = str(DEFAULT_BRANCH_LENGTH)
+        branch_length = int(branch_length_str) if "." not in branch_length_str else float(branch_length_str)
+        return node_name, branch_length
 
-    @staticmethod
-    def separate_into_same_level_nodes(data_string):
+
+    @classmethod
+    def parse_simple_node(cls, data_string):
+        node_name, branch_length = cls.parse_node(data_string)
+        if len(node_name) == 0:
+            raise ValueError("Terminal node can't be empty")
+        return BGGenome(node_name), branch_length
+
+    @classmethod
+    def separate_into_same_level_nodes(cls, data_string):
         current_level_separation_comas = [-1]
         overall_result = []
         parenthesis_count = 0
@@ -49,9 +56,14 @@ class NewickParser(object):
             raise ValueError("Empty internal node error")
         return overall_result
 
-    @staticmethod
-    def is_non_terminal_subtree(data_string):
+    @classmethod
+    def is_non_terminal_subtree(cls, data_string):
         return "(" in data_string
+
+    @classmethod
+    def tree_node_separation(cls, data_string):
+        last_parenthesis_position = data_string.rfind(")")
+        return data_string[:last_parenthesis_position + 1], data_string[last_parenthesis_position + 1:]
 
 
 class Tree(object):

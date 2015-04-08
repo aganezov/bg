@@ -236,5 +236,23 @@ class NewickParserTestCase(unittest.TestCase):
         data_string = "(a,c)c:5"
         self.assertTrue(NewickParser.is_non_terminal_subtree(data_string))
 
+    def test_parse_tree_root(self):
+        data_string = "()a"
+        subtree_string, root_string = NewickParser.tree_node_separation(data_string)
+        self.assertEqual(subtree_string, "()")
+        self.assertEqual(root_string, "a")
+        data_string = "()"
+        subtree_string, root_string = NewickParser.tree_node_separation(data_string)
+        self.assertEqual(subtree_string, "()")
+        self.assertEqual(root_string, "")
+        data_string = "()a:5"
+        subtree_string, root_string = NewickParser.tree_node_separation(data_string)
+        self.assertEqual(subtree_string, "()")
+        self.assertEqual(root_string, "a:5")
+        data_string = "():5"
+        subtree_string, root_string = NewickParser.tree_node_separation(data_string)
+        self.assertEqual(subtree_string, "()")
+        self.assertEqual(root_string, ":5")
+
 if __name__ == '__main__':
     unittest.main()
