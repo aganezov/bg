@@ -58,7 +58,7 @@ class NewickParser(object):
 
     @classmethod
     def is_non_terminal_subtree(cls, data_string):
-        return "(" in data_string
+        return data_string.startswith("(")
 
     @classmethod
     def tree_node_separation(cls, data_string):
