@@ -21,8 +21,8 @@ class Tree(object):
     def add_node(self, node):
         self.graph.add_node(node)
 
-    def add_edge(self, vertex1, vertex2):
-        self.graph.add_edge(u=vertex1, v=vertex2)
+    def add_edge(self, vertex1, vertex2, weight=1, wgd_events=0):
+        self.graph.add_edge(u=vertex1, v=vertex2, attr_dict={"weight": weight, "wgd_events_count": wgd_events})
 
     @property
     def is_valid_tree(self):
@@ -36,6 +36,9 @@ class Tree(object):
     def has_edge(self, vertex1, vertex2):
         return self.graph.has_edge(u=vertex1, v=vertex2)
 
+    def has_node(self, vertex):
+        return self.graph.has_node(n=vertex)
+
     @property
     def root(self):
         return self.__root
@@ -48,3 +51,13 @@ class Tree(object):
 
     def append(self, tree):
         self.graph.add_edges_from(tree.graph.edges_iter(data=True))
+
+    def edge_weight(self, vertex1, vertex2):
+        if not self.has_edge(vertex1, vertex2):
+            raise ValueError("Specified edge is not present in current Tree")
+        return self.graph[vertex1][vertex2].get("weight", 1)
+
+    def edge_wgd_count(self, vertex1, vertex2):
+        if not self.has_edge(vertex1, vertex2):
+            raise ValueError("Specified edge is not present in current Tree")
+        return self.graph[vertex1][vertex2].get("wgd_events_count", 0)
