@@ -49,6 +49,10 @@ class NewickParser(object):
             raise ValueError("Empty internal node error")
         return overall_result
 
+    @staticmethod
+    def is_non_terminal_subtree(data_string):
+        return "(" in data_string
+
 
 class Tree(object):
     def __init__(self):

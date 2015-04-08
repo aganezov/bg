@@ -224,5 +224,17 @@ class NewickParserTestCase(unittest.TestCase):
             with self.assertRaises(ValueError):
                 NewickParser.separate_into_same_level_nodes(data_string)
 
+    def test_is_non_terminal_subtree(self):
+        data_string = "a"
+        self.assertFalse(NewickParser.is_non_terminal_subtree(data_string))
+        data_string = "(a,b)"
+        self.assertTrue(NewickParser.is_non_terminal_subtree(data_string))
+        data_string = "(a,b)c"
+        self.assertTrue(NewickParser.is_non_terminal_subtree(data_string))
+        data_string = "(a,c):5"
+        self.assertTrue(NewickParser.is_non_terminal_subtree(data_string))
+        data_string = "(a,c)c:5"
+        self.assertTrue(NewickParser.is_non_terminal_subtree(data_string))
+
 if __name__ == '__main__':
     unittest.main()
