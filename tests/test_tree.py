@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 from bg.genome import BGGenome
-from bg.tree import Tree
+from bg.tree import Tree, NewickParser, DEFAULT_BRANCH_LENGTH
 
 __author__ = "Sergey Aganezov"
 __email__ = "aganezov(at)gwu.edu"
@@ -31,17 +31,17 @@ class TreeTestCase(unittest.TestCase):
         self.assertEqual(len(list(tree.nodes())), 1)
         self.assertEqual(len(list(tree.edges())), 0)
 
-    def test_edge_weight(self):
+    def test_edge_branch_length(self):
         tree = Tree()
-        tree.add_edge(vertex1=self.v1, vertex2=self.v2, weight=5)
-        self.assertEqual(tree.edge_weight(vertex1=self.v1, vertex2=self.v2), 5)
-        self.assertEqual(tree.edge_weight(vertex1=self.v2, vertex2=self.v1), 5)
+        tree.add_edge(vertex1=self.v1, vertex2=self.v2, branch_length=5)
+        self.assertEqual(tree.edge_length(vertex1=self.v1, vertex2=self.v2), 5)
+        self.assertEqual(tree.edge_length(vertex1=self.v2, vertex2=self.v1), 5)
         with self.assertRaises(ValueError):
-            tree.edge_weight(vertex1=self.v1, vertex2=self.v3)
+            tree.edge_length(vertex1=self.v1, vertex2=self.v3)
         with self.assertRaises(ValueError):
-            tree.edge_weight(vertex1=self.v3, vertex2=self.v4)
+            tree.edge_length(vertex1=self.v3, vertex2=self.v4)
         with self.assertRaises(ValueError):
-            tree.edge_weight(vertex1=self.v3, vertex2=self.v4)
+            tree.edge_length(vertex1=self.v3, vertex2=self.v4)
 
     def test_edge_wgd_information(self):
         tree = Tree()
@@ -62,15 +62,15 @@ class TreeTestCase(unittest.TestCase):
         self.assertTrue(tree.is_valid_tree)
         self.assertEqual(len(list(tree.nodes())), 2)
         self.assertEqual(len(list(tree.edges())), 1)
-        self.assertEqual(tree.edge_weight(self.v1, self.v2), 1)
+        self.assertEqual(tree.edge_length(self.v1, self.v2), 1)
 
-    def test_add_edge_explicit_weight(self):
+    def test_add_edge_explicit_branch_length(self):
         tree = Tree()
-        tree.add_edge(vertex1=self.v1, vertex2=self.v2, weight=5)
+        tree.add_edge(vertex1=self.v1, vertex2=self.v2, branch_length=5)
         self.assertTrue(tree.is_valid_tree)
         self.assertEqual(len(list(tree.nodes())), 2)
         self.assertEqual(len(list(tree.edges())), 1)
-        self.assertEqual(tree.edge_weight(self.v1, self.v2), 5)
+        self.assertEqual(tree.edge_length(self.v1, self.v2), 5)
 
     def test_add_edge_explicit_wgd(self):
         tree = Tree()
@@ -128,6 +128,68 @@ class TreeTestCase(unittest.TestCase):
         self.assertEqual(len(list(tree2.nodes())), 2)
         self.assertEqual(len(list(tree2.edges())), 1)
 
+
+class NewickParserTestCase(unittest.TestCase):
+    def test_parse_simple_node_no_branch_length_correct(self):
+        # simple node must be a leaf, and all leafs represent genomes
+        node_string = "genome"
+        node, branch_length = NewickParser.parse_simple_node(node_string)
+        self.assertEqual(branch_length, DEFAULT_BRANCH_LENGTH)
+        self.assertTrue(isinstance(node, BGGenome))
+        self.assertEqual(node, BGGenome("genome"))
+        node_string = "genome:"
+        node, branch_length = NewickParser.parse_simple_node(node_string)
+        self.assertEqual(branch_length, DEFAULT_BRANCH_LENGTH)
+        self.assertTrue(isinstance(node, BGGenome))
+        self.assertEqual(node, BGGenome("genome"))
+
+    def test_parse_simple_incorrect_empty_node(self):
+        # node name can not be empty
+        node_string = ""
+        with self.assertRaises(ValueError):
+            NewickParser.parse_simple_node(node_string)
+
+    def test_parse_simple_incorrect_multi_semicolon(self):
+        node_string = "genome:5:5"
+        with self.assertRaises(ValueError):
+            NewickParser.parse_simple_node(node_string)
+
+    def test_parse_simple_node_with_branch_length_correct(self):
+        # case with correct branch_length `int`
+        node_strings = [
+            " genome:5",
+            "genome :5",
+            " genome :5"
+        ]
+        for node_string in node_strings:
+            node, branch_length = NewickParser.parse_simple_node(node_string)
+            self.assertEqual(branch_length, 5)
+            self.assertTrue(isinstance(node, BGGenome))
+            self.assertEqual(node, BGGenome("genome"))
+        # case with correct branch_length `double`
+        node_strings = [
+            "genome:2.1",
+            "genome: 2.1",
+            "genome:2.1 ",
+            "genome: 2.1 "
+        ]
+        for node_string in node_strings:
+            node, branch_length = NewickParser.parse_simple_node(node_string)
+            self.assertEqual(branch_length, 2.1)
+            self.assertTrue(isinstance(node, BGGenome))
+            self.assertEqual(node, BGGenome("genome"))
+
+    def test_parse_simple_node_incorrect_branch_length(self):
+        incorrectly_formatted_strings = [
+            "genome:5.1.1",
+            "genome:5a",
+            "genome:5/2",
+            "genome:test",
+            "genome:5.2a"
+        ]
+        for node_string in incorrectly_formatted_strings:
+            with self.assertRaises(ValueError):
+                NewickParser.parse_simple_node(node_string)
 
 if __name__ == '__main__':
     unittest.main()

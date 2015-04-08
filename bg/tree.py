@@ -1,10 +1,30 @@
 # -*- coding: utf-8 -*-
 from networkx import Graph
 import networkx as nx
+from bg.genome import BGGenome
 
 __author__ = "Sergey Aganezov"
 __email__ = "aganezov(at)gwu.edu"
 __status__ = "develop"
+
+DEFAULT_BRANCH_LENGTH = 1
+
+
+class NewickParser(object):
+    @staticmethod
+    def parse_simple_node(data_string):
+        if len(data_string) == 0:
+            raise ValueError("Parsed simple node can not be empty")
+        if ":" in data_string:
+            node_name, str_branch_length = map(lambda s: s.strip(), data_string.split(":"))
+            if len(str_branch_length) == 0:
+                str_branch_length = str(DEFAULT_BRANCH_LENGTH)
+        else:
+            node_name = data_string.strip()
+            str_branch_length = str(DEFAULT_BRANCH_LENGTH)
+        genome = BGGenome(node_name)
+        branch_length = int(str_branch_length) if "." not in str_branch_length else float(str_branch_length)
+        return genome, branch_length
 
 
 class Tree(object):
@@ -21,8 +41,8 @@ class Tree(object):
     def add_node(self, node):
         self.graph.add_node(node)
 
-    def add_edge(self, vertex1, vertex2, weight=1, wgd_events=0):
-        self.graph.add_edge(u=vertex1, v=vertex2, attr_dict={"weight": weight, "wgd_events_count": wgd_events})
+    def add_edge(self, vertex1, vertex2, branch_length=1, wgd_events=0):
+        self.graph.add_edge(u=vertex1, v=vertex2, attr_dict={"branch_length": branch_length, "wgd_events_count": wgd_events})
 
     @property
     def is_valid_tree(self):
@@ -52,10 +72,10 @@ class Tree(object):
     def append(self, tree):
         self.graph.add_edges_from(tree.graph.edges_iter(data=True))
 
-    def edge_weight(self, vertex1, vertex2):
+    def edge_length(self, vertex1, vertex2):
         if not self.has_edge(vertex1, vertex2):
             raise ValueError("Specified edge is not present in current Tree")
-        return self.graph[vertex1][vertex2].get("weight", 1)
+        return self.graph[vertex1][vertex2].get("branch_length", 1)
 
     def edge_wgd_count(self, vertex1, vertex2):
         if not self.has_edge(vertex1, vertex2):
