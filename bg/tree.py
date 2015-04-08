@@ -26,6 +26,29 @@ class NewickParser(object):
         branch_length = int(str_branch_length) if "." not in str_branch_length else float(str_branch_length)
         return genome, branch_length
 
+    @staticmethod
+    def separate_into_same_level_nodes(data_string):
+        current_level_separation_comas = [-1]
+        overall_result = []
+        parenthesis_count = 0
+        for cnt, letter in enumerate(data_string):
+            if letter == "(":
+                parenthesis_count += 1
+            elif letter == ")":
+                parenthesis_count -= 1
+            elif parenthesis_count == 0 and letter == ",":
+                current_level_separation_comas.append(cnt)
+        current_level_separation_comas.append(len(data_string))
+        if len(current_level_separation_comas) == 2 and current_level_separation_comas[1] == 0:
+            return [""]
+        for prev_coma_position, current_comma_position in zip(current_level_separation_comas[:-1],
+                                                              current_level_separation_comas[1:]):
+            overall_result.append(data_string[prev_coma_position + 1: current_comma_position])
+        overall_result = [str_data.strip() for str_data in overall_result]
+        if any(map(lambda s: len(s) == 0, overall_result)):
+            raise ValueError("Empty internal node error")
+        return overall_result
+
 
 class Tree(object):
     def __init__(self):

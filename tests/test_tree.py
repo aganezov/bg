@@ -191,5 +191,38 @@ class NewickParserTestCase(unittest.TestCase):
             with self.assertRaises(ValueError):
                 NewickParser.parse_simple_node(node_string)
 
+    def test_separate_into_same_level_nodes_correct(self):
+        # empty string shall be parsed into a single entry list with empty string
+        data_string = ""
+        result_list = NewickParser.separate_into_same_level_nodes(data_string)
+        self.assertListEqual(result_list, [""])
+        # single node string must be parsed into a single list entry with node info
+        data_strings = ["a", "a:5" "a:5.1"]
+        for data_string in data_strings:
+            self.assertListEqual(NewickParser.separate_into_same_level_nodes(data_string), [data_string])
+        # multiple terminal nodes must be parsed into a list of respective information about nodes
+        data_string = " a,   b:5, c:2.1,d    "
+        ref_list = ["a", "b:5", "c:2.1", "d"]
+        result_list = NewickParser.separate_into_same_level_nodes(data_string)
+        self.assertListEqual(result_list, ref_list)
+        # multiple terminal nodes + non-terminal subtree
+        data_string = " a,  b:3.1, (c,(d,e)f)g:1, (h,i)j:2.1   "
+        ref_list = ["a", "b:3.1", "(c,(d,e)f)g:1", "(h,i)j:2.1"]
+        result_list = NewickParser.separate_into_same_level_nodes(data_string)
+        self.assertListEqual(result_list, ref_list)
+
+    def test_separate_into_same_level_nodes_incorrect(self):
+        error_data_string = [
+            ",a,b",
+            "a,,b",
+            "a,b,,",
+            "(),,a",
+            ",(),a",
+            ",(),,"
+        ]
+        for data_string in error_data_string:
+            with self.assertRaises(ValueError):
+                NewickParser.separate_into_same_level_nodes(data_string)
+
 if __name__ == '__main__':
     unittest.main()
