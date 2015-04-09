@@ -10,7 +10,7 @@ __status__ = "develop"
 DEFAULT_BRANCH_LENGTH = 1
 
 
-class NewickParser(object):
+class NewickReader(object):
 
     @classmethod
     def parse_node(cls, data_string):

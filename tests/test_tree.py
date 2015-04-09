@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 from bg.genome import BGGenome
-from bg.tree import BGTree, NewickParser, DEFAULT_BRANCH_LENGTH
+from bg.tree import BGTree, NewickReader, DEFAULT_BRANCH_LENGTH
 
 __author__ = "Sergey Aganezov"
 __email__ = "aganezov(at)gwu.edu"
@@ -133,12 +133,12 @@ class NewickParserTestCase(unittest.TestCase):
     def test_parse_simple_node_no_branch_length_correct(self):
         # simple node must be a leaf, and all leafs represent genomes
         node_string = "genome"
-        node, branch_length = NewickParser.parse_simple_node(node_string)
+        node, branch_length = NewickReader.parse_simple_node(node_string)
         self.assertEqual(branch_length, DEFAULT_BRANCH_LENGTH)
         self.assertTrue(isinstance(node, BGGenome))
         self.assertEqual(node, BGGenome("genome"))
         node_string = "genome:"
-        node, branch_length = NewickParser.parse_simple_node(node_string)
+        node, branch_length = NewickReader.parse_simple_node(node_string)
         self.assertEqual(branch_length, DEFAULT_BRANCH_LENGTH)
         self.assertTrue(isinstance(node, BGGenome))
         self.assertEqual(node, BGGenome("genome"))
@@ -147,12 +147,12 @@ class NewickParserTestCase(unittest.TestCase):
         # node name can not be empty
         node_string = ""
         with self.assertRaises(ValueError):
-            NewickParser.parse_simple_node(node_string)
+            NewickReader.parse_simple_node(node_string)
 
     def test_parse_simple_incorrect_multi_semicolon(self):
         node_string = "genome:5:5"
         with self.assertRaises(ValueError):
-            NewickParser.parse_simple_node(node_string)
+            NewickReader.parse_simple_node(node_string)
 
     def test_parse_simple_node_with_branch_length_correct(self):
         # case with correct branch_length `int`
@@ -162,7 +162,7 @@ class NewickParserTestCase(unittest.TestCase):
             " genome :5"
         ]
         for node_string in node_strings:
-            node, branch_length = NewickParser.parse_simple_node(node_string)
+            node, branch_length = NewickReader.parse_simple_node(node_string)
             self.assertEqual(branch_length, 5)
             self.assertTrue(isinstance(node, BGGenome))
             self.assertEqual(node, BGGenome("genome"))
@@ -174,7 +174,7 @@ class NewickParserTestCase(unittest.TestCase):
             "genome: 2.1 "
         ]
         for node_string in node_strings:
-            node, branch_length = NewickParser.parse_simple_node(node_string)
+            node, branch_length = NewickReader.parse_simple_node(node_string)
             self.assertEqual(branch_length, 2.1)
             self.assertTrue(isinstance(node, BGGenome))
             self.assertEqual(node, BGGenome("genome"))
@@ -189,26 +189,26 @@ class NewickParserTestCase(unittest.TestCase):
         ]
         for node_string in incorrectly_formatted_strings:
             with self.assertRaises(ValueError):
-                NewickParser.parse_simple_node(node_string)
+                NewickReader.parse_simple_node(node_string)
 
     def test_separate_into_same_level_nodes_correct(self):
         # empty string shall be parsed into a single entry list with empty string
         data_string = ""
-        result_list = NewickParser.separate_into_same_level_nodes(data_string)
+        result_list = NewickReader.separate_into_same_level_nodes(data_string)
         self.assertListEqual(result_list, [""])
         # single node string must be parsed into a single list entry with node info
         data_strings = ["a", "a:5" "a:5.1"]
         for data_string in data_strings:
-            self.assertListEqual(NewickParser.separate_into_same_level_nodes(data_string), [data_string])
+            self.assertListEqual(NewickReader.separate_into_same_level_nodes(data_string), [data_string])
         # multiple terminal nodes must be parsed into a list of respective information about nodes
         data_string = " a,   b:5, c:2.1,d    "
         ref_list = ["a", "b:5", "c:2.1", "d"]
-        result_list = NewickParser.separate_into_same_level_nodes(data_string)
+        result_list = NewickReader.separate_into_same_level_nodes(data_string)
         self.assertListEqual(result_list, ref_list)
         # multiple terminal nodes + non-terminal subtree
         data_string = " a,  b:3.1, (c,(d,e)f)g:1, (h,i)j:2.1   "
         ref_list = ["a", "b:3.1", "(c,(d,e)f)g:1", "(h,i)j:2.1"]
-        result_list = NewickParser.separate_into_same_level_nodes(data_string)
+        result_list = NewickReader.separate_into_same_level_nodes(data_string)
         self.assertListEqual(result_list, ref_list)
 
     def test_separate_into_same_level_nodes_incorrect(self):
@@ -222,35 +222,35 @@ class NewickParserTestCase(unittest.TestCase):
         ]
         for data_string in error_data_string:
             with self.assertRaises(ValueError):
-                NewickParser.separate_into_same_level_nodes(data_string)
+                NewickReader.separate_into_same_level_nodes(data_string)
 
     def test_is_non_terminal_subtree(self):
         data_string = "a"
-        self.assertFalse(NewickParser.is_non_terminal_subtree(data_string))
+        self.assertFalse(NewickReader.is_non_terminal_subtree(data_string))
         data_string = "(a,b)"
-        self.assertTrue(NewickParser.is_non_terminal_subtree(data_string))
+        self.assertTrue(NewickReader.is_non_terminal_subtree(data_string))
         data_string = "(a,b)c"
-        self.assertTrue(NewickParser.is_non_terminal_subtree(data_string))
+        self.assertTrue(NewickReader.is_non_terminal_subtree(data_string))
         data_string = "(a,c):5"
-        self.assertTrue(NewickParser.is_non_terminal_subtree(data_string))
+        self.assertTrue(NewickReader.is_non_terminal_subtree(data_string))
         data_string = "(a,c)c:5"
-        self.assertTrue(NewickParser.is_non_terminal_subtree(data_string))
+        self.assertTrue(NewickReader.is_non_terminal_subtree(data_string))
 
     def test_parse_tree_root(self):
         data_string = "()a"
-        subtree_string, root_string = NewickParser.tree_node_separation(data_string)
+        subtree_string, root_string = NewickReader.tree_node_separation(data_string)
         self.assertEqual(subtree_string, "()")
         self.assertEqual(root_string, "a")
         data_string = "()"
-        subtree_string, root_string = NewickParser.tree_node_separation(data_string)
+        subtree_string, root_string = NewickReader.tree_node_separation(data_string)
         self.assertEqual(subtree_string, "()")
         self.assertEqual(root_string, "")
         data_string = "()a:5"
-        subtree_string, root_string = NewickParser.tree_node_separation(data_string)
+        subtree_string, root_string = NewickReader.tree_node_separation(data_string)
         self.assertEqual(subtree_string, "()")
         self.assertEqual(root_string, "a:5")
         data_string = "():5"
-        subtree_string, root_string = NewickParser.tree_node_separation(data_string)
+        subtree_string, root_string = NewickReader.tree_node_separation(data_string)
         self.assertEqual(subtree_string, "()")
         self.assertEqual(root_string, ":5")
 
