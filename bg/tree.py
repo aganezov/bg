@@ -66,7 +66,7 @@ class NewickParser(object):
         return data_string[:last_parenthesis_position + 1], data_string[last_parenthesis_position + 1:]
 
 
-class Tree(object):
+class BGTree(object):
     def __init__(self):
         self.__root = None
         self.graph = Graph()

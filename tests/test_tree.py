@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 from bg.genome import BGGenome
-from bg.tree import Tree, NewickParser, DEFAULT_BRANCH_LENGTH
+from bg.tree import BGTree, NewickParser, DEFAULT_BRANCH_LENGTH
 
 __author__ = "Sergey Aganezov"
 __email__ = "aganezov(at)gwu.edu"
@@ -18,21 +18,21 @@ class TreeTestCase(unittest.TestCase):
         self.v4 = v4
 
     def test_empty_tree_initialization(self):
-        tree = Tree()
+        tree = BGTree()
         self.assertIsNone(tree.root)
         self.assertTrue(tree.is_valid_tree)
         self.assertEqual(len(list(tree.nodes())), 0)
         self.assertEqual(len(list(tree.edges())), 0)
 
     def test_add_genome(self):
-        tree = Tree()
+        tree = BGTree()
         tree.add_node(BGGenome("genome"))
         self.assertTrue(tree.is_valid_tree)
         self.assertEqual(len(list(tree.nodes())), 1)
         self.assertEqual(len(list(tree.edges())), 0)
 
     def test_edge_branch_length(self):
-        tree = Tree()
+        tree = BGTree()
         tree.add_edge(vertex1=self.v1, vertex2=self.v2, branch_length=5)
         self.assertEqual(tree.edge_length(vertex1=self.v1, vertex2=self.v2), 5)
         self.assertEqual(tree.edge_length(vertex1=self.v2, vertex2=self.v1), 5)
@@ -44,7 +44,7 @@ class TreeTestCase(unittest.TestCase):
             tree.edge_length(vertex1=self.v3, vertex2=self.v4)
 
     def test_edge_wgd_information(self):
-        tree = Tree()
+        tree = BGTree()
         tree.add_edge(vertex1=self.v1, vertex2=self.v2, wgd_events=5)
         tree.add_edge(vertex1=self.v1, vertex2=self.v3)
         self.assertEqual(tree.edge_wgd_count(vertex1=self.v1, vertex2=self.v2), 5)
@@ -57,7 +57,7 @@ class TreeTestCase(unittest.TestCase):
             tree.edge_wgd_count(vertex1=self.v3, vertex2=self.v4)
 
     def test_add_edge(self):
-        tree = Tree()
+        tree = BGTree()
         tree.add_edge(vertex1=self.v1, vertex2=self.v2)
         self.assertTrue(tree.is_valid_tree)
         self.assertEqual(len(list(tree.nodes())), 2)
@@ -65,7 +65,7 @@ class TreeTestCase(unittest.TestCase):
         self.assertEqual(tree.edge_length(self.v1, self.v2), 1)
 
     def test_add_edge_explicit_branch_length(self):
-        tree = Tree()
+        tree = BGTree()
         tree.add_edge(vertex1=self.v1, vertex2=self.v2, branch_length=5)
         self.assertTrue(tree.is_valid_tree)
         self.assertEqual(len(list(tree.nodes())), 2)
@@ -73,13 +73,13 @@ class TreeTestCase(unittest.TestCase):
         self.assertEqual(tree.edge_length(self.v1, self.v2), 5)
 
     def test_add_edge_explicit_wgd(self):
-        tree = Tree()
+        tree = BGTree()
         tree.add_edge(vertex1=self.v1, vertex2=self.v2, wgd_events=5)
         self.assertEqual(tree.edge_wgd_count(vertex1=self.v1, vertex2=self.v2), 5)
         self.assertEqual(tree.edge_wgd_count(vertex1=self.v2, vertex2=self.v1), 5)
 
     def test_has_edge(self):
-        tree = Tree()
+        tree = BGTree()
         tree.add_edge(vertex1=self.v1, vertex2=self.v2)
         tree.add_node(self.v3)
         self.assertTrue(tree.has_edge(self.v1, self.v2))
@@ -92,7 +92,7 @@ class TreeTestCase(unittest.TestCase):
         self.assertFalse(tree.has_edge(self.v4, self.v1))
 
     def test_has_node(self):
-        tree = Tree()
+        tree = BGTree()
         tree.add_edge(vertex1=self.v1, vertex2=self.v2)
         tree.add_node(self.v3)
         self.assertTrue(tree.has_node(self.v1))
@@ -101,7 +101,7 @@ class TreeTestCase(unittest.TestCase):
         self.assertFalse(tree.has_node(self.v4))
 
     def test_assign_root(self):
-        tree = Tree()
+        tree = BGTree()
         self.assertIsNone(tree.root)
         with self.assertRaises(ValueError):
             tree.root = self.v1
@@ -110,8 +110,8 @@ class TreeTestCase(unittest.TestCase):
         self.assertEqual(tree.root, self.v1)
 
     def test_append_tree(self):
-        tree1 = Tree()
-        tree2 = Tree()
+        tree1 = BGTree()
+        tree2 = BGTree()
         tree1.add_edge(vertex1=self.v1, vertex2=self.v2)
         tree2.add_edge(vertex1=self.v2, vertex2=self.v3)
         self.assertTrue(tree1.is_valid_tree)
