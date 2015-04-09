@@ -25,7 +25,6 @@ class NewickReader(object):
         branch_length = int(branch_length_str) if "." not in branch_length_str else float(branch_length_str)
         return node_name, branch_length
 
-
     @classmethod
     def parse_simple_node(cls, data_string):
         node_name, branch_length = cls.parse_node(data_string)

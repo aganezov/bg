@@ -210,6 +210,10 @@ class NewickParserTestCase(unittest.TestCase):
         ref_list = ["a", "b:3.1", "(c,(d,e)f)g:1", "(h,i)j:2.1"]
         result_list = NewickReader.separate_into_same_level_nodes(data_string)
         self.assertListEqual(result_list, ref_list)
+        # a single subtree as a node
+        data_string = "(a,b)"
+        ref_list = ["(a,b)"]
+        self.assertListEqual(NewickReader.separate_into_same_level_nodes(data_string), ref_list)
 
     def test_separate_into_same_level_nodes_incorrect(self):
         error_data_string = [
