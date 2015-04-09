@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import itertools
 from networkx import Graph
 import networkx as nx
 from bg.genome import BGGenome
@@ -11,6 +12,11 @@ DEFAULT_BRANCH_LENGTH = 1
 
 
 class NewickReader(object):
+
+    @classmethod
+    def unlabeled_node_names(cls):
+        for int_value in itertools.count(1):
+            yield str(int_value)
 
     @classmethod
     def parse_node(cls, data_string):
@@ -63,6 +69,42 @@ class NewickReader(object):
     def tree_node_separation(cls, data_string):
         last_parenthesis_position = data_string.rfind(")")
         return data_string[:last_parenthesis_position + 1], data_string[last_parenthesis_position + 1:]
+
+    @classmethod
+    def from_string(cls, data_string, tree_root=None, name_generator=None):
+        data_string = data_string.strip()
+        result_tree = BGTree()
+        if name_generator is None:
+            name_generator = cls.unlabeled_node_names()
+        top_level = ";" in data_string
+        if top_level:
+            data_string = data_string[:-1]
+        nodes = cls.separate_into_same_level_nodes(data_string=data_string)
+        if top_level and len(nodes) > 1:
+            raise ValueError("Top level can not contain more than one root node")
+        for current_level_node_str in nodes:
+            if cls.is_non_terminal_subtree(current_level_node_str):
+                subtree_str, node_str = cls.tree_node_separation(data_string=current_level_node_str)
+                subtree_str = subtree_str.strip()[1:-1]
+                node_name, branch_length = cls.parse_node(node_str)
+                if len(node_name) == 0:
+                    node_name = next(name_generator)
+                result_tree.add_node(node_name)
+                if top_level:
+                    result_tree.root = node_name
+                subtree = cls.from_string(data_string=subtree_str, tree_root=node_name, name_generator=name_generator)
+                result_tree.append(subtree)
+                if not top_level:
+                    result_tree.add_edge(vertex1=node_name, vertex2=tree_root, branch_length=branch_length)
+            else:
+                genome, branch_length = cls.parse_simple_node(current_level_node_str)
+                if top_level:
+                    # we are in a very special case situation when a tree is a single node
+                    result_tree.add_node(genome)
+                    result_tree.root = genome
+                else:
+                    result_tree.add_edge(vertex1=genome, vertex2=tree_root, branch_length=branch_length)
+        return result_tree
 
 
 class BGTree(object):
