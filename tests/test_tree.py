@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 from bg.genome import BGGenome
-from bg.tree import BGTree, NewickReader, DEFAULT_BRANCH_LENGTH
+from bg.tree import BGTree, NewickReader, DEFAULT_EDGE_LENGTH
 
 __author__ = "Sergey Aganezov"
 __email__ = "aganezov(at)gwu.edu"
@@ -31,9 +31,9 @@ class BGTreeTestCase(unittest.TestCase):
         self.assertEqual(len(list(tree.nodes())), 1)
         self.assertEqual(len(list(tree.edges())), 0)
 
-    def test_edge_branch_length(self):
+    def test_edge_length(self):
         tree = BGTree()
-        tree.add_edge(vertex1=self.v1, vertex2=self.v2, branch_length=5)
+        tree.add_edge(vertex1=self.v1, vertex2=self.v2, edge_length=5)
         self.assertEqual(tree.edge_length(vertex1=self.v1, vertex2=self.v2), 5)
         self.assertEqual(tree.edge_length(vertex1=self.v2, vertex2=self.v1), 5)
         with self.assertRaises(ValueError):
@@ -64,9 +64,9 @@ class BGTreeTestCase(unittest.TestCase):
         self.assertEqual(len(list(tree.edges())), 1)
         self.assertEqual(tree.edge_length(self.v1, self.v2), 1)
 
-    def test_add_edge_explicit_branch_length(self):
+    def test_add_edge_explicit_edge_length(self):
         tree = BGTree()
-        tree.add_edge(vertex1=self.v1, vertex2=self.v2, branch_length=5)
+        tree.add_edge(vertex1=self.v1, vertex2=self.v2, edge_length=5)
         self.assertTrue(tree.is_valid_tree)
         self.assertEqual(len(list(tree.nodes())), 2)
         self.assertEqual(len(list(tree.edges())), 1)
@@ -151,16 +151,16 @@ class BGTreeTestCase(unittest.TestCase):
 
 
 class NewickParserTestCase(unittest.TestCase):
-    def test_parse_simple_node_no_branch_length_correct(self):
+    def test_parse_simple_node_no_edge_length_correct(self):
         # simple node must be a leaf, and all leafs represent genomes
         node_string = "genome"
-        node, branch_length = NewickReader.parse_simple_node(node_string)
-        self.assertEqual(branch_length, DEFAULT_BRANCH_LENGTH)
+        node, edge_length = NewickReader.parse_simple_node(node_string)
+        self.assertEqual(edge_length, DEFAULT_EDGE_LENGTH)
         self.assertTrue(isinstance(node, BGGenome))
         self.assertEqual(node, BGGenome("genome"))
         node_string = "genome:"
-        node, branch_length = NewickReader.parse_simple_node(node_string)
-        self.assertEqual(branch_length, DEFAULT_BRANCH_LENGTH)
+        node, edge_length = NewickReader.parse_simple_node(node_string)
+        self.assertEqual(edge_length, DEFAULT_EDGE_LENGTH)
         self.assertTrue(isinstance(node, BGGenome))
         self.assertEqual(node, BGGenome("genome"))
 
@@ -175,19 +175,19 @@ class NewickParserTestCase(unittest.TestCase):
         with self.assertRaises(ValueError):
             NewickReader.parse_simple_node(node_string)
 
-    def test_parse_simple_node_with_branch_length_correct(self):
-        # case with correct branch_length `int`
+    def test_parse_simple_node_with_edge_length_correct(self):
+        # case with correct edge_length `int`
         node_strings = [
             " genome:5",
             "genome :5",
             " genome :5"
         ]
         for node_string in node_strings:
-            node, branch_length = NewickReader.parse_simple_node(node_string)
-            self.assertEqual(branch_length, 5)
+            node, edge_length = NewickReader.parse_simple_node(node_string)
+            self.assertEqual(edge_length, 5)
             self.assertTrue(isinstance(node, BGGenome))
             self.assertEqual(node, BGGenome("genome"))
-        # case with correct branch_length `double`
+        # case with correct edge_length `double`
         node_strings = [
             "genome:2.1",
             "genome: 2.1",
@@ -195,12 +195,12 @@ class NewickParserTestCase(unittest.TestCase):
             "genome: 2.1 "
         ]
         for node_string in node_strings:
-            node, branch_length = NewickReader.parse_simple_node(node_string)
-            self.assertEqual(branch_length, 2.1)
+            node, edge_length = NewickReader.parse_simple_node(node_string)
+            self.assertEqual(edge_length, 2.1)
             self.assertTrue(isinstance(node, BGGenome))
             self.assertEqual(node, BGGenome("genome"))
 
-    def test_parse_simple_node_incorrect_branch_length(self):
+    def test_parse_simple_node_incorrect_edge_length(self):
         incorrectly_formatted_strings = [
             "genome:5.1.1",
             "genome:5a",
@@ -293,8 +293,8 @@ class NewickParserTestCase(unittest.TestCase):
         self.assertTrue(tree.is_valid_tree)
         self.assertTrue(tree.has_edge(BGGenome("a"), "c"))
         self.assertTrue(tree.has_edge(BGGenome("b"), "c"))
-        self.assertEqual(tree.edge_length(BGGenome("a"), "c"), DEFAULT_BRANCH_LENGTH)
-        self.assertEqual(tree.edge_length(BGGenome("b"), "c"), DEFAULT_BRANCH_LENGTH)
+        self.assertEqual(tree.edge_length(BGGenome("a"), "c"), DEFAULT_EDGE_LENGTH)
+        self.assertEqual(tree.edge_length(BGGenome("b"), "c"), DEFAULT_EDGE_LENGTH)
         self.assertEqual(tree.edge_wgd_count(BGGenome("a"), "c"), 0)
         self.assertEqual(tree.edge_wgd_count(BGGenome("b"), "c"), 0)
         self.assertEqual(tree.root, "c")
@@ -312,11 +312,11 @@ class NewickParserTestCase(unittest.TestCase):
         self.assertTrue(tree.has_edge(gb, "2"))
         self.assertTrue(tree.has_edge(gc, "3"))
         self.assertTrue(tree.has_edge(gd, "3"))
-        self.assertEqual(tree.edge_length(ga, "2"), DEFAULT_BRANCH_LENGTH)
+        self.assertEqual(tree.edge_length(ga, "2"), DEFAULT_EDGE_LENGTH)
         self.assertEqual(tree.edge_length(gb, "2"), 5)
-        self.assertEqual(tree.edge_length(gc, "3"), DEFAULT_BRANCH_LENGTH)
-        self.assertEqual(tree.edge_length(gd, "3"), DEFAULT_BRANCH_LENGTH)
-        self.assertEqual(tree.edge_length("1", "2"), DEFAULT_BRANCH_LENGTH)
+        self.assertEqual(tree.edge_length(gc, "3"), DEFAULT_EDGE_LENGTH)
+        self.assertEqual(tree.edge_length(gd, "3"), DEFAULT_EDGE_LENGTH)
+        self.assertEqual(tree.edge_length("1", "2"), DEFAULT_EDGE_LENGTH)
         self.assertEqual(tree.edge_length("1", "3"), 0.5)
         # another example
         data_string = "(B:6.0,(A:5.0,C:3.0,E:4.0)Ancestor1:5.0,D:11.0);"

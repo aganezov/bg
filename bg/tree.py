@@ -8,7 +8,7 @@ __author__ = "Sergey Aganezov"
 __email__ = "aganezov(at)gwu.edu"
 __status__ = "develop"
 
-DEFAULT_BRANCH_LENGTH = 1
+DEFAULT_EDGE_LENGTH = 1
 
 
 class NewickReader(object):
@@ -21,22 +21,22 @@ class NewickReader(object):
     @classmethod
     def parse_node(cls, data_string):
         if ":" in data_string:
-            node_name, branch_length_str = data_string.split(":")
+            node_name, edge_length_str = data_string.split(":")
             node_name = node_name.strip()
-            if len(branch_length_str) == 0:
-                branch_length_str = str(DEFAULT_BRANCH_LENGTH)
+            if len(edge_length_str) == 0:
+                edge_length_str = str(DEFAULT_EDGE_LENGTH)
         else:
             node_name = data_string.strip()
-            branch_length_str = str(DEFAULT_BRANCH_LENGTH)
-        branch_length = int(branch_length_str) if "." not in branch_length_str else float(branch_length_str)
-        return node_name, branch_length
+            edge_length_str = str(DEFAULT_EDGE_LENGTH)
+        edge_length = int(edge_length_str) if "." not in edge_length_str else float(edge_length_str)
+        return node_name, edge_length
 
     @classmethod
     def parse_simple_node(cls, data_string):
-        node_name, branch_length = cls.parse_node(data_string)
+        node_name, edge_length = cls.parse_node(data_string)
         if len(node_name) == 0:
             raise ValueError("Terminal node can't be empty")
-        return BGGenome(node_name), branch_length
+        return BGGenome(node_name), edge_length
 
     @classmethod
     def separate_into_same_level_nodes(cls, data_string):
@@ -86,7 +86,7 @@ class NewickReader(object):
             if cls.is_non_terminal_subtree(current_level_node_str):
                 subtree_str, node_str = cls.tree_node_separation(data_string=current_level_node_str)
                 subtree_str = subtree_str.strip()[1:-1]
-                node_name, branch_length = cls.parse_node(node_str)
+                node_name, edge_length = cls.parse_node(node_str)
                 if len(node_name) == 0:
                     node_name = next(name_generator)
                 result_tree.add_node(node_name)
@@ -95,22 +95,22 @@ class NewickReader(object):
                 subtree = cls.from_string(data_string=subtree_str, tree_root=node_name, name_generator=name_generator)
                 result_tree.append(subtree)
                 if not top_level:
-                    result_tree.add_edge(vertex1=node_name, vertex2=tree_root, branch_length=branch_length)
+                    result_tree.add_edge(vertex1=node_name, vertex2=tree_root, edge_length=edge_length)
             else:
-                genome, branch_length = cls.parse_simple_node(current_level_node_str)
+                genome, edge_length = cls.parse_simple_node(current_level_node_str)
                 if top_level:
                     # we are in a very special case situation when a tree is a single node
                     result_tree.add_node(genome)
                     result_tree.root = genome
                 else:
-                    result_tree.add_edge(vertex1=genome, vertex2=tree_root, branch_length=branch_length)
+                    result_tree.add_edge(vertex1=genome, vertex2=tree_root, edge_length=edge_length)
         return result_tree
 
 
 class BGTree(object):
 
     wgd_events_count_attribute_name = "wgd_events_count"
-    branch_length_attribute_name = "branch_length"
+    edge_length_attribute_name = "edge_length"
 
     def __init__(self):
         self.__root = None
@@ -135,8 +135,8 @@ class BGTree(object):
     def set_wgd_count(self, vertex1, vertex2, wgd_count):
         self.__set_wgd_count(vertex1=vertex1, vertex2=vertex2, wgd_count=wgd_count)
 
-    def add_edge(self, vertex1, vertex2, branch_length=1, wgd_events=0):
-        self.graph.add_edge(u=vertex1, v=vertex2, attr_dict={"branch_length": branch_length})
+    def add_edge(self, vertex1, vertex2, edge_length=1, wgd_events=0):
+        self.graph.add_edge(u=vertex1, v=vertex2, attr_dict={self.edge_length_attribute_name: edge_length})
         self.__set_wgd_count(vertex1=vertex1, vertex2=vertex2, wgd_count=wgd_events)
 
     @property
@@ -173,7 +173,7 @@ class BGTree(object):
     def edge_length(self, vertex1, vertex2):
         if not self.has_edge(vertex1, vertex2):
             raise ValueError("Specified edge is not present in current Tree")
-        return self.graph[vertex1][vertex2].get(self.branch_length_attribute_name, 1)
+        return self.graph[vertex1][vertex2].get(self.edge_length_attribute_name, 1)
 
     def edge_wgd_count(self, vertex1, vertex2):
         if not self.__has_edge(vertex1, vertex2):
