@@ -135,9 +135,18 @@ class BGTree(object):
     def set_wgd_count(self, vertex1, vertex2, wgd_count):
         self.__set_wgd_count(vertex1=vertex1, vertex2=vertex2, wgd_count=wgd_count)
 
-    def add_edge(self, vertex1, vertex2, edge_length=1, wgd_events=0):
-        self.graph.add_edge(u=vertex1, v=vertex2, attr_dict={self.edge_length_attribute_name: edge_length})
+    def __set_edge_length(self, vertex1, vertex2, edge_length):
+        if not self.has_edge(vertex1=vertex1, vertex2=vertex2):
+            raise ValueError("Whole genome duplication count can be assigned only to existing edges")
+        self.graph[vertex1][vertex2][self.edge_length_attribute_name] = edge_length
+
+    def set_edge_length(self, vertex1, vertex2, edge_length):
+        self.__set_edge_length(vertex1=vertex1, vertex2=vertex2, edge_length=edge_length)
+
+    def add_edge(self, vertex1, vertex2, edge_length=DEFAULT_EDGE_LENGTH, wgd_events=0):
+        self.graph.add_edge(u=vertex1, v=vertex2)
         self.__set_wgd_count(vertex1=vertex1, vertex2=vertex2, wgd_count=wgd_events)
+        self.__set_edge_length(vertex1=vertex1, vertex2=vertex2, edge_length=edge_length)
 
     @property
     def is_valid_tree(self):

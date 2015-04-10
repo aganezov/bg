@@ -141,13 +141,27 @@ class BGTreeTestCase(unittest.TestCase):
         # only for existing edges such setup if possible
         tree = BGTree()
         with self.assertRaises(ValueError):
-            self.assertEqual(tree.edge_wgd_count(vertex1=self.v1, vertex2=self.v2), 2)
+            self.assertEqual(tree.set_wgd_count(vertex1=self.v1, vertex2=self.v2, wgd_count=2), 2)
         # only positive integers are allowed as values for whole genome duplication count
         tree.add_edge(vertex1=self.v1, vertex2=self.v2)
         incorrect_counts = [0.5, "a", (1,), [1]]
         for incorrect_count in incorrect_counts:
             with self.assertRaises(ValueError):
                 tree.set_wgd_count(vertex1=self.v1, vertex2=self.v2, wgd_count=incorrect_count)
+
+    def test_set_edge_length(self):
+        tree = BGTree()
+        tree.add_edge(vertex1=self.v1, vertex2=self.v2)
+        tree.set_edge_length(vertex1=self.v1, vertex2=self.v2, edge_length=3)
+        self.assertEqual(tree.edge_length(vertex1=self.v1, vertex2=self.v2), 3)
+        tree.set_edge_length(vertex1=self.v1, vertex2=self.v2, edge_length=5)
+        self.assertEqual(tree.edge_length(vertex1=self.v2, vertex2=self.v1), 5)
+
+    def test_set_edge_length_incorrect(self):
+        # only for existing edges such setup is possible
+        tree = BGTree()
+        with self.assertRaises(ValueError):
+            tree.set_edge_length(vertex1=self.v1, vertex2=self.v2, edge_length=3)
 
 
 class NewickParserTestCase(unittest.TestCase):
