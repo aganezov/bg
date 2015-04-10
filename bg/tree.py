@@ -108,6 +108,10 @@ class NewickReader(object):
 
 
 class BGTree(object):
+
+    wgd_events_count_attribute_name = "wgd_events_count"
+    branch_length_attribute_name = "branch_length"
+
     def __init__(self):
         self.__root = None
         self.graph = Graph()
@@ -121,8 +125,19 @@ class BGTree(object):
     def add_node(self, node):
         self.graph.add_node(node)
 
+    def __set_wgd_count(self, vertex1, vertex2, wgd_count):
+        if not self.has_edge(vertex1=vertex1, vertex2=vertex2):
+            raise ValueError("Whole genome duplication count can be assigned only to existing edges")
+        if not isinstance(wgd_count, int):
+            raise ValueError("Only integer values can be assigned as a whole genome duplication count for tree edges")
+        self.graph[vertex1][vertex2][self.wgd_events_count_attribute_name] = wgd_count
+
+    def set_wgd_count(self, vertex1, vertex2, wgd_count):
+        self.__set_wgd_count(vertex1=vertex1, vertex2=vertex2, wgd_count=wgd_count)
+
     def add_edge(self, vertex1, vertex2, branch_length=1, wgd_events=0):
-        self.graph.add_edge(u=vertex1, v=vertex2, attr_dict={"branch_length": branch_length, "wgd_events_count": wgd_events})
+        self.graph.add_edge(u=vertex1, v=vertex2, attr_dict={"branch_length": branch_length})
+        self.__set_wgd_count(vertex1=vertex1, vertex2=vertex2, wgd_count=wgd_events)
 
     @property
     def is_valid_tree(self):
@@ -133,8 +148,11 @@ class BGTree(object):
         else:
             return nodes_cnt == edges_cnt + 1 and nx.is_connected(self.graph)
 
-    def has_edge(self, vertex1, vertex2):
+    def __has_edge(self, vertex1, vertex2):
         return self.graph.has_edge(u=vertex1, v=vertex2)
+
+    def has_edge(self, vertex1, vertex2):
+        return self.__has_edge(vertex1=vertex1, vertex2=vertex2)
 
     def has_node(self, vertex):
         return self.graph.has_node(n=vertex)
@@ -155,9 +173,9 @@ class BGTree(object):
     def edge_length(self, vertex1, vertex2):
         if not self.has_edge(vertex1, vertex2):
             raise ValueError("Specified edge is not present in current Tree")
-        return self.graph[vertex1][vertex2].get("branch_length", 1)
+        return self.graph[vertex1][vertex2].get(self.branch_length_attribute_name, 1)
 
     def edge_wgd_count(self, vertex1, vertex2):
-        if not self.has_edge(vertex1, vertex2):
+        if not self.__has_edge(vertex1, vertex2):
             raise ValueError("Specified edge is not present in current Tree")
-        return self.graph[vertex1][vertex2].get("wgd_events_count", 0)
+        return self.graph[vertex1][vertex2].get(self.wgd_events_count_attribute_name, 0)
