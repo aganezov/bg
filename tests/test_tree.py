@@ -9,7 +9,7 @@ __status__ = "develop"
 import unittest
 
 
-class TreeTestCase(unittest.TestCase):
+class BGTreeTestCase(unittest.TestCase):
     def setUp(self):
         v1, v2, v3, v4 = BGGenome("v1"), BGGenome("v2"), BGGenome("v3"), BGGenome("v4")
         self.v1 = v1
