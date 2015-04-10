@@ -55,3 +55,11 @@ class BGGenome(object):
     def from_json(cls, data, json_schema_class=None):
         schema = cls.json_schema if json_schema_class is None else json_schema_class()
         return schema.load(data).data
+
+    def __lt__(self, other):
+        if not isinstance(other, BGGenome):
+            return True
+        return self.name < other.name
+
+    def __le__(self, other):
+        return self < other or self == other

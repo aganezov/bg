@@ -75,6 +75,31 @@ class BGGenomeTestCase(unittest.TestCase):
                 return super().make_object(data=data)
         self.assertEqual(BGGenome.from_json(data={}, json_schema_class=BGGenomeJSONSchemaNameOptional).name, "default_name")
 
+    def test__lt__(self):
+        g1 = BGGenome("genome1")
+        g2 = BGGenome("genome2")
+        self.assertLess(g1, g2)
+        self.assertGreater(g2, g1)
+        g1 = BGGenome("genome1")
+        g2 = BGGenome("genome")
+        self.assertGreater(g1, g2)
+        self.assertLess(g2, g1)
+        # BGGenome is always smaller than non-BGGenome objects
+        objects_to_compare_to = [1, (1,), [1], "a"]
+        for object_to_compare_to in objects_to_compare_to:
+            self.assertLess(g1, object_to_compare_to)
+            self.assertLess(g2, object_to_compare_to)
+
+    def test__le__(self):
+        g1 = BGGenome("genome1")
+        g2 = BGGenome("genome1")
+        self.assertLessEqual(g1, g2)
+        self.assertLessEqual(g2, g1)
+        self.assertTrue(g1 <= g2 <= g1)
+        g3 = BGGenome("genome")
+        self.assertLessEqual(g3, g1)
+        self.assertLessEqual(g3, g1)
+
 
 if __name__ == '__main__':
     unittest.main()
