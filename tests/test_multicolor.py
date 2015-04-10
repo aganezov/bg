@@ -614,6 +614,24 @@ class MulticolorTestCase(unittest.TestCase):
         self.assertEqual(mc.multicolors[self.genome1], 2)
         self.assertEqual(mc.multicolors[self.genome4], 2)
 
+    def test_hashable_representation(self):
+        # the idea is to use sorted Counter.elements() method and convert into sorted tuple on the fly
+        genome_list = [self.genome1, self.genome2, self.genome3, self.genome4, self.genome1, self.genome2, self.genome1]
+        mc = Multicolor(*genome_list)
+        ref_tuple = tuple(sorted(genome_list))
+        result = mc.hashable_representation
+        self.assertTrue(isinstance(result, tuple))
+        self.assertTupleEqual(result, ref_tuple)
+        mc1 = Multicolor(*result)
+        self.assertEqual(mc, mc1)
+        # non-equal multicolors shall have different hashable representations
+        mc1 = Multicolor(*genome_list[:-2])
+        mc2 = Multicolor(*genome_list[:-1])
+        self.assertNotEqual(mc1, mc2)
+        self.assertNotEqual(mc1.hashable_representation, mc2.hashable_representation)
+        # there shall be no errors or exceptions raised while taking hash of hashable_representation
+        result = mc.hashable_representation
+        self.assertEqual(hash(result), hash(ref_tuple))
 
 if __name__ == '__main__':  # pragma: no cover
     unittest.main()  # pragma: no cover

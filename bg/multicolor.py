@@ -328,3 +328,7 @@ class Multicolor(object):
         :rtype: ``set``
         """
         return set(self.multicolors.keys())
+
+    @property
+    def hashable_representation(self):
+        return tuple(sorted(self.multicolors.elements()))
