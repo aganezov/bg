@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+from bg import Multicolor
 from bg.genome import BGGenome
 from bg.tree import BGTree, NewickReader, DEFAULT_EDGE_LENGTH
 
@@ -11,11 +12,12 @@ import unittest
 
 class BGTreeTestCase(unittest.TestCase):
     def setUp(self):
-        v1, v2, v3, v4 = BGGenome("v1"), BGGenome("v2"), BGGenome("v3"), BGGenome("v4")
+        v1, v2, v3, v4, v5 = BGGenome("v1"), BGGenome("v2"), BGGenome("v3"), BGGenome("v4"), BGGenome("v5")
         self.v1 = v1
         self.v2 = v2
         self.v3 = v3
         self.v4 = v4
+        self.v5 = v5
 
     def test_empty_tree_initialization(self):
         tree = BGTree()
@@ -162,6 +164,67 @@ class BGTreeTestCase(unittest.TestCase):
         tree = BGTree()
         with self.assertRaises(ValueError):
             tree.set_edge_length(vertex1=self.v1, vertex2=self.v2, edge_length=3)
+
+    def test_get_tree_consistent_multicolors_unrooted_no_wgd_empty(self):
+        tree = BGTree()
+        tree_consistent_multicolors = tree.get_tree_consistent_multicolors(rooted=False, account_for_wgd=False)
+        self.assertIsInstance(tree_consistent_multicolors, list)
+        self.assertEqual(len(tree_consistent_multicolors), 1)
+        self.assertIn(Multicolor(), tree_consistent_multicolors)
+
+
+    def test_get_tree_consistent_multicolors_unrooted_no_wgd_correct(self):
+        # if `rooted` argument is set to `False`, then regardless of `tree.root` value outcome shall be the same
+        tree = NewickReader.from_string(data_string="(((v1, v2), v3),(v4, v5));")
+        for root in [self.v1, self.v2, self.v3, self.v4, self.v5, "1", "2", "3", "4"]:
+            tree.root = root
+            tree_consistent_multicolors = tree.get_tree_consistent_multicolors(rooted=False, account_for_wgd=False)
+            self.assertIsInstance(tree_consistent_multicolors, list)
+            self.assertEqual(len(tree_consistent_multicolors), 16)
+            ref_tree_consistent_multicolors = [
+                Multicolor(), Multicolor(self.v1, self.v2, self.v3, self.v4, self.v5),
+                Multicolor(self.v1), Multicolor(self.v2, self.v3, self.v4, self.v5),
+                Multicolor(self.v2), Multicolor(self.v1, self.v3, self.v4, self.v5),
+                Multicolor(self.v3), Multicolor(self.v1, self.v2, self.v4, self.v5),
+                Multicolor(self.v4), Multicolor(self.v1, self.v2, self.v3, self.v5),
+                Multicolor(self.v5), Multicolor(self.v1, self.v2, self.v3, self.v4),
+                Multicolor(self.v1, self.v2), Multicolor(self.v3, self.v4, self.v5),
+                Multicolor(self.v4, self.v5), Multicolor(self.v1, self.v2, self.v3),
+            ]
+            for multicolor in ref_tree_consistent_multicolors:
+                self.assertIn(multicolor, tree_consistent_multicolors)
+
+    def test_get_tree_consistent_multicolors_rooted_no_wgd_correct(self):
+        # with no account for wgd root specification is irrelevant
+        tree = NewickReader.from_string(data_string="(((v1, v2), v3),(v4, v5));")
+        for root in [self.v1, self.v2, self.v3, self.v4, self.v4, "1", "2", "3"]:
+            tree.root = root
+            tree_consistent_multicolors = tree.get_tree_consistent_multicolors(rooted=True, account_for_wgd=False)
+            self.assertIsInstance(tree_consistent_multicolors, list)
+            self.assertEqual(len(tree_consistent_multicolors), 16)
+            ref_tree_consistent_multicolors = [
+                Multicolor(), Multicolor(self.v1, self.v2, self.v3, self.v4, self.v5),
+                Multicolor(self.v1), Multicolor(self.v2, self.v3, self.v4, self.v5),
+                Multicolor(self.v2), Multicolor(self.v1, self.v3, self.v4, self.v5),
+                Multicolor(self.v3), Multicolor(self.v1, self.v2, self.v4, self.v5),
+                Multicolor(self.v4), Multicolor(self.v1, self.v2, self.v3, self.v5),
+                Multicolor(self.v5), Multicolor(self.v1, self.v2, self.v3, self.v4),
+                Multicolor(self.v1, self.v2), Multicolor(self.v3, self.v4, self.v5),
+                Multicolor(self.v4, self.v5), Multicolor(self.v1, self.v2, self.v3),
+            ]
+            for multicolor in ref_tree_consistent_multicolors:
+                self.assertIn(multicolor, tree_consistent_multicolors)
+
+    def test_get_tree_consistent_multicolors_with_wgd_incorrect(self):
+        # if `account_for_wgd` option is set to `True`, `rooted` argument must be set to `True` as well
+        tree = BGTree()
+        with self.assertRaises(ValueError):
+            tree.get_tree_consistent_multicolors(rooted=False, account_for_wgd=True)
+        # root of the tree must be not None (can happen if tree is built manually)
+        tree = BGTree()
+        tree.add_edge(vertex1=self.v1, vertex2=self.v2)
+        with self.assertRaises(ValueError):
+            tree.get_tree_consistent_multicolors(rooted=False, account_for_wgd=True)
 
 
 class NewickParserTestCase(unittest.TestCase):

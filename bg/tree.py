@@ -2,6 +2,7 @@
 import itertools
 from networkx import Graph
 import networkx as nx
+from bg import Multicolor
 from bg.genome import BGGenome
 
 __author__ = "Sergey Aganezov"
@@ -12,7 +13,6 @@ DEFAULT_EDGE_LENGTH = 1
 
 
 class NewickReader(object):
-
     @classmethod
     def unlabeled_node_names(cls):
         for int_value in itertools.count(1):
@@ -108,7 +108,6 @@ class NewickReader(object):
 
 
 class BGTree(object):
-
     wgd_events_count_attribute_name = "wgd_events_count"
     edge_length_attribute_name = "edge_length"
 
@@ -188,3 +187,43 @@ class BGTree(object):
         if not self.__has_edge(vertex1, vertex2):
             raise ValueError("Specified edge is not present in current Tree")
         return self.graph[vertex1][vertex2].get(self.wgd_events_count_attribute_name, 0)
+
+    def __vertex_is_leaf(self, vertex):
+        return vertex in self.graph and len(list(self.graph.edges(nbunch=vertex))) <= 1
+
+    def __get_tree_consistent_vertex_based_hashable_multicolors(self, vertex, parent, account_for_wgd=True):
+        descendants = [(v1, v2) for v1, v2 in self.graph.edges(vertex) if v1 != parent and v2 != parent]
+        result = []
+        if self.__vertex_is_leaf(vertex=vertex):
+            result.append(Multicolor(vertex))
+        if len(descendants) > 0:
+            current_vertex_multicolor = Multicolor() if not self.__vertex_is_leaf(vertex) else Multicolor(vertex)
+            for v1, v2 in descendants:
+                child_multicolor = self.__get_tree_consistent_vertex_based_hashable_multicolors(vertex=v2, parent=v1,
+                                                                                                account_for_wgd=account_for_wgd)
+                edge_wgd_count = self.edge_wgd_count(vertex1=v1, vertex2=v2)
+                result.extend(child_multicolor)
+                for i in range(1, edge_wgd_count + 1):
+                    result.append(child_multicolor[-1] * (2 ** i))
+                current_vertex_multicolor += child_multicolor[-1] * (2 ** edge_wgd_count)
+            result.append(current_vertex_multicolor)
+        return result
+
+    def get_tree_consistent_multicolors(self, rooted=True, account_for_wgd=True):
+        if not rooted and account_for_wgd or rooted and self.root is None:
+            raise ValueError("Tree consistent colors, that take whole genome duplication into consideration can not "
+                             "be constructed on the unrooted tree")
+        if self.graph.number_of_nodes() == 0:
+            return [Multicolor()]
+        if not account_for_wgd and self.root is None:
+            self.root = next(self.nodes())
+        vertex_based_multicolors = self.__get_tree_consistent_vertex_based_hashable_multicolors(vertex=self.root,
+                                                                                                parent=None,
+                                                                                                account_for_wgd=account_for_wgd)
+        result = []
+        full_multicolor = vertex_based_multicolors[-1]
+        for multicolor in vertex_based_multicolors:
+            result.append(multicolor)
+            result.append(full_multicolor - multicolor)
+        hashed_vertex_tree_consistent_multicolors = {mc.hashable_representation for mc in result}
+        return [Multicolor(*hashed_multicolor) for hashed_multicolor in hashed_vertex_tree_consistent_multicolors]
