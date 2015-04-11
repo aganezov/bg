@@ -633,5 +633,33 @@ class MulticolorTestCase(unittest.TestCase):
         result = mc.hashable_representation
         self.assertEqual(hash(result), hash(ref_tuple))
 
+    def test__mull__(self):
+        # empty multicolor shall be kept as is regardless of multiplier
+        mc = Multicolor()
+        for multiplier in range(10):
+            self.assertEqual(mc * multiplier, Multicolor())
+        # multiplying by 0 shall make any multicolor an empty one
+        mc1 = Multicolor(self.genome1)
+        self.assertEqual(mc1 * 0, Multicolor())
+        mc2 = Multicolor(self.genome1, self.genome2, self.genome3)
+        self.assertEqual(mc2 * 0, Multicolor())
+        mc3 = Multicolor(self.genome1, self.genome2, self.genome1)
+        self.assertEqual(mc3 * 0, Multicolor())
+        # multiplying by an integer shall multiply each color multiplicity respectively
+        mc = Multicolor(self.genome1, self.genome2, self.genome3, self.genome1, self.genome2, self.genome1)
+        for multiplier in range(1, 50):
+            ref_multicolor = Multicolor()
+            for _ in range(multiplier):
+                ref_multicolor += mc
+            self.assertEqual(mc * multiplier, ref_multicolor)
+
+    def test__mull__incorrect(self):
+        # multiplication only by integer value is allowed
+        mc = Multicolor()
+        for incorrect_multiplier in [.1, (1,), [1], "1"]:
+            with self.assertRaises(TypeError):
+                mc = mc * incorrect_multiplier
+
+
 if __name__ == '__main__':  # pragma: no cover
     unittest.main()  # pragma: no cover

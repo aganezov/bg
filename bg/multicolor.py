@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 from collections import Counter
+from copy import deepcopy
 
 __author__ = "Sergey Aganezov"
 __email__ = "aganezov(at)gwu.edu"
@@ -332,3 +333,13 @@ class Multicolor(object):
     @property
     def hashable_representation(self):
         return tuple(sorted(self.multicolors.elements()))
+
+    def __mul__(self, other):
+        if not isinstance(other, int):
+            raise TypeError("Multicolor can be multiplied only by integer values")
+        if other == 0:
+            return Multicolor()
+        result = deepcopy(self)
+        for value in result.multicolors:
+            result.multicolors[value] = result.multicolors[value] * other
+        return result
