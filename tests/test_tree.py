@@ -225,7 +225,7 @@ class BGTreeTestCase(unittest.TestCase):
         with self.assertRaises(ValueError):
             tree.get_tree_consistent_multicolors(rooted=False, account_for_wgd=True)
 
-    def test_get_tree_consistent_multicolor_with_wgd_correct_non_leaf_root(self):
+    def test_get_tree_consistent_multicolors_with_wgd_correct_non_leaf_root(self):
         tree = NewickReader.from_string(data_string="(((v1, v2), v3),(v4, v5));")
         tree.set_wgd_count(vertex1=self.v1, vertex2="3", wgd_count=1)
         tree.set_wgd_count(vertex1="3", vertex2="2", wgd_count=2)
@@ -250,7 +250,7 @@ class BGTreeTestCase(unittest.TestCase):
         for multicolor in tree_consistent_multicolors:
             self.assertIn(multicolor, ref_tree_consistent_multicolor)
 
-    def test_get_tree_consistent_multicolor_no_wgd_correct_specified_by_argument(self):
+    def test_get_tree_consistent_multicolors_no_wgd_correct_specified_by_argument(self):
         tree = NewickReader.from_string(data_string="(((v1, v2), v3),(v4, v5));")
         tree.set_wgd_count(vertex1=self.v1, vertex2="3", wgd_count=1)
         tree.set_wgd_count(vertex1="3", vertex2="2", wgd_count=2)
