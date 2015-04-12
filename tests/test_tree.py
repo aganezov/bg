@@ -271,6 +271,31 @@ class BGTreeTestCase(unittest.TestCase):
         for multicolor in tree_consistent_multicolors:
             self.assertIn(multicolor, ref_tree_consistent_multicolors)
 
+    def test_get_tree_consistent_multicolors_with_wgd_correct_leaf_root(self):
+        tree = NewickReader.from_string(data_string="(((v1, v2), v3),(v4, v5));")
+        tree.set_wgd_count(vertex1=self.v1, vertex2="3", wgd_count=1)
+        tree.set_wgd_count(vertex1="3", vertex2="2", wgd_count=2)
+        tree.root = self.v1
+        tree_consistent_multicolors = tree.get_tree_consistent_multicolors(rooted=True, account_for_wgd=True)
+        self.assertIsInstance(tree_consistent_multicolors, list)
+        self.assertEqual(len(tree_consistent_multicolors), 21)
+        overall_multicolor = Multicolor(self.v1) + Multicolor(self.v2) * 2 + Multicolor(self.v4, self.v5, self.v3) * 8
+        ref_tree_consistent_multicolor = [
+            Multicolor(), overall_multicolor,
+            overall_multicolor - Multicolor(self.v1),
+            Multicolor(self.v2), overall_multicolor - Multicolor(self.v2),
+            Multicolor(self.v3), overall_multicolor - Multicolor(self.v3),
+            Multicolor(self.v4), overall_multicolor - Multicolor(self.v4),
+            Multicolor(self.v5), overall_multicolor - Multicolor(self.v5),
+            Multicolor(self.v4, self.v5), overall_multicolor - Multicolor(self.v4, self.v5),
+            Multicolor(self.v4, self.v5, self.v3), overall_multicolor - Multicolor(self.v4, self.v5, self.v3),
+            Multicolor(self.v4, self.v5, self.v3) * 2, overall_multicolor - Multicolor(self.v4, self.v5, self.v3) * 2,
+            Multicolor(self.v4, self.v5, self.v3) * 4, overall_multicolor - Multicolor(self.v4, self.v5, self.v3) * 4,
+            Multicolor(self.v4, self.v5, self.v3) * 4 + Multicolor(self.v2), overall_multicolor - Multicolor(self.v4, self.v5, self.v3) * 4 - Multicolor(self.v2),
+        ]
+        for multicolor in tree_consistent_multicolors:
+            self.assertIn(multicolor, ref_tree_consistent_multicolor)
+
 
 class NewickParserTestCase(unittest.TestCase):
     def test_parse_simple_node_no_edge_length_correct(self):

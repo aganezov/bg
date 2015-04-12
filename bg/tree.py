@@ -195,7 +195,11 @@ class BGTree(object):
         descendants = [(v1, v2) for v1, v2 in self.graph.edges(vertex) if v1 != parent and v2 != parent]
         result = []
         if self.__vertex_is_leaf(vertex=vertex):
-            result.append(Multicolor(vertex))
+            if account_for_wgd:
+                if parent is not None:
+                    result.append(Multicolor(vertex))
+            else:
+                result.append(Multicolor(vertex))
         if len(descendants) > 0:
             current_vertex_multicolor = Multicolor() if not self.__vertex_is_leaf(vertex) else Multicolor(vertex)
             for v1, v2 in descendants:
@@ -224,6 +228,9 @@ class BGTree(object):
         full_multicolor = vertex_based_multicolors[-1]
         for multicolor in vertex_based_multicolors:
             result.append(multicolor)
-            result.append(full_multicolor - multicolor)
+            supplementary = full_multicolor - multicolor
+            if account_for_wgd and self.__vertex_is_leaf(self.root) and supplementary == Multicolor(self.root):
+                continue
+            result.append(supplementary)
         hashed_vertex_tree_consistent_multicolors = {mc.hashable_representation for mc in result}
         return [Multicolor(*hashed_multicolor) for hashed_multicolor in hashed_vertex_tree_consistent_multicolors]
