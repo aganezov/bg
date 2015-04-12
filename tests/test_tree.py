@@ -175,8 +175,11 @@ class BGTreeTestCase(unittest.TestCase):
     def test_get_tree_consistent_multicolors_unrooted_no_wgd_correct(self):
         # if `rooted` argument is set to `False`, then regardless of `tree.root` value outcome shall be the same
         tree = NewickReader.from_string(data_string="(((v1, v2), v3),(v4, v5));")
-        for root in [self.v1, self.v2, self.v3, self.v4, self.v5, "1", "2", "3", "4"]:
-            tree.root = root
+        for root in [self.v1, self.v2, self.v3, self.v4, self.v5, "1", "2", "3", "4", None]:
+            if root is not None:
+                tree.root = root
+            else:
+                tree._BGTree__root = root
             tree_consistent_multicolors = tree.get_tree_consistent_multicolors(rooted=False, account_for_wgd=False)
             self.assertIsInstance(tree_consistent_multicolors, list)
             self.assertEqual(len(tree_consistent_multicolors), 16)
