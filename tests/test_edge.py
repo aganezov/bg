@@ -4,7 +4,7 @@ import types
 from unittest.mock import Mock
 from bg.genome import BGGenome
 from bg.multicolor import Multicolor
-from bg.vertex import BGVertex
+from bg.vertex import OldBGVertex
 
 __author__ = "Sergey Aganezov"
 __email__ = "aganezov(at)gwu.edu"
@@ -28,8 +28,8 @@ class BGEdgeTestCase(unittest.TestCase):
             BGEdge()
 
     def test_initialization(self):
-        v1 = BGVertex("v1")
-        v2 = BGVertex("v2")
+        v1 = OldBGVertex("v1")
+        v2 = OldBGVertex("v2")
         multicolor = Multicolor(self.genome3)
         edge = BGEdge(vertex1=v1,
                       vertex2=v2,
@@ -39,8 +39,8 @@ class BGEdgeTestCase(unittest.TestCase):
         self.assertEqual(edge.multicolor, multicolor)
 
     def test_merging_correct(self):
-        v1 = BGVertex("v1")
-        v2 = BGVertex("v2")
+        v1 = OldBGVertex("v1")
+        v2 = OldBGVertex("v2")
         multicolor = Multicolor(self.genome3)
         multicolor1 = Multicolor(self.genome2)
         edge1 = BGEdge(vertex1=v1, vertex2=v2, multicolor=multicolor)
@@ -51,10 +51,10 @@ class BGEdgeTestCase(unittest.TestCase):
         self.assertEqual(merged_edge.multicolor, multicolor + multicolor1)
 
     def test_merging_incorrect(self):
-        v1 = BGVertex("v1")
-        v2 = BGVertex("v2")
-        v3 = BGVertex("v3")
-        v4 = BGVertex("v4")
+        v1 = OldBGVertex("v1")
+        v2 = OldBGVertex("v2")
+        v3 = OldBGVertex("v3")
+        v4 = OldBGVertex("v4")
         multicolor = Multicolor(self.genome3)
         multicolor1 = Multicolor(self.genome2)
         edge1 = BGEdge(vertex1=v1, vertex2=v2, multicolor=multicolor)
@@ -78,10 +78,10 @@ class BGEdgeTestCase(unittest.TestCase):
             BGEdge.merge(edge1, edge2)
 
     def test_equality(self):
-        v1 = BGVertex("v1")
-        v2 = BGVertex("v2")
-        v3 = BGVertex("v3")
-        v4 = BGVertex("v4")
+        v1 = OldBGVertex("v1")
+        v2 = OldBGVertex("v2")
+        v3 = OldBGVertex("v3")
+        v4 = OldBGVertex("v4")
         multicolor = Multicolor(self.genome3)
         multicolor1 = Multicolor(self.genome2)
         edge1 = BGEdge(vertex1=v1, vertex2=v2, multicolor=multicolor)
@@ -102,9 +102,9 @@ class BGEdgeTestCase(unittest.TestCase):
         self.assertNotEqual(edge1, edge6)
 
     def test_is_infinity_edge(self):
-        v1 = BGVertex("v1")
-        v2 = BGVertex("v2")
-        v3 = BGVertex("v3__infinity")
+        v1 = OldBGVertex("v1")
+        v2 = OldBGVertex("v2")
+        v3 = OldBGVertex("v3__infinity")
         multicolor = Multicolor(self.genome3)
         edge1 = BGEdge(vertex1=v1, vertex2=v2, multicolor=multicolor)
         edge2 = BGEdge(vertex1=v1, vertex2=v3, multicolor=multicolor)
@@ -118,8 +118,8 @@ class BGEdgeTestCase(unittest.TestCase):
     def test_iter_over_colors_json_ids(self):
         # when multiedge is serialized into json a list of colors in it referenced by their ids
         # the multiplicity of colors has to be preserved
-        v1 = BGVertex("v1")
-        v2 = BGVertex("v2")
+        v1 = OldBGVertex("v1")
+        v2 = OldBGVertex("v2")
         genomes = [self.genome1, self.genome1, self.genome2, self.genome3, self.genome2]
         multicolor = Multicolor(*genomes)
         bgedge = BGEdge(vertex1=v1, vertex2=v2, multicolor=multicolor)
@@ -131,8 +131,8 @@ class BGEdgeTestCase(unittest.TestCase):
         res_json_ids = Counter(json_ids_list)
         self.assertDictEqual(ref_json_ids, res_json_ids)
         # case when color objects are not a BGGenome, but some other hashable object without json_id attribute
-        v1 = BGVertex("v1")
-        v2 = BGVertex("v2")
+        v1 = OldBGVertex("v1")
+        v2 = OldBGVertex("v2")
         colors = ["red", "red", "green", "black", "yellow", "green"]
         multicolor = Multicolor(*colors)
         bgedge = BGEdge(vertex1=v1, vertex2=v2, multicolor=multicolor)
@@ -144,8 +144,8 @@ class BGEdgeTestCase(unittest.TestCase):
         res_json_ids = Counter(json_ids_list)
         self.assertDictEqual(ref_json_ids, res_json_ids)
         # case when color objects are mixed objects: BGGenome objects, just hashable, have json_id but not BGGenome
-        v1 = BGVertex("v1")
-        v2 = BGVertex("v2")
+        v1 = OldBGVertex("v1")
+        v2 = OldBGVertex("v2")
         mock1, mock2 = Mock(), Mock()
         mock1.json_id = 5
         mock2.json_id = 6
@@ -162,7 +162,7 @@ class BGEdgeTestCase(unittest.TestCase):
 
     def test_json_serialization(self):
         # simple case of serialization, single color, no multiplicity
-        v1, v2 = BGVertex("v1"), BGVertex("v2")
+        v1, v2 = OldBGVertex("v1"), OldBGVertex("v2")
         color1 = BGGenome("genome1")
         multicolor = Multicolor(color1)
         edge = BGEdge(vertex1=v1, vertex2=v2, multicolor=multicolor)

@@ -9,7 +9,7 @@ INFINITY_VERTEX_IDENTIFIER = "__infinity"
 BGVertex_JSON_SCHEMA_JSON_KEY = "_py__bg_vertex_json_schema"
 
 
-class BGVertex(object):
+class OldBGVertex(object):
     """ A wrapper class used to store information about vertex in the :class:`bg.breakpoint_graph.BreakpointGraph` data structure
 
     This class supports the following attributes, that carry information each BGVertex instances:
@@ -24,7 +24,7 @@ class BGVertex(object):
 
         def make_object(self, data):
             try:
-                return BGVertex(name=data["name"])
+                return OldBGVertex(name=data["name"])
             except KeyError as err:
                 raise err
 
@@ -38,7 +38,7 @@ class BGVertex(object):
         :param info: additional data about the vertex
         :type info: assumed to be {key:value} typed object
         :return: a new instance of :class:`BGVertex`
-        :rtype: :class:`BGVertex`
+        :rtype: :class:`OldBGVertex`
         """
         self.name = name
         if info is None:
@@ -63,7 +63,7 @@ class BGVertex(object):
         :return: result of comparison between current :class:`BGVertex` and supplied python object
         :rtype: ``Boolean``
         """
-        if not isinstance(other, BGVertex):
+        if not isinstance(other, OldBGVertex):
             return False
         return self.name == other.name
 
@@ -76,9 +76,9 @@ class BGVertex(object):
         Accounts for subclassing.
 
         :param vertex: a vertex instance, to which a companion infinity vertex has to bre created
-        :type vertex: ``str`` or :class:`BGVertex`
+        :type vertex: ``str`` or :class:`OldBGVertex`
         :return: an infinity vertex instance that accompanies supplied vertex in :class:`bg.breakpoint_graph.BreakpointGraph`
-        :rtype: ``str`` or :class:`BGVertex`
+        :rtype: ``str`` or :class:`OldBGVertex`
         """
         if isinstance(vertex, cls):
             return cls(vertex.name + INFINITY_VERTEX_IDENTIFIER)

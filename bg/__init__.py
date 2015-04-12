@@ -12,7 +12,7 @@ __all__ = ["breakpoint_graph",
            "bg_io"]
 
 from bg.breakpoint_graph import BreakpointGraph
-from bg.vertex import BGVertex
+from bg.vertex import OldBGVertex
 from bg.edge import BGEdge
 from bg.multicolor import Multicolor
 from bg.bg_io import GRIMMReader
