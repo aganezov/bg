@@ -201,7 +201,7 @@ class BGTree(object):
             for v1, v2 in descendants:
                 child_multicolor = self.__get_tree_consistent_vertex_based_hashable_multicolors(vertex=v2, parent=v1,
                                                                                                 account_for_wgd=account_for_wgd)
-                edge_wgd_count = self.edge_wgd_count(vertex1=v1, vertex2=v2)
+                edge_wgd_count = self.edge_wgd_count(vertex1=v1, vertex2=v2) if account_for_wgd else 0
                 result.extend(child_multicolor)
                 for i in range(1, edge_wgd_count + 1):
                     result.append(child_multicolor[-1] * (2 ** i))

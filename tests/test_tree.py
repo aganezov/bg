@@ -230,7 +230,7 @@ class BGTreeTestCase(unittest.TestCase):
         tree.set_wgd_count(vertex1=self.v1, vertex2="3", wgd_count=1)
         tree.set_wgd_count(vertex1="3", vertex2="2", wgd_count=2)
         tree.root = "1"
-        tree_consistent_multicolors = tree.get_tree_consistent_multicolors(rooted=False, account_for_wgd=False)
+        tree_consistent_multicolors = tree.get_tree_consistent_multicolors(rooted=True, account_for_wgd=True)
         self.assertIsInstance(tree_consistent_multicolors, list)
         self.assertEqual(len(tree_consistent_multicolors), 22)
         overall_multicolor = Multicolor(self.v1) * 8 + Multicolor(self.v2) * 4 + Multicolor(self.v3, self.v4, self.v5)
@@ -249,6 +249,27 @@ class BGTreeTestCase(unittest.TestCase):
         ]
         for multicolor in tree_consistent_multicolors:
             self.assertIn(multicolor, ref_tree_consistent_multicolor)
+
+    def test_get_tree_consistent_multicolor_no_wgd_correct_specified_by_argument(self):
+        tree = NewickReader.from_string(data_string="(((v1, v2), v3),(v4, v5));")
+        tree.set_wgd_count(vertex1=self.v1, vertex2="3", wgd_count=1)
+        tree.set_wgd_count(vertex1="3", vertex2="2", wgd_count=2)
+        tree.root = "1"
+        tree_consistent_multicolors = tree.get_tree_consistent_multicolors(rooted=True, account_for_wgd=False)
+        self.assertIsInstance(tree_consistent_multicolors, list)
+        self.assertEqual(len(tree_consistent_multicolors), 16)
+        ref_tree_consistent_multicolors = [
+                Multicolor(), Multicolor(self.v1, self.v2, self.v3, self.v4, self.v5),
+                Multicolor(self.v1), Multicolor(self.v2, self.v3, self.v4, self.v5),
+                Multicolor(self.v2), Multicolor(self.v1, self.v3, self.v4, self.v5),
+                Multicolor(self.v3), Multicolor(self.v1, self.v2, self.v4, self.v5),
+                Multicolor(self.v4), Multicolor(self.v1, self.v2, self.v3, self.v5),
+                Multicolor(self.v5), Multicolor(self.v1, self.v2, self.v3, self.v4),
+                Multicolor(self.v1, self.v2), Multicolor(self.v3, self.v4, self.v5),
+                Multicolor(self.v4, self.v5), Multicolor(self.v1, self.v2, self.v3),
+            ]
+        for multicolor in tree_consistent_multicolors:
+            self.assertIn(multicolor, ref_tree_consistent_multicolors)
 
 
 class NewickParserTestCase(unittest.TestCase):
