@@ -193,7 +193,7 @@ class BGVertexTestCase(unittest.TestCase):
             self.assertNotEqual(v1, non_bg_vertex_value)
 
     def test_is_something_vertex(self):
-        for vertex_type_string in ["regular", "irregular", "basic", "repeat", "etc"]:
+        for vertex_type_string in ["lala1", "lala2", "lala2", "lala4", "etc"]:
             vertex_request_type = "is_" + vertex_type_string + "_vertex"
             self.assertFalse(getattr(self.vertex_class(self.str_name1), vertex_request_type))
 
@@ -263,11 +263,15 @@ class BGVertexTestCase(unittest.TestCase):
 
 
 class BlockVertexTestCase(BGVertexTestCase):
+    def setUp(self):
+        super().setUp()
+        self.vertex_class = BlockVertex
+
     def test_inheritance(self):
-        self.assertIsInstance(BlockVertex(self.str_name1), BGVertex)
+        self.assertIsInstance(self.vertex_class(self.str_name1), BGVertex)
 
     def test_is_block_vertex(self):
-        v = BlockVertex(self.str_name1)
+        v = self.vertex_class(self.str_name1)
         self.assertTrue(v.is_regular_vertex)
         self.assertTrue(v.is_block_vertex)
 
