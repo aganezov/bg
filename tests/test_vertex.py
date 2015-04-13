@@ -174,15 +174,14 @@ class BGVertexTestCase(unittest.TestCase):
         with self.assertRaises(TypeError):
             self.vertex_class()
 
-    def test_full_initialization(self):
+    def test_initialization(self):
         v = self.vertex_class(self.str_name1)
         self.assertEqual(v.name, self.str_name1)
 
     def test__hash__(self):
-        self.assertEqual(hash(self.vertex_class(self.str_name1)), hash(self.str_name1))
-        self.assertEqual(hash(self.vertex_class(self.int_name1)), hash(self.int_name1))
+        self.assertEqual(hash(self.vertex_class(self.str_name1)), hash(self.vertex_class(self.str_name1).name))
 
-    def test_equality(self):
+    def test__eq__(self):
         v1 = self.vertex_class(self.str_name1)
         v2 = self.vertex_class(self.str_name1)
         v3 = self.vertex_class(self.str_name3)
@@ -192,7 +191,7 @@ class BGVertexTestCase(unittest.TestCase):
         for non_bg_vertex_value in [1, "1", (1,), [1]]:
             self.assertNotEqual(v1, non_bg_vertex_value)
 
-    def test_is_something_vertex(self):
+    def test_is_something_vertex_request_stopper(self):
         for vertex_type_string in ["lala1", "lala2", "lala2", "lala4", "etc"]:
             vertex_request_type = "is_" + vertex_type_string + "_vertex"
             self.assertFalse(getattr(self.vertex_class(self.str_name1), vertex_request_type))
@@ -217,7 +216,7 @@ class BGVertexTestCase(unittest.TestCase):
         # as well as a special json_id field that unique identifies this instance of BGVertex
         v = self.vertex_class(self.str_name1)
         ref_result = {
-            "name": "name1",
+            "name": self.str_name1,
             'v_id': v.json_id
         }
         result = v.to_json(schema_info=False)
@@ -243,7 +242,7 @@ class BGVertexTestCase(unittest.TestCase):
             "json_id": 1
         }
         vertex = self.vertex_class.from_json(json_object)
-        self.assertTrue(isinstance(vertex, BGVertex))
+        self.assertTrue(isinstance(vertex, self.vertex_class))
         # explicitly specified json schema to work with
         # but since nothing is passed into in "schema" argument to the from_json function
         # default to the BGVertex.json_schema is performed
@@ -279,20 +278,99 @@ class BlockVertexTestCase(BGVertexTestCase):
 class InfinityVertexTestCase(BGVertexTestCase):
     def setUp(self):
         super().setUp()
+        self.vertex_class = InfinityVertex
         self.block_vertex = BlockVertex(self.str_name1)
 
     def test_initialization(self):
         i_v = InfinityVertex(self.block_vertex)
-        ref_name = self.block_vertex.name + InfinityVertex.NAME_SUFFIX
+        ref_name = InfinityVertex.NAME_SEPARATOR.join([self.block_vertex.name, InfinityVertex.NAME_SUFFIX])
         self.assertEqual(i_v.name, ref_name)
+
+    def test__hash__(self):
+        i_v = InfinityVertex(self.block_vertex)
+        self.assertEqual(hash(i_v), hash(i_v.name))
+
+    def test__eq__(self):
+        i_v1 = InfinityVertex(self.block_vertex)
+        i_v2 = InfinityVertex(self.block_vertex)
+        self.assertEqual(i_v1, i_v2)
+        i_v3 = InfinityVertex(BlockVertex(self.str_name2))
+        self.assertNotEqual(i_v1, i_v3)
 
     def test_if_irregular_vertex(self):
         i_v = InfinityVertex(self.block_vertex)
         self.assertTrue(i_v.is_infinity_vertex)
         self.assertTrue(i_v.is_irregular_vertex)
 
+    def test_is_something_vertex_request_stopper(self):
+        pass
+
     def test_inheritance(self):
         self.assertIsInstance(InfinityVertex(self.block_vertex), BGVertex)
+
+    def test_json_identifier(self):
+        # json identifier shall be unique per BGVertex and be of `int` type
+        # json identifier is implemented as a property on BGVertex object
+        # __hash__ is used
+        v = self.vertex_class(self.block_vertex)
+        json_id = v.json_id
+        self.assertTrue(isinstance(json_id, int))
+        self.assertEqual(json_id, hash(v))
+        v.name = self.int_name2
+        new_json_id = v.json_id
+        self.assertTrue(isinstance(new_json_id, int))
+        self.assertEqual(new_json_id, hash(v))
+        self.assertNotEqual(json_id, new_json_id)
+
+    def test_json_serialization(self):
+        # a InfinityVertex class instance shall be serializable into the JSON based object
+        # such serialization shall contain all breakpoint graph relative information about the vertex
+        # as well as a special json_id field that unique identifies this instance of BGVertex
+        v = self.vertex_class(self.block_vertex)
+        ref_result = {
+            "name": InfinityVertex.NAME_SEPARATOR.join([self.str_name1, InfinityVertex.NAME_SUFFIX]),
+            'v_id': v.json_id
+        }
+        result = v.to_json(schema_info=False)
+        self.assertDictEqual(ref_result, result)
+        # with json_schema_key
+        ref_result[BGVertex_JSON_SCHEMA_JSON_KEY] = v.json_schema_name
+        result = v.to_json(schema_info=True)
+        self.assertDictEqual(ref_result, result)
+        # a non-string name attribute value shall be translated into a string object
+        v = self.vertex_class(BlockVertex(1))
+        ref_result = {
+            "name": InfinityVertex.NAME_SEPARATOR.join(["1", InfinityVertex.NAME_SUFFIX]),
+            'v_id': v.json_id
+        }
+        result = v.to_json(schema_info=False)
+        self.assertDictEqual(ref_result, result)
+
+    def test_json_deserialization_correct_default_schema(self):
+        # a BGVertex class instance is to be read from the JSON based object data
+        # not all JSON object attributes are to be stored in BGVertex object
+        json_object = {
+            "name": self.str_name1,
+            "json_id": 1
+        }
+        vertex = self.vertex_class.from_json(json_object)
+        self.assertTrue(isinstance(vertex, self.vertex_class))
+        # explicitly specified json schema to work with
+        # but since nothing is passed into in "schema" argument to the from_json function
+        # default to the BGVertex.json_schema is performed
+        json_schema_name = self.vertex_class(self.block_vertex).json_schema_name
+        json_object = {
+            BGVertex_JSON_SCHEMA_JSON_KEY: json_schema_name,
+            "name": self.str_name1,
+            "json_id": 1
+        }
+        vertex = self.vertex_class.from_json(json_object)
+        self.assertTrue(isinstance(vertex, self.vertex_class))
+        self.assertEqual(vertex.name, InfinityVertex.NAME_SEPARATOR.join([self.str_name1, InfinityVertex.NAME_SUFFIX]))
+        # there must be a "name" field in json object to be serialized
+        with self.assertRaises(ValueError):
+            json_object = {"json_id": 1}
+            self.vertex_class.from_json(json_object)
 
 if __name__ == '__main__':  # pragma: no cover
     unittest.main()         # pragma: no cover

@@ -121,6 +121,8 @@ class OldBGVertex(object):
 
 class BGVertex(object):
 
+    NAME_SEPARATOR = "__"
+
     class BGVertexJSONSchema(Schema):
         name = fields.String(required=True, attribute="name")
         v_id = fields.Int(required=True, attribute="json_id")
@@ -185,7 +187,7 @@ class BlockVertex(BGVertex):
 
 class InfinityVertex(BGVertex):
 
-    NAME_SUFFIX = "__infinity"
+    NAME_SUFFIX = "infinity"
 
     def __init__(self, vertex):
         if not isinstance(vertex, BGVertex):
@@ -195,7 +197,7 @@ class InfinityVertex(BGVertex):
 
     @property
     def name(self):
-        return self.__name + self.NAME_SUFFIX
+        return self.NAME_SEPARATOR.join([str(self.__name), self.NAME_SUFFIX])
 
     @name.setter
     def name(self, value):
@@ -208,5 +210,15 @@ class InfinityVertex(BGVertex):
     @property
     def is_infinity_vertex(self):
         return True
+
+    @classmethod
+    def from_json(cls, data, json_schema_class=None):
+        schema = cls.json_schema if json_schema_class is None else json_schema_class()
+        deserialized_data = schema.load(data).data
+        try:
+            dummy_vertex = BGVertex(name=deserialized_data["name"])
+            return cls(dummy_vertex)
+        except KeyError:
+            raise ValueError("No `name` key in supplied json data for vertex deserialization")
 
 
