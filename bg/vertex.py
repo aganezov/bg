@@ -171,3 +171,14 @@ class BGVertex(object):
         except KeyError:
             raise ValueError("No `name` key in supplied json data for vertex deserialization")
 
+
+class BlockVertex(BGVertex):
+
+    @property
+    def is_regular_vertex(self):
+        return True
+
+    @property
+    def is_block_vertex(self):
+        return True
+

@@ -4,7 +4,7 @@ __email__ = "aganezov(at)gwu.edu"
 __status__ = "develop"
 
 import unittest
-from bg.vertex import OldBGVertex, BGVertex_JSON_SCHEMA_JSON_KEY, BGVertex
+from bg.vertex import OldBGVertex, BGVertex_JSON_SCHEMA_JSON_KEY, BGVertex, BlockVertex
 
 
 class OldBGVertexTestCase(unittest.TestCase):
@@ -259,6 +259,16 @@ class BGVertexTestCase(unittest.TestCase):
         with self.assertRaises(ValueError):
             json_object = {"json_id": 1}
             BGVertex.from_json(json_object)
+
+
+class BlockVertexTestCase(BGVertexTestCase):
+    def test_inheritance(self):
+        self.assertIsInstance(BlockVertex(self.str_name1), BGVertex)
+
+    def test_is_block_vertex(self):
+        v = BlockVertex(self.str_name1)
+        self.assertTrue(v.is_regular_vertex)
+        self.assertTrue(v.is_block_vertex)
 
 if __name__ == '__main__':  # pragma: no cover
     unittest.main()         # pragma: no cover
