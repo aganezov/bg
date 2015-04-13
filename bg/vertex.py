@@ -182,3 +182,31 @@ class BlockVertex(BGVertex):
     def is_block_vertex(self):
         return True
 
+
+class InfinityVertex(BGVertex):
+
+    NAME_SUFFIX = "__infinity"
+
+    def __init__(self, vertex):
+        if not isinstance(vertex, BGVertex):
+            raise TypeError("InfinityVertex instance can be created only for the instance of BGVertex")
+        self.__name = None
+        super().__init__(name=vertex.name)
+
+    @property
+    def name(self):
+        return self.__name + self.NAME_SUFFIX
+
+    @name.setter
+    def name(self, value):
+        self.__name = value
+
+    @property
+    def is_irregular_vertex(self):
+        return True
+
+    @property
+    def is_infinity_vertex(self):
+        return True
+
+

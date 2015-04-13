@@ -4,7 +4,7 @@ __email__ = "aganezov(at)gwu.edu"
 __status__ = "develop"
 
 import unittest
-from bg.vertex import OldBGVertex, BGVertex_JSON_SCHEMA_JSON_KEY, BGVertex, BlockVertex
+from bg.vertex import OldBGVertex, BGVertex_JSON_SCHEMA_JSON_KEY, BGVertex, BlockVertex, InfinityVertex
 
 
 class OldBGVertexTestCase(unittest.TestCase):
@@ -269,6 +269,25 @@ class BlockVertexTestCase(BGVertexTestCase):
         v = BlockVertex(self.str_name1)
         self.assertTrue(v.is_regular_vertex)
         self.assertTrue(v.is_block_vertex)
+
+
+class InfinityVertexTestCase(BGVertexTestCase):
+    def setUp(self):
+        super().setUp()
+        self.block_vertex = BlockVertex(self.str_name1)
+
+    def test_initialization(self):
+        i_v = InfinityVertex(self.block_vertex)
+        ref_name = self.block_vertex.name + InfinityVertex.NAME_SUFFIX
+        self.assertEqual(i_v.name, ref_name)
+
+    def test_if_irregular_vertex(self):
+        i_v = InfinityVertex(self.block_vertex)
+        self.assertTrue(i_v.is_infinity_vertex)
+        self.assertTrue(i_v.is_irregular_vertex)
+
+    def test_inheritance(self):
+        self.assertIsInstance(InfinityVertex(self.block_vertex), BGVertex)
 
 if __name__ == '__main__':  # pragma: no cover
     unittest.main()         # pragma: no cover
