@@ -118,3 +118,56 @@ class OldBGVertex(object):
         schema = cls.json_schema if json_schema_class is None else json_schema_class()
         return schema.load(data).data
 
+
+class BGVertex(object):
+
+    class BGVertexJSONSchema(Schema):
+        name = fields.String(required=True, attribute="name")
+        v_id = fields.Int(required=True, attribute="json_id")
+        _py__bg_vertex_json_schema = fields.String(attribute="json_schema_name")
+
+    json_schema = BGVertexJSONSchema()
+
+    def __init__(self, name):
+        self.name = name
+
+    def __hash__(self):
+        return hash(self.name)
+
+    def __eq__(self, other):
+        if not isinstance(other, self.__class__):
+            return False
+        return hash(self) == hash(other)
+
+    def __getattr__(self, item):
+        if item.startswith("is_") and item.endswith("_vertex"):
+            return False
+        return super().__getattribute__(item)
+
+    @property
+    def json_id(self):
+        return hash(self)
+
+    @property
+    def json_schema_name(self):
+        return self.json_schema.__class__.__name__
+
+    def to_json(self, schema_info=True):
+        old_exclude_fields = self.json_schema.exclude
+        new_exclude_fields = list(old_exclude_fields)
+        if not schema_info:
+            new_exclude_fields.append(BGVertex_JSON_SCHEMA_JSON_KEY)
+        self.json_schema.exclude = new_exclude_fields
+        result = self.json_schema.dump(self).data
+        self.json_schema.exclude = old_exclude_fields
+        return result
+
+    @classmethod
+    def from_json(cls, data, json_schema_class=None):
+        schema = cls.json_schema if json_schema_class is None else json_schema_class()
+        deserialized_data = schema.load(data).data
+        try:
+            return cls(name=deserialized_data["name"])
+        except KeyError:
+            raise ValueError("No `name` key in supplied json data for vertex deserialization")
+
