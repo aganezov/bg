@@ -168,23 +168,24 @@ class BGVertexTestCase(unittest.TestCase):
         self.int_name1 = 1
         self.int_name2 = 2
         self.int_name3 = 3
+        self.vertex_class = BGVertex
 
     def test_empty_initialization(self):
         with self.assertRaises(TypeError):
-            BGVertex()
+            self.vertex_class()
 
     def test_full_initialization(self):
-        v = BGVertex(self.str_name1)
+        v = self.vertex_class(self.str_name1)
         self.assertEqual(v.name, self.str_name1)
 
     def test__hash__(self):
-        self.assertEqual(hash(BGVertex(self.str_name1)), hash(self.str_name1))
-        self.assertEqual(hash(BGVertex(self.int_name1)), hash(self.int_name1))
+        self.assertEqual(hash(self.vertex_class(self.str_name1)), hash(self.str_name1))
+        self.assertEqual(hash(self.vertex_class(self.int_name1)), hash(self.int_name1))
 
     def test_equality(self):
-        v1 = BGVertex(self.str_name1)
-        v2 = BGVertex(self.str_name1)
-        v3 = BGVertex(self.str_name3)
+        v1 = self.vertex_class(self.str_name1)
+        v2 = self.vertex_class(self.str_name1)
+        v3 = self.vertex_class(self.str_name3)
         self.assertEqual(v1, v2)
         self.assertNotEqual(v1, v3)
         self.assertNotEqual(v2, v3)
@@ -194,13 +195,13 @@ class BGVertexTestCase(unittest.TestCase):
     def test_is_something_vertex(self):
         for vertex_type_string in ["regular", "irregular", "basic", "repeat", "etc"]:
             vertex_request_type = "is_" + vertex_type_string + "_vertex"
-            self.assertFalse(getattr(BGVertex(self.str_name1), vertex_request_type))
+            self.assertFalse(getattr(self.vertex_class(self.str_name1), vertex_request_type))
 
     def test_json_identifier(self):
         # json identifier shall be unique per BGVertex and be of `int` type
         # json identifier is implemented as a property on BGVertex object
         # __hash__ is used
-        v = BGVertex(self.str_name1)
+        v = self.vertex_class(self.str_name1)
         json_id = v.json_id
         self.assertTrue(isinstance(json_id, int))
         self.assertEqual(json_id, hash(v))
@@ -214,7 +215,7 @@ class BGVertexTestCase(unittest.TestCase):
         # a BGVertex class instance shall be serializable into the JSON based object
         # such serialization shall contain all breakpoint graph relative information about the vertex
         # as well as a special json_id field that unique identifies this instance of BGVertex
-        v = BGVertex(self.str_name1)
+        v = self.vertex_class(self.str_name1)
         ref_result = {
             "name": "name1",
             'v_id': v.json_id
@@ -226,7 +227,7 @@ class BGVertexTestCase(unittest.TestCase):
         result = v.to_json(schema_info=True)
         self.assertDictEqual(ref_result, result)
         # a non-string name attribute value shall be translated into a string object
-        v = BGVertex(self.int_name1)
+        v = self.vertex_class(self.int_name1)
         ref_result = {
             "name": "1",
             'v_id': v.json_id
@@ -241,24 +242,24 @@ class BGVertexTestCase(unittest.TestCase):
             "name": self.str_name1,
             "json_id": 1
         }
-        vertex = BGVertex.from_json(json_object)
+        vertex = self.vertex_class.from_json(json_object)
         self.assertTrue(isinstance(vertex, BGVertex))
         # explicitly specified json schema to work with
         # but since nothing is passed into in "schema" argument to the from_json function
         # default to the BGVertex.json_schema is performed
-        json_schema_name = BGVertex("v").json_schema_name
+        json_schema_name = self.vertex_class(self.str_name1).json_schema_name
         json_object = {
             BGVertex_JSON_SCHEMA_JSON_KEY: json_schema_name,
             "name": self.str_name1,
             "json_id": 1
         }
-        vertex = BGVertex.from_json(json_object)
-        self.assertTrue(isinstance(vertex, BGVertex))
+        vertex = self.vertex_class.from_json(json_object)
+        self.assertTrue(isinstance(vertex, self.vertex_class))
         self.assertEqual(vertex.name, self.str_name1)
         # there must be a "name" field in json object to be serialized
         with self.assertRaises(ValueError):
             json_object = {"json_id": 1}
-            BGVertex.from_json(json_object)
+            self.vertex_class.from_json(json_object)
 
 
 class BlockVertexTestCase(BGVertexTestCase):
