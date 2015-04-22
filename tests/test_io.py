@@ -3,6 +3,7 @@ import io
 from bg import BreakpointGraph, Multicolor
 from bg.bg_io import GRIMMReader
 from bg.genome import BGGenome
+from bg.vertex import BlockVertex, InfinityVertex
 
 __author__ = 'Sergey Aganezov'
 __email__ = "aganezov(at)gwu.edu"
@@ -101,22 +102,29 @@ class GRIMMReaderTestCase(unittest.TestCase):
     def test_get_list_of_edges(self):
         parsed_data = ("@", [("+", "a"), ("-", "b"), ("-", "a")])
         result = GRIMMReader.get_edges_from_parsed_data(parsed_data)
-        reference = [("at", "at"), ("ah", "bh"), ("bt", "ah")]
+        reference = [(BlockVertex("at"), BlockVertex("at")),
+                     (BlockVertex("ah"), BlockVertex("bh")),
+                     (BlockVertex("bt"), BlockVertex("ah"))]
         self.assertDictEqual(Counter(result), Counter(reference))
 
         parsed_data = ("$", [("+", "a"), ("-", "b"), ("-", "a")])
         result = GRIMMReader.get_edges_from_parsed_data(parsed_data)
-        reference = [("at__infinity", "at"), ("ah", "bh"), ("bt", "ah"), ("at", "at__infinity")]
+        reference = [(InfinityVertex("at"), BlockVertex("at")),
+                     (BlockVertex("ah"), BlockVertex("bh")),
+                     (BlockVertex("bt"), BlockVertex("ah")),
+                     (BlockVertex("at"), InfinityVertex("at"))]
         self.assertDictEqual(Counter(result), Counter(reference))
 
         parsed_data = ("@", [("+", "a")])
         result = GRIMMReader.get_edges_from_parsed_data(parsed_data)
-        reference = [("ah", "at")]
+        reference = [(BlockVertex("ah"), BlockVertex("at"))]
         self.assertDictEqual(Counter(result), Counter(reference))
 
         parsed_data = ("$", [("-", "a"), ("-", "a")])
         result = GRIMMReader.get_edges_from_parsed_data(parsed_data)
-        reference = [("ah__infinity", "ah"), ("at", "ah"), ("at", "at__infinity")]
+        reference = [(InfinityVertex("ah"), BlockVertex("ah")),
+                     (BlockVertex("at"), BlockVertex("ah")),
+                     (BlockVertex("at"), InfinityVertex("at"))]
         self.assertDictEqual(Counter(result), Counter(reference))
 
     def test_is_comment_string(self):

@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
-from bg import BreakpointGraph, BGVertex, Multicolor
+from bg import BreakpointGraph, Multicolor
 from bg.genome import BGGenome
+from bg.vertex import BlockVertex, InfinityVertex
 
 __author__ = "Sergey Aganezov"
 __email__ = "aganezov(at)gwu.edu"
@@ -132,6 +133,7 @@ class GRIMMReader(object):
         """
         sign, name = block
         tail, head = name + "t", name + "h"
+        tail, head = BlockVertex(tail), BlockVertex(head)
         return (tail, head) if sign == "+" else (head, tail)
 
     @staticmethod
@@ -155,8 +157,7 @@ class GRIMMReader(object):
             vertex = vertices.pop()
             vertices.insert(0, vertex)
         else:
-            infty_vertex1, infty_vertex2 = BGVertex.construct_infinity_vertex_companion(
-                vertices[0]), BGVertex.construct_infinity_vertex_companion(vertices[-1])
+            infty_vertex1, infty_vertex2 = InfinityVertex(vertices[0].name), InfinityVertex(vertices[-1].name)
             vertices.insert(0, infty_vertex1)
             vertices.append(infty_vertex2)
         return [(v1, v2) for v1, v2 in zip(vertices[::2], vertices[1::2])]
@@ -184,6 +185,6 @@ class GRIMMReader(object):
                 parsed_data = GRIMMReader.parse_data_string(data_string=line)
                 edges = GRIMMReader.get_edges_from_parsed_data(parsed_data=parsed_data)
                 for v1, v2 in edges:
-                    result.add_edge(vertex1=BGVertex(v1), vertex2=BGVertex(v2),
+                    result.add_edge(vertex1=v1, vertex2=v2,
                                     multicolor=Multicolor(current_genome))
         return result

@@ -10,13 +10,9 @@ BGVertex_JSON_SCHEMA_JSON_KEY = "_py__bg_vertex_json_schema"
 
 
 class BGVertex(object):
-    """ A wrapper class used to store information about vertex in the :class:`bg.breakpoint_graph.BreakpointGraph` data structure
 
-    This class supports the following attributes, that carry information each BGVertex instances:
+    NAME_SEPARATOR = "__"
 
-    *    :attr:`BGVertex.name`: main field used for vertex label and is used for comparison
-    *    :attr:`BGVertex.info`: key:value type storage that might be sued to store additional information about respective vertex
-    """
     class BGVertexJSONSchema(Schema):
         name = fields.String(required=True, attribute="name")
         v_id = fields.Int(required=True, attribute="json_id")
@@ -25,75 +21,26 @@ class BGVertex(object):
         def make_object(self, data):
             try:
                 return BGVertex(name=data["name"])
-            except KeyError as err:
-                raise err
+            except KeyError:
+                raise ValueError("No `name` key in supplied json data for vertex deserialization")
 
     json_schema = BGVertexJSONSchema()
 
-    def __init__(self, name, info=None):
-        """ Initialization of BGVertex instance
-
-        :param name: unique label for respective vertex to be identified in :class:`bg.breakpoint_graph.BreakpointGraph`
-        :type name: any hashable object
-        :param info: additional data about the vertex
-        :type info: assumed to be {key:value} typed object
-        :return: a new instance of :class:`BGVertex`
-        :rtype: :class:`BGVertex`
-        """
+    def __init__(self, name):
         self.name = name
-        if info is None:
-            info = {}
-        self.info = info
 
     def __hash__(self):
-        """ Specific implementation of self-hashable algorithm, that proxies the hash call to instance :attr:`BGVertex.name` attribute
-
-        :return: hash of :attr:`BGVertex.name` value
-        """
         return hash(self.name)
 
     def __eq__(self, other):
-        """ Provides support for == comparison with other :class:`BGVertex` instance
-
-        In case supplied object is not of :class:`BGVertex` type, returns `False`,
-        otherwise comparison result between respective :attr:`BGVertex.name` attributes is returned
-
-        :param other: other python object to compare current instance of :class:`BGVertex` to
-        :type other: any python object
-        :return: result of comparison between current :class:`BGVertex` and supplied python object
-        :rtype: ``Boolean``
-        """
-        if not isinstance(other, BGVertex):
+        if not isinstance(other, self.__class__):
             return False
-        return self.name == other.name
+        return hash(self) == hash(other)
 
-    @classmethod
-    def construct_infinity_vertex_companion(cls, vertex):
-        """ Creates a new vertex, that would correspond to the infinity vertex for supplied one
-
-        In :class:`bg.breakpoint_graph.BreakpointGraph` is a vertex correspond to the blocks end, that is the outermost on some fragment, in breakpoint graph this fragment extremity is denoted by the the infinity edge to the infinity vertex, that accompanies respected gene extremity vertex.
-
-        Accounts for subclassing.
-
-        :param vertex: a vertex instance, to which a companion infinity vertex has to bre created
-        :type vertex: ``str`` or :class:`BGVertex`
-        :return: an infinity vertex instance that accompanies supplied vertex in :class:`bg.breakpoint_graph.BreakpointGraph`
-        :rtype: ``str`` or :class:`BGVertex`
-        """
-        if isinstance(vertex, cls):
-            return cls(vertex.name + INFINITY_VERTEX_IDENTIFIER)
-        return vertex + INFINITY_VERTEX_IDENTIFIER
-
-    @staticmethod
-    def is_infinity_vertex(vertex):
-        """ Check is supplied vertex is an "infinity" vertex in :class:`bg.breakpoint_graph.BreakpointGraph`
-
-        :param vertex: a vertex to check "infinity" properties in
-        :type vertex: any with ``name`` attribute, :class:`BGVertex` is expected
-        :return: a flag indicating if supplied vertex is an "infinity" vertex
-        :rtype: ``Boolean``
-        """
-        return INFINITY_VERTEX_IDENTIFIER in vertex.name
+    def __getattr__(self, item):
+        if item.startswith("is_") and item.endswith("_vertex"):
+            return False
+        return super().__getattribute__(item)
 
     @property
     def json_id(self):
@@ -117,4 +64,85 @@ class BGVertex(object):
     def from_json(cls, data, json_schema_class=None):
         schema = cls.json_schema if json_schema_class is None else json_schema_class()
         return schema.load(data).data
+
+    @staticmethod
+    def get_vertex_class_from_vertex_name(string):
+        result = BlockVertex
+        data = string.split(BGVertex.NAME_SEPARATOR)
+        suffixes = data[1:]
+        if InfinityVertex.NAME_SUFFIX in suffixes:
+            result = InfinityVertex
+        return result
+
+    @staticmethod
+    def get_vertex_name_root(string):
+        return string.split(BGVertex.NAME_SEPARATOR)[0]
+
+
+class BlockVertex(BGVertex):
+
+    class BlockVertexJSONSchema(BGVertex.BGVertexJSONSchema):
+
+        def make_object(self, data):
+            try:
+                return BlockVertex(name=data["name"])
+            except KeyError:
+                raise ValueError("No `name` key in supplied json data for vertex deserialization")
+
+    json_schema = BlockVertexJSONSchema()
+
+    @property
+    def is_regular_vertex(self):
+        return True
+
+    @property
+    def is_block_vertex(self):
+        return True
+
+    @classmethod
+    def from_json(cls, data, json_schema_class=None):
+        json_schema = cls.json_schema if json_schema_class is None else json_schema_class()
+        return super().from_json(data=data, json_schema_class=json_schema.__class__)
+
+
+class InfinityVertex(BGVertex):
+
+    class InfinityVertexJSONSchema(BGVertex.BGVertexJSONSchema):
+        def make_object(self, data):
+            try:
+                json_name = data["name"]
+                name = json_name.split(InfinityVertex.NAME_SUFFIX)[0]
+                return InfinityVertex(name=name)
+            except KeyError:
+                raise ValueError("No `name` key in supplied json data for vertex deserialization")
+
+    NAME_SUFFIX = "infinity"
+
+    json_schema = InfinityVertexJSONSchema()
+
+    def __init__(self, name):
+        self.__name = None
+        super().__init__(name=name)
+
+    @property
+    def name(self):
+        return self.NAME_SEPARATOR.join([str(self.__name), self.NAME_SUFFIX])
+
+    @name.setter
+    def name(self, value):
+        self.__name = value
+
+    @property
+    def is_irregular_vertex(self):
+        return True
+
+    @property
+    def is_infinity_vertex(self):
+        return True
+
+    @classmethod
+    def from_json(cls, data, json_schema_class=None):
+        schema = cls.json_schema if json_schema_class is None else json_schema_class()
+        return super().from_json(data=data, json_schema_class=schema.__class__)
+
 
