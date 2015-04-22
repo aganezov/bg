@@ -175,6 +175,15 @@ class BGVertex(object):
         schema = cls.json_schema if json_schema_class is None else json_schema_class()
         return schema.load(data).data
 
+    @staticmethod
+    def get_vertex_class_from_vertex_name(string):
+        result = BlockVertex.__class__
+        data = string.split(BGVertex.NAME_SEPARATOR)
+        suffixes = data[1:]
+        if InfinityVertex.NAME_SUFFIX in suffixes:
+            result = InfinityVertex.__class__
+        return result
+
 
 class BlockVertex(BGVertex):
 

@@ -261,6 +261,15 @@ class BGVertexTestCase(unittest.TestCase):
             json_object = {"json_id": 1}
             self.vertex_class.from_json(json_object)
 
+    def test_get_vertex_class_from_vertex_name(self):
+        # correct versions
+        block_vertex_class = BlockVertex.__class__
+        infinity_vertex_class = InfinityVertex.__class__
+        bv = BlockVertex(self.str_name1)
+        iv = InfinityVertex(self.str_name1)
+        self.assertEqual(BGVertex.get_vertex_class_from_vertex_name(bv.name), block_vertex_class)
+        self.assertEqual(BGVertex.get_vertex_class_from_vertex_name(iv.name), infinity_vertex_class)
+
 
 class BlockVertexTestCase(BGVertexTestCase):
     def setUp(self):
