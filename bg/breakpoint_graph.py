@@ -5,7 +5,7 @@ from bg.edge import BGEdge, BGEdge_JSON_SCHEMA_JSON_KEY
 from bg.genome import BGGenome, BGGenome_JSON_SCHEMA_JSON_KEY
 from bg.kbreak import KBreak
 from bg.multicolor import Multicolor
-from bg.vertex import OldBGVertex, BGVertex_JSON_SCHEMA_JSON_KEY
+from bg.vertex import BGVertex_JSON_SCHEMA_JSON_KEY, BlockVertex, BGVertex, InfinityVertex
 
 __author__ = "Sergey Aganezov"
 __email__ = "aganezov(at)gwu.edu"
@@ -51,7 +51,9 @@ class BreakpointGraph(object):
 
     genomes_json_schemas = {"BGGenomeJSONSchema": BGGenome.BGGenomeJSONSchema}
     edges_json_schemas = {"BGEdgeJSONSchema": BGEdge.BGEdgeJSONSchema}
-    vertices_json_schemas = {"BGVertexJSONSchema": OldBGVertex.BGVertexJSONSchema}
+    vertices_json_schemas = {"BGVertexJSONSchema": BGVertex.BGVertexJSONSchema,
+                             "BlockVertexJSONSchema": BlockVertex.BlockVertexJSONSchema,
+                             "InfinityVertexJSINSchema": InfinityVertex.InfinityVertexJSONSchema}
 
     def __init__(self, graph=None):
         """ Initialization of a :class:`BreakpointGraph` object.
@@ -164,12 +166,15 @@ class BreakpointGraph(object):
         :param vertex_name: a vertex label it is identified by.
         :type vertex_name: any hashable python object. ``str`` expected.
         :return: vertex with supplied label if present in current :class:`BreakpointGraph`, ``None`` otherwise
-        :rtype: :class:`bg.vertex.OldBGVertex` or ``None``
+        :rtype: :class:`bg.vertex.BGVertex` or ``None``
         """
-        result = OldBGVertex(vertex_name)
-        if result in self.bg.node:
-            result.info = self.bg.node[result]
+        vertex_class = BGVertex.get_vertex_class_from_vertex_name(vertex_name)
+        name = BGVertex.get_vertex_name_root(vertex_name)
+        result = vertex_class(name)
+        if result in self.bg:
+            # result.info = self.bg.node[result]
             return result
+        return None
 
     def get_vertex_by_name(self, vertex_name):
         """ Obtains a vertex object by supplied label
@@ -179,7 +184,7 @@ class BreakpointGraph(object):
         :param vertex_name: a vertex label it is identified by.
         :type vertex_name: any hashable python object. ``str`` expected.
         :return: vertex with supplied label if present in current :class:`BreakpointGraph`, ``None`` otherwise
-        :rtype: :class:`bg.vertex.OldBGVertex` or ``None``
+        :rtype: :class:`bg.vertex.BGVertex` or ``None``
         """
         return self.__get_vertex_by_name(vertex_name=vertex_name)
 
@@ -639,14 +644,14 @@ class BreakpointGraph(object):
         if not KBreak.valid_kbreak_matchings(kbreak.start_edges, kbreak.result_edges):
             raise ValueError("Supplied KBreak is not valid form perspective of starting/resulting sets of vertices")
         for vertex1, vertex2 in kbreak.start_edges:
-            if OldBGVertex.is_infinity_vertex(vertex1) and OldBGVertex.is_infinity_vertex(vertex2):
+            if vertex1.is_infinity_vertex and vertex2.is_infinity_vertex:
                 continue
             if vertex1 not in self.bg or vertex2 not in self.bg:
                 raise ValueError("Supplied KBreak targets vertices (`{v1}` and `{v2}`) at least one of which "
                                  "does not exist in current BreakpointGraph"
                                  "".format(v1=vertex1.name, v2=vertex2.name))
         for vertex1, vertex2 in kbreak.start_edges:
-            if OldBGVertex.is_infinity_vertex(vertex1) and OldBGVertex.is_infinity_vertex(vertex2):
+            if vertex1.is_infinity_vertex and vertex2.is_infinity_vertex:
                 continue
             for bgedge in self.__edges_between_two_vertices(vertex1=vertex1, vertex2=vertex2):
                 if bgedge.multicolor == kbreak.multicolor:
@@ -654,16 +659,16 @@ class BreakpointGraph(object):
             else:
                 raise ValueError("Some targeted by kbreak edge with specified multicolor does not exists")
         for vertex1, vertex2 in kbreak.start_edges:
-            if OldBGVertex.is_infinity_vertex(vertex1) and OldBGVertex.is_infinity_vertex(vertex2):
+            if vertex1.is_infinity_vertex and vertex2.is_infinity_vertex:
                 continue
             self.__delete_bgedge(BGEdge(vertex1=vertex1, vertex2=vertex2, multicolor=kbreak.multicolor))
         for vertex_set in kbreak.start_edges:
             for vertex in vertex_set:
-                if OldBGVertex.is_infinity_vertex(vertex) and vertex in self.bg:
+                if vertex.is_infinity_vertex and vertex in self.bg:
                     if len(list(self.get_edges_by_vertex(vertex=vertex))) == 0:
                         self.bg.remove_node(vertex)
         for vertex1, vertex2 in kbreak.result_edges:
-            if OldBGVertex.is_infinity_vertex(vertex1) and OldBGVertex.is_infinity_vertex(vertex2):
+            if vertex1.is_infinity_vertex and vertex2.is_infinity_vertex:
                 continue
             self.__add_bgedge(BGEdge(vertex1=vertex1, vertex2=vertex2, multicolor=kbreak.multicolor), merge=merge)
 
@@ -699,7 +704,11 @@ class BreakpointGraph(object):
         for vertex_dict in data["vertices"]:
             schema_name = vertex_dict.get(BGVertex_JSON_SCHEMA_JSON_KEY, None)
             schema_class = None if schema_name is None else cls.vertices_json_schemas.get(schema_name, None)
-            vertices_dict[vertex_dict["v_id"]] = OldBGVertex.from_json(data=vertex_dict, json_schema_class=schema_class)
+            try:
+                vertex_class = BGVertex.get_vertex_class_from_vertex_name(vertex_dict["name"])
+            except KeyError:
+                vertex_class = BGVertex
+            vertices_dict[vertex_dict["v_id"]] = vertex_class.from_json(data=vertex_dict, json_schema_class=schema_class)
         for edge_dict in data["edges"]:
             schema_name = edge_dict.get(BGEdge_JSON_SCHEMA_JSON_KEY, None)
             schema = None if schema_name is None else cls.edges_json_schemas.get(schema_name, None)
