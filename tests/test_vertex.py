@@ -239,6 +239,7 @@ class BGVertexTestCase(unittest.TestCase):
         # not all JSON object attributes are to be stored in BGVertex object
         json_object = {
             "name": self.str_name1,
+            "_py__bg_vertex_json_schema": self.vertex_class.json_schema_name,
             "json_id": 1
         }
         vertex = self.vertex_class.from_json(json_object)
@@ -282,7 +283,7 @@ class InfinityVertexTestCase(BGVertexTestCase):
         self.block_vertex = BlockVertex(self.str_name1)
 
     def test_initialization(self):
-        i_v = InfinityVertex(self.block_vertex)
+        i_v = InfinityVertex(self.block_vertex.name)
         ref_name = InfinityVertex.NAME_SEPARATOR.join([self.block_vertex.name, InfinityVertex.NAME_SUFFIX])
         self.assertEqual(i_v.name, ref_name)
 
@@ -291,10 +292,10 @@ class InfinityVertexTestCase(BGVertexTestCase):
         self.assertEqual(hash(i_v), hash(i_v.name))
 
     def test__eq__(self):
-        i_v1 = InfinityVertex(self.block_vertex)
-        i_v2 = InfinityVertex(self.block_vertex)
+        i_v1 = InfinityVertex(self.block_vertex.name)
+        i_v2 = InfinityVertex(self.block_vertex.name)
         self.assertEqual(i_v1, i_v2)
-        i_v3 = InfinityVertex(BlockVertex(self.str_name2))
+        i_v3 = InfinityVertex(self.str_name2)
         self.assertNotEqual(i_v1, i_v3)
 
     def test_if_irregular_vertex(self):
@@ -326,7 +327,7 @@ class InfinityVertexTestCase(BGVertexTestCase):
         # a InfinityVertex class instance shall be serializable into the JSON based object
         # such serialization shall contain all breakpoint graph relative information about the vertex
         # as well as a special json_id field that unique identifies this instance of BGVertex
-        v = self.vertex_class(self.block_vertex)
+        v = self.vertex_class(self.block_vertex.name)
         ref_result = {
             "name": InfinityVertex.NAME_SEPARATOR.join([self.str_name1, InfinityVertex.NAME_SUFFIX]),
             'v_id': v.json_id
@@ -338,7 +339,7 @@ class InfinityVertexTestCase(BGVertexTestCase):
         result = v.to_json(schema_info=True)
         self.assertDictEqual(ref_result, result)
         # a non-string name attribute value shall be translated into a string object
-        v = self.vertex_class(BlockVertex(1))
+        v = self.vertex_class(BlockVertex(1).name)
         ref_result = {
             "name": InfinityVertex.NAME_SEPARATOR.join(["1", InfinityVertex.NAME_SUFFIX]),
             'v_id': v.json_id

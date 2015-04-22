@@ -128,6 +128,12 @@ class BGVertex(object):
         v_id = fields.Int(required=True, attribute="json_id")
         _py__bg_vertex_json_schema = fields.String(attribute="json_schema_name")
 
+        def make_object(self, data):
+            try:
+                return BGVertex(name=data["name"])
+            except KeyError:
+                raise ValueError("No `name` key in supplied json data for vertex deserialization")
+
     json_schema = BGVertexJSONSchema()
 
     def __init__(self, name):
@@ -167,14 +173,20 @@ class BGVertex(object):
     @classmethod
     def from_json(cls, data, json_schema_class=None):
         schema = cls.json_schema if json_schema_class is None else json_schema_class()
-        deserialized_data = schema.load(data).data
-        try:
-            return cls(name=deserialized_data["name"])
-        except KeyError:
-            raise ValueError("No `name` key in supplied json data for vertex deserialization")
+        return schema.load(data).data
 
 
 class BlockVertex(BGVertex):
+
+    class BlockVertexJSONSchema(BGVertex.BGVertexJSONSchema):
+
+        def make_object(self, data):
+            try:
+                return BlockVertex(name=data["name"])
+            except KeyError:
+                raise ValueError("No `name` key in supplied json data for vertex deserialization")
+
+    json_schema = BlockVertexJSONSchema()
 
     @property
     def is_regular_vertex(self):
@@ -184,16 +196,30 @@ class BlockVertex(BGVertex):
     def is_block_vertex(self):
         return True
 
+    @classmethod
+    def from_json(cls, data, json_schema_class=None):
+        json_schema = cls.json_schema if json_schema_class is None else json_schema_class()
+        return super().from_json(data=data, json_schema_class=json_schema.__class__)
+
 
 class InfinityVertex(BGVertex):
 
+    class InfinityVertexJSONSchema(BGVertex.BGVertexJSONSchema):
+        def make_object(self, data):
+            try:
+                json_name = data["name"]
+                name = json_name.split(InfinityVertex.NAME_SUFFIX)[0]
+                return InfinityVertex(name=name)
+            except KeyError:
+                raise ValueError("No `name` key in supplied json data for vertex deserialization")
+
     NAME_SUFFIX = "infinity"
 
-    def __init__(self, vertex):
-        if not isinstance(vertex, BGVertex):
-            raise TypeError("InfinityVertex instance can be created only for the instance of BGVertex")
+    json_schema = InfinityVertexJSONSchema()
+
+    def __init__(self, name):
         self.__name = None
-        super().__init__(name=vertex.name)
+        super().__init__(name=name)
 
     @property
     def name(self):
@@ -214,11 +240,6 @@ class InfinityVertex(BGVertex):
     @classmethod
     def from_json(cls, data, json_schema_class=None):
         schema = cls.json_schema if json_schema_class is None else json_schema_class()
-        deserialized_data = schema.load(data).data
-        try:
-            dummy_vertex = BGVertex(name=deserialized_data["name"])
-            return cls(dummy_vertex)
-        except KeyError:
-            raise ValueError("No `name` key in supplied json data for vertex deserialization")
+        return super().from_json(data=data, json_schema_class=schema.__class__)
 
 
