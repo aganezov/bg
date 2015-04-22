@@ -263,8 +263,8 @@ class BGVertexTestCase(unittest.TestCase):
 
     def test_get_vertex_class_from_vertex_name(self):
         # correct versions
-        block_vertex_class = BlockVertex.__class__
-        infinity_vertex_class = InfinityVertex.__class__
+        block_vertex_class = BlockVertex
+        infinity_vertex_class = InfinityVertex
         bv = BlockVertex(self.str_name1)
         iv = InfinityVertex(self.str_name1)
         self.assertEqual(BGVertex.get_vertex_class_from_vertex_name(bv.name), block_vertex_class)

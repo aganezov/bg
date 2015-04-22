@@ -177,11 +177,11 @@ class BGVertex(object):
 
     @staticmethod
     def get_vertex_class_from_vertex_name(string):
-        result = BlockVertex.__class__
+        result = BlockVertex
         data = string.split(BGVertex.NAME_SEPARATOR)
         suffixes = data[1:]
         if InfinityVertex.NAME_SUFFIX in suffixes:
-            result = InfinityVertex.__class__
+            result = InfinityVertex
         return result
 
 
