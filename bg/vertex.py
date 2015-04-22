@@ -184,6 +184,10 @@ class BGVertex(object):
             result = InfinityVertex
         return result
 
+    @staticmethod
+    def get_vertex_name_root(string):
+        return string.split(BGVertex.NAME_SEPARATOR)[0]
+
 
 class BlockVertex(BGVertex):
 

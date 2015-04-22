@@ -270,6 +270,16 @@ class BGVertexTestCase(unittest.TestCase):
         self.assertEqual(BGVertex.get_vertex_class_from_vertex_name(bv.name), block_vertex_class)
         self.assertEqual(BGVertex.get_vertex_class_from_vertex_name(iv.name), infinity_vertex_class)
 
+    def test_get_vertex_name_root(self):
+        # strips all suffixes from the string name and returns the root of it
+        string = "aaa"
+        self.assertEqual(BGVertex.get_vertex_name_root(string), "aaa")
+        string = ""
+        self.assertEqual(BGVertex.get_vertex_name_root(string), "")
+        string = "aaa" + BGVertex.NAME_SEPARATOR + ""
+        self.assertEqual(BGVertex.get_vertex_name_root(string), "aaa")
+        string = "aaa" + BGVertex.NAME_SEPARATOR + "aaa" + BGVertex.NAME_SEPARATOR + "aaa"
+        self.assertEqual(BGVertex.get_vertex_name_root(string), "aaa")
 
 class BlockVertexTestCase(BGVertexTestCase):
     def setUp(self):
