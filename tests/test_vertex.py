@@ -9,6 +9,7 @@ from bg.vertex import BGVertex_JSON_SCHEMA_JSON_KEY, BGVertex, BlockVertex, Infi
 
 class BGVertexTestCase(unittest.TestCase):
     def setUp(self):
+        """ Heavily utilized values in multiple test """
         self.str_name1 = "name1"
         self.str_name2 = "name2"
         self.str_name3 = "name3"
@@ -28,9 +29,11 @@ class BGVertexTestCase(unittest.TestCase):
         self.assertEqual(v.name, self.str_name1)
 
     def test__hash__(self):
+        """ hash value from BGVertex is defines as hash value from the name of respective vertex """
         self.assertEqual(hash(self.vertex_class(self.str_name1)), hash(self.vertex_class(self.str_name1).name))
 
     def test__eq__(self):
+        """ BGVertices are equal is they are of the same class and have equal hash values """
         v1 = self.vertex_class(self.str_name1)
         v2 = self.vertex_class(self.str_name1)
         v3 = self.vertex_class(self.str_name3)
@@ -41,7 +44,14 @@ class BGVertexTestCase(unittest.TestCase):
             self.assertNotEqual(v1, non_bg_vertex_value)
 
     def test_is_something_vertex_request_stopper(self):
+        """ BGVertex serves as a "stopper" class for all lookups like is_.+_vertex and returns False to all of them
+            Examples:
+                vertex.is_regular_vertex
+                vertex.is_infinity_vertex
+                vertex.is_block_vertex
+        """
         for vertex_type_string in ["lala1", "lala2", "lala2", "lala4", "etc"]:
+            # dummy values have no meaning, so inherited test cases can recall this test method
             vertex_request_type = "is_" + vertex_type_string + "_vertex"
             self.assertFalse(getattr(self.vertex_class(self.str_name1), vertex_request_type))
 
@@ -112,6 +122,8 @@ class BGVertexTestCase(unittest.TestCase):
 
     def test_get_vertex_class_from_vertex_name(self):
         # correct versions
+        # as different types of vertices have different repr names,
+        # they shall be ambiguously identified by their string name
         block_vertex_class = BlockVertex
         infinity_vertex_class = InfinityVertex
         bv = BlockVertex(self.str_name1)
@@ -121,6 +133,11 @@ class BGVertexTestCase(unittest.TestCase):
 
     def test_get_vertex_name_root(self):
         # strips all suffixes from the string name and returns the root of it
+        # most vertices, except for a BlockVertex will have single of multiple suffixes to it
+        #   Example:
+        #       InfinityVertex("lala").name == lala__infinity
+        # "__" serves as name_separator, and is inherited from BGVertex. Everything before the first __ is considered
+        # vertex name root
         string = "aaa"
         self.assertEqual(BGVertex.get_vertex_name_root(string), "aaa")
         string = ""
@@ -132,6 +149,7 @@ class BGVertexTestCase(unittest.TestCase):
 
 
 class BlockVertexTestCase(BGVertexTestCase):
+    """ Update vertex_class to call BlockVertex rather than BGVertex, and update overwritten portions of the class """
     def setUp(self):
         super().setUp()
         self.vertex_class = BlockVertex
@@ -140,40 +158,36 @@ class BlockVertexTestCase(BGVertexTestCase):
         self.assertIsInstance(self.vertex_class(self.str_name1), BGVertex)
 
     def test_is_block_vertex(self):
+        # BlockVertex defines two properties
+        #   * is_regular_vertex, which is a broad class of vertices, that correspond to ends of fully present genomic blocks
+        #   * is_block_vertex, which is a narrower class of vertices, that correspond to ends of gene/synteny blocks
         v = self.vertex_class(self.str_name1)
         self.assertTrue(v.is_regular_vertex)
         self.assertTrue(v.is_block_vertex)
 
 
 class InfinityVertexTestCase(BGVertexTestCase):
+    """ Update vertex_class to call InfinityVertex rather than BGVertex, and update overwritten portions of the class """
     def setUp(self):
         super().setUp()
         self.vertex_class = InfinityVertex
         self.block_vertex = BlockVertex(self.str_name1)
 
     def test_initialization(self):
+        #
+        # InfinityVertex overwrites the access to the "name" attribute, thus keeping internal representation as is,
+        # while returning on call a calculated on the fly value, that has InfinityVertex name suffix in it
         i_v = InfinityVertex(self.block_vertex.name)
         ref_name = InfinityVertex.NAME_SEPARATOR.join([self.block_vertex.name, InfinityVertex.NAME_SUFFIX])
         self.assertEqual(i_v.name, ref_name)
 
-    def test__hash__(self):
-        i_v = InfinityVertex(self.block_vertex)
-        self.assertEqual(hash(i_v), hash(i_v.name))
-
-    def test__eq__(self):
-        i_v1 = InfinityVertex(self.block_vertex.name)
-        i_v2 = InfinityVertex(self.block_vertex.name)
-        self.assertEqual(i_v1, i_v2)
-        i_v3 = InfinityVertex(self.str_name2)
-        self.assertNotEqual(i_v1, i_v3)
-
-    def test_if_irregular_vertex(self):
+    def test_is_irregular_vertex(self):
+        # InfinityVertex defines two properties
+        #   * is_irregular_vertex, which is a broad class of vertices, that correspond to ends of genomic fragments
+        #   * is_infinity__vertex, which is a narrower class of vertices, that correspond to traditional extrimities of genomic fragments
         i_v = InfinityVertex(self.block_vertex)
         self.assertTrue(i_v.is_infinity_vertex)
         self.assertTrue(i_v.is_irregular_vertex)
-
-    def test_is_something_vertex_request_stopper(self):
-        pass
 
     def test_inheritance(self):
         self.assertIsInstance(InfinityVertex(self.block_vertex), BGVertex)
