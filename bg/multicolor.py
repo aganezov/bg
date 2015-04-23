@@ -332,10 +332,16 @@ class Multicolor(object):
 
     @property
     def hashable_representation(self):
+        """ For a sake of speed check for multicolor presence, each multicolor has a deterministic hashable representation """
         return tuple(sorted(self.multicolors.elements()))
 
     def __mul__(self, other):
-        if not isinstance(other, int):
+        """ Multicolor can be multiplied by a number and it multiplies multiplicity of each present color respectively
+
+        :param other: an integer multiplier
+        :return: a new multicolor object resulted from multiplying each colors multiplicity by the multiplier
+        """
+        if not isinstance(other, int) or other < 0:
             raise TypeError("Multicolor can be multiplied only by integer values")
         if other == 0:
             return Multicolor()
