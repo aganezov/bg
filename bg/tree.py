@@ -9,7 +9,10 @@ __author__ = "Sergey Aganezov"
 __email__ = "aganezov(at)gwu.edu"
 __status__ = "develop"
 
+# defines a default edge length in phylogenetic tree
 DEFAULT_EDGE_LENGTH = 1
+# defines a default number of whole genome duplication events that occur on a branch of a phylogenetic tree
+DEFAULT_EDGE_WGD_COUNT = 0
 
 
 class NewickReader(object):
@@ -142,7 +145,7 @@ class BGTree(object):
     def set_edge_length(self, vertex1, vertex2, edge_length):
         self.__set_edge_length(vertex1=vertex1, vertex2=vertex2, edge_length=edge_length)
 
-    def add_edge(self, vertex1, vertex2, edge_length=DEFAULT_EDGE_LENGTH, wgd_events=0):
+    def add_edge(self, vertex1, vertex2, edge_length=DEFAULT_EDGE_LENGTH, wgd_events=DEFAULT_EDGE_WGD_COUNT):
         self.graph.add_edge(u=vertex1, v=vertex2)
         self.__set_wgd_count(vertex1=vertex1, vertex2=vertex2, wgd_count=wgd_events)
         self.__set_edge_length(vertex1=vertex1, vertex2=vertex2, edge_length=edge_length)
@@ -181,12 +184,12 @@ class BGTree(object):
     def edge_length(self, vertex1, vertex2):
         if not self.has_edge(vertex1, vertex2):
             raise ValueError("Specified edge is not present in current Tree")
-        return self.graph[vertex1][vertex2].get(self.edge_length_attribute_name, 1)
+        return self.graph[vertex1][vertex2].get(self.edge_length_attribute_name, DEFAULT_EDGE_LENGTH)
 
     def edge_wgd_count(self, vertex1, vertex2):
         if not self.__has_edge(vertex1, vertex2):
             raise ValueError("Specified edge is not present in current Tree")
-        return self.graph[vertex1][vertex2].get(self.wgd_events_count_attribute_name, 0)
+        return self.graph[vertex1][vertex2].get(self.wgd_events_count_attribute_name, DEFAULT_EDGE_WGD_COUNT)
 
     def __vertex_is_leaf(self, vertex):
         return vertex in self.graph and len(list(self.graph.edges(nbunch=vertex))) <= 1
@@ -205,7 +208,7 @@ class BGTree(object):
             for v1, v2 in descendants:
                 child_multicolor = self.__get_tree_consistent_vertex_based_hashable_multicolors(vertex=v2, parent=v1,
                                                                                                 account_for_wgd=account_for_wgd)
-                edge_wgd_count = self.edge_wgd_count(vertex1=v1, vertex2=v2) if account_for_wgd else 0
+                edge_wgd_count = self.edge_wgd_count(vertex1=v1, vertex2=v2) if account_for_wgd else DEFAULT_EDGE_WGD_COUNT
                 result.extend(child_multicolor)
                 for i in range(1, edge_wgd_count + 1):
                     result.append(child_multicolor[-1] * (2 ** i))
