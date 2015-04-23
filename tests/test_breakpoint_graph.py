@@ -17,6 +17,7 @@ from bg.breakpoint_graph import BreakpointGraph
 
 class BreakpointGraphTestCase(unittest.TestCase):
     def setUp(self):
+        # heavily utilized variables
         self.genome1 = BGGenome("red")
         self.genome2 = BGGenome("green")
         self.genome3 = BGGenome("blue")
@@ -32,6 +33,7 @@ class BreakpointGraphTestCase(unittest.TestCase):
         self.inf_v4 = InfinityVertex("v4")
 
     def test_empty_initialization(self):
+        # breakpoint graph can be empty and shall be initialisable as such
         graph = BreakpointGraph()
         self.assertEqual(len(graph.bg), 0)
         self.assertEqual(len(graph.bg.edges()), 0)
@@ -39,10 +41,15 @@ class BreakpointGraphTestCase(unittest.TestCase):
         self.assertEqual(len(list(graph.nodes())), 0)
 
     def test_add_edge_without_multicolor(self):
+        # add_edge expects three mandatory arguments:
+        #   vertex1
+        #   vertex2
+        #   multiclor
         with self.assertRaises(TypeError):
             BreakpointGraph().add_edge(vertex1=self.v1, vertex2=self.v2)
 
     def test_get_vertex_by_name(self):
+        # breakpoint graph has an O(1) access to the vertex by respective vertex name
         # block vertices
         graph = BreakpointGraph()
         v1 = self.v1
@@ -61,6 +68,7 @@ class BreakpointGraphTestCase(unittest.TestCase):
         self.assertEqual(graph.get_vertex_by_name(v2.name), v2)
 
     def test_add_edge(self):
+        # breakpoint graph support addition of an edge without BGEdge wrapper
         graph = BreakpointGraph()
         v1 = self.v1
         v2 = self.v2
@@ -75,6 +83,7 @@ class BreakpointGraphTestCase(unittest.TestCase):
         self.assertEqual(graph.bg.edges(v2, data=True)[0][2]["multicolor"], multicolor)
 
     def test_add_bgedge(self):
+        # breakpoint graph supports an addition of an edge represented with BGEdge wrapper
         graph = BreakpointGraph()
         v1 = self.v1
         v2 = self.v2
@@ -90,6 +99,7 @@ class BreakpointGraphTestCase(unittest.TestCase):
         self.assertEqual(graph.bg.edges(v2, data=True)[0][2]["multicolor"], multicolor)
 
     def test_edges(self):
+        # breakpoint graph supports iterations over all edges in it
         graph = BreakpointGraph()
         v1 = self.v1
         v2 = self.v2
@@ -109,6 +119,8 @@ class BreakpointGraphTestCase(unittest.TestCase):
                 self.assertEqual(edge_2_key, key)
 
     def test_get_edge_by_two_vertices(self):
+        # breakpoint graph can return an BGEdge wrapped edge
+        # that is located between two supplied vertices (first, if multiple are stored)
         graph = BreakpointGraph()
         v1 = self.v1
         v2 = self.v2
@@ -123,8 +135,12 @@ class BreakpointGraphTestCase(unittest.TestCase):
         self.assertEqual(graph.get_edge_by_two_vertices(vertex1=v2, vertex2=v1), edge1)
         self.assertEqual(graph.get_edge_by_two_vertices(vertex1=v1, vertex2=v3), edge2)
         self.assertEqual(graph.get_edge_by_two_vertices(vertex1=v3, vertex2=v1), edge2)
+        self.assertIsNone(graph.get_edge_by_two_vertices(vertex1=v1, vertex2=self.v4))
+        self.assertIsNone(graph.get_edge_by_two_vertices(vertex1=self.v4, vertex2=v1))
+        self.assertIsNone(graph.get_edge_by_two_vertices(vertex1=self.v4, vertex2=self.v4))
 
     def test_get_edges_by_vertex(self):
+        # Breakpoint graph can provide an iterator over all edges, that are connected to supplied vertex
         graph = BreakpointGraph()
         v1 = self.v1
         v2 = self.v2
@@ -148,6 +164,8 @@ class BreakpointGraphTestCase(unittest.TestCase):
                 self.assertEqual(edge_2_key, res_key)
 
     def test_add_edge_with_already_existing_merge(self):
+        # an edge can be added to the graph and merged to the first edge between two vertices, that current edge is attached to
+        # mergin with first existing (if any) is a default behaviour
         graph = BreakpointGraph()
         v1 = self.v1
         v2 = self.v2
@@ -169,6 +187,8 @@ class BreakpointGraphTestCase(unittest.TestCase):
                          multicolor + multicolor2 + multicolor3)
 
     def test_add_bgedge_with_already_existing_merge(self):
+        # similar to add_edge, but being wrapped into a BGEdge wrapper
+        # merge with already existing (if nay) is a default behaviour
         graph = BreakpointGraph()
         v1 = self.v1
         v2 = self.v2
@@ -190,6 +210,7 @@ class BreakpointGraphTestCase(unittest.TestCase):
                          multicolor + multicolor2 + multicolor3)
 
     def test_add_edge_with_already_existing_no_merge(self):
+        # an edge can be added parallel to existing one without being merged to it
         graph = BreakpointGraph()
         v1 = self.v1
         v2 = self.v2
@@ -218,6 +239,7 @@ class BreakpointGraphTestCase(unittest.TestCase):
             self.assertTrue(bgedge.multicolor in [Multicolor(self.genome4), Multicolor(self.genome2)])
 
     def test_add_bgedge_with_already_existing_no_merge(self):
+        # similar to "add_edge", but being wrapped into a BGEdge wrapper
         graph = BreakpointGraph()
         v1 = self.v1
         v2 = self.v2
@@ -246,6 +268,10 @@ class BreakpointGraphTestCase(unittest.TestCase):
             self.assertTrue(bgedge.multicolor in [Multicolor(self.genome4), Multicolor(self.genome2)])
 
     def test_connected_components_iteration(self):
+        # breakpoint graph supports iteration over distinct connected components
+        # procedure is proxies to the underlying networkx.MultiGraph
+        # similar option for the "copy" argument is provided, which allows to "look" into existing data
+        # or to create local copies of existing data, and work with it
         graph = BreakpointGraph()
         v1 = self.v1
         v2 = self.v2
@@ -2335,14 +2361,19 @@ class BreakpointGraphTestCase(unittest.TestCase):
             self.assertTrue(bgedge in [bgedge1, bgedge2, bgedge3])
 
     def test_deserialization_incorrect_no_vertices(self):
+        # when vertices are not specified in json object, deserialization can not be performed and a ValueError is raised
         with self.assertRaises(ValueError):
             BreakpointGraph.from_json(data={"edges": []}, genomes_data={})
 
     def test_deserialization_incorrect_empty_json_object(self):
+        # json object shall contain information to deserialize breakpoint graph from
+        # can't be empty, ValueError is raised
         with self.assertRaises(ValueError):
             BreakpointGraph.from_json(data={})
 
     def test_deserialization_incorrect_not_vertex_name(self):
+        # every vertex json object in vertices list shall contain a name attribute
+        # a ValueError is raised is such vertex object without name attribute is encountered
         with self.assertRaises(ValueError):
             BreakpointGraph.from_json(data={
                 "edges": [],
@@ -2353,6 +2384,7 @@ class BreakpointGraphTestCase(unittest.TestCase):
             })
 
     def test_deserialization_incorrect_no_genomes_data(self):
+        # genome information has to be present in json object for deserialization
         with self.assertRaises(ValueError):
             bg = BreakpointGraph()
             v1 = self.v1
@@ -2366,6 +2398,8 @@ class BreakpointGraphTestCase(unittest.TestCase):
             bg.from_json(data=json_object)
 
     def test_deserialization_incorrect_no_multicolor_data_in_some_edge_dict(self):
+        # for every edge object there is in json edges list, the multicolor attribute has to be present
+        # as there can be no edge without multicolor at all
         with self.assertRaises(ValueError):
             bg = BreakpointGraph()
             v1 = self.v1
@@ -2378,6 +2412,8 @@ class BreakpointGraphTestCase(unittest.TestCase):
             bg.from_json(data=json_object)
 
     def test_deserialization_incorrect_referencing_non_present_vertex(self):
+        # every edge in edges list in json object is referencing two vertices it is attached to by its json id
+        # if no vertex in vertices list is present (vertex is identified by json_id attribute) a ValueError is raised
         with self.assertRaises(ValueError):
             bg = BreakpointGraph()
             v1 = self.v1

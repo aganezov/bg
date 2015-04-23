@@ -206,6 +206,7 @@ class BreakpointGraph(object):
             if key is None:
                 key = min(self.bg[vertex1][vertex2])
             return BGEdge(vertex1=vertex1, vertex2=vertex2, multicolor=self.bg[vertex1][vertex2][key]["multicolor"])
+        return None
 
     def get_edge_by_two_vertices(self, vertex1, vertex2, key=None):
         """ Returns an instance of :class:`bg.edge.BBGEdge` edge between to supplied vertices (if ``key`` is supplied, returns a :class:`bg.edge.BBGEdge` instance about specified edge).
@@ -242,6 +243,7 @@ class BreakpointGraph(object):
                         yield BGEdge(vertex1=vertex, vertex2=vertex2, multicolor=data["multicolor"]), key
                     else:
                         yield BGEdge(vertex1=vertex, vertex2=vertex2, multicolor=data["multicolor"])
+        return None
 
     def get_edges_by_vertex(self, vertex, keys=False):
         """ Iterates over edges that are incident to supplied vertex argument in current :class:`BreakpointGraph`
