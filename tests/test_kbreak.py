@@ -7,7 +7,7 @@ from bg.vertex import BlockVertex, InfinityVertex
 
 __author__ = "Sergey Aganezov"
 __email__ = "aganezov(at)gwu.edu"
-__status__ = "production"
+__status__ = "develop"
 
 import unittest
 
@@ -96,6 +96,7 @@ class KBreakTestCase(unittest.TestCase):
                    multicolor=mock_multicolor)
 
     def test_initialization(self):
+        # a correct case of a kbreak initialization, where all correctness checks are successfully passed
         v1, v2, v3, v4 = self.v1, self.v2, self.v3, self.v4
         mock_multicolor = Mock(spec=Multicolor)
         start_edges = [(v1, v2), (v3, v4)]
