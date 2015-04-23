@@ -114,27 +114,33 @@ class BGVertex(object):
 
 
 class BlockVertex(BGVertex):
+    """ This class represents a special type of breakpoint graph vertex that correspond to a generic block extremity (gene/ synteny block/ etc.) """
 
     class BlockVertexJSONSchema(BGVertex.BGVertexJSONSchema):
-
+        """ JSON schema for this class is redefined to tune the `make_object` method, that shall return `BlockVertex` instance, rather than `BGVertex` one """
         def make_object(self, data):
             try:
                 return BlockVertex(name=data["name"])
             except KeyError:
                 raise ValueError("No `name` key in supplied json data for vertex deserialization")
 
+    # a new JSON schema is initialized and set of be used for all instance of `VertexClass`
     json_schema = BlockVertexJSONSchema()
 
     @property
     def is_regular_vertex(self):
+        """ This class implements a property check for vertex to belong to class of regular vertices """
         return True
+
 
     @property
     def is_block_vertex(self):
+        """ This class implements a property check for vertex to belong to a class of vertices, that correspond to extremities of genomic blocks"""
         return True
 
     @classmethod
     def from_json(cls, data, json_schema_class=None):
+        """ This class overwrites the from_json method thus, making sure, that if from_json is called from this class, it will provide its JSON schema as a default one """
         json_schema = cls.json_schema if json_schema_class is None else json_schema_class()
         return super().from_json(data=data, json_schema_class=json_schema.__class__)
 
