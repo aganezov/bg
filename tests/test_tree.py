@@ -12,6 +12,7 @@ import unittest
 
 class BGTreeTestCase(unittest.TestCase):
     def setUp(self):
+        # commonly used values during the test cases
         v1, v2, v3, v4, v5 = BGGenome("v1"), BGGenome("v2"), BGGenome("v3"), BGGenome("v4"), BGGenome("v5")
         self.v1 = v1
         self.v2 = v2
@@ -20,6 +21,7 @@ class BGTreeTestCase(unittest.TestCase):
         self.v5 = v5
 
     def test_empty_tree_initialization(self):
+        # empty tree shall be initialized with no nodes and branches in it
         tree = BGTree()
         self.assertIsNone(tree.root)
         self.assertTrue(tree.is_valid_tree)
@@ -27,6 +29,8 @@ class BGTreeTestCase(unittest.TestCase):
         self.assertEqual(len(list(tree.edges())), 0)
 
     def test_add_genome(self):
+        # tree support additional of genomes on their own, without edges
+        # this is the case for a tree with a single node
         tree = BGTree()
         tree.add_node(BGGenome("genome"))
         self.assertTrue(tree.is_valid_tree)
@@ -34,10 +38,14 @@ class BGTreeTestCase(unittest.TestCase):
         self.assertEqual(len(list(tree.edges())), 0)
 
     def test_edge_length(self):
+        # every edge in a tree has a length
+        # if no specific length, was specified on edge addition, a default value (1) is stored for this edge
         tree = BGTree()
         tree.add_edge(vertex1=self.v1, vertex2=self.v2, edge_length=5)
         self.assertEqual(tree.edge_length(vertex1=self.v1, vertex2=self.v2), 5)
         self.assertEqual(tree.edge_length(vertex1=self.v2, vertex2=self.v1), 5)
+        # edge_length lookup is available only for existing edges, thus both vertices have to be present
+        # and an edge between them must exist
         with self.assertRaises(ValueError):
             tree.edge_length(vertex1=self.v1, vertex2=self.v3)
         with self.assertRaises(ValueError):
@@ -46,6 +54,8 @@ class BGTreeTestCase(unittest.TestCase):
             tree.edge_length(vertex1=self.v3, vertex2=self.v4)
 
     def test_edge_wgd_information(self):
+        # every edge in a tree has a number of whole genome duplication (wgd) events assigned to it
+        # if no specific count of wgd events was assigned to the edge, a default value (0) is stored for this edge
         tree = BGTree()
         tree.add_edge(vertex1=self.v1, vertex2=self.v2, wgd_events=5)
         tree.add_edge(vertex1=self.v1, vertex2=self.v3)
@@ -53,12 +63,16 @@ class BGTreeTestCase(unittest.TestCase):
         self.assertEqual(tree.edge_wgd_count(vertex1=self.v2, vertex2=self.v1), 5)
         self.assertEqual(tree.edge_wgd_count(vertex1=self.v1, vertex2=self.v3), 0)
         self.assertEqual(tree.edge_wgd_count(vertex1=self.v3, vertex2=self.v1), 0)
+        # edge_wgd_count lookup is available only for existing edges, thus both vertices have to be present
+        # and an edge between them must exist
         with self.assertRaises(ValueError):
             tree.edge_wgd_count(vertex1=self.v1, vertex2=self.v4)
         with self.assertRaises(ValueError):
             tree.edge_wgd_count(vertex1=self.v3, vertex2=self.v4)
 
     def test_add_edge(self):
+        # an edge supports an operation to add a new edge (branch) to the tree
+        # if vertices of specified edge were not present in the tree, they are added automatically
         tree = BGTree()
         tree.add_edge(vertex1=self.v1, vertex2=self.v2)
         self.assertTrue(tree.is_valid_tree)
@@ -67,6 +81,7 @@ class BGTreeTestCase(unittest.TestCase):
         self.assertEqual(tree.edge_length(self.v1, self.v2), 1)
 
     def test_add_edge_explicit_edge_length(self):
+        # when an edge is added, one can explicitly set its length
         tree = BGTree()
         tree.add_edge(vertex1=self.v1, vertex2=self.v2, edge_length=5)
         self.assertTrue(tree.is_valid_tree)
@@ -75,12 +90,15 @@ class BGTreeTestCase(unittest.TestCase):
         self.assertEqual(tree.edge_length(self.v1, self.v2), 5)
 
     def test_add_edge_explicit_wgd(self):
+        # when an edge is added, one can explicitly set the number of whole genome duplication events associated with it
         tree = BGTree()
         tree.add_edge(vertex1=self.v1, vertex2=self.v2, wgd_events=5)
         self.assertEqual(tree.edge_wgd_count(vertex1=self.v1, vertex2=self.v2), 5)
         self.assertEqual(tree.edge_wgd_count(vertex1=self.v2, vertex2=self.v1), 5)
 
     def test_has_edge(self):
+        # tree has a O(1) method to check, if an edge exists between two given vertices
+        # if vertices are not present in the graph, no exception is raised
         tree = BGTree()
         tree.add_edge(vertex1=self.v1, vertex2=self.v2)
         tree.add_node(self.v3)
@@ -94,6 +112,7 @@ class BGTreeTestCase(unittest.TestCase):
         self.assertFalse(tree.has_edge(self.v4, self.v1))
 
     def test_has_node(self):
+        # tree has a O(1) method to check if a node is present in a tree
         tree = BGTree()
         tree.add_edge(vertex1=self.v1, vertex2=self.v2)
         tree.add_node(self.v3)
@@ -103,6 +122,8 @@ class BGTreeTestCase(unittest.TestCase):
         self.assertFalse(tree.has_node(self.v4))
 
     def test_assign_root(self):
+        # a tree has a special pointer to a node, that represents a root of the tree
+        # a root can be set to None, though, which shall not in a right-full mind be present in a tree
         tree = BGTree()
         self.assertIsNone(tree.root)
         with self.assertRaises(ValueError):
@@ -110,8 +131,12 @@ class BGTreeTestCase(unittest.TestCase):
         tree.add_node(self.v1)
         tree.root = self.v1
         self.assertEqual(tree.root, self.v1)
+        tree.root = None
+        self.assertIsNone(tree.root)
 
     def test_append_tree(self):
+        # two trees can be combined together
+        # a union of vertices and edges is obtained in it
         tree1 = BGTree()
         tree2 = BGTree()
         tree1.add_edge(vertex1=self.v1, vertex2=self.v2)
@@ -131,6 +156,7 @@ class BGTreeTestCase(unittest.TestCase):
         self.assertEqual(len(list(tree2.edges())), 1)
 
     def test_set_wgd_count_correct(self):
+        # a wgd events count can be set for a specific edge explicitly
         tree = BGTree()
         tree.add_edge(vertex1=self.v1, vertex2=self.v2)
         self.assertEqual(tree.edge_wgd_count(vertex1=self.v1, vertex2=self.v2), 0)
@@ -152,6 +178,7 @@ class BGTreeTestCase(unittest.TestCase):
                 tree.set_wgd_count(vertex1=self.v1, vertex2=self.v2, wgd_count=incorrect_count)
 
     def test_set_edge_length(self):
+        # a length of a specific edge can be set explicitly
         tree = BGTree()
         tree.add_edge(vertex1=self.v1, vertex2=self.v2)
         tree.set_edge_length(vertex1=self.v1, vertex2=self.v2, edge_length=3)
@@ -166,6 +193,10 @@ class BGTreeTestCase(unittest.TestCase):
             tree.set_edge_length(vertex1=self.v1, vertex2=self.v2, edge_length=3)
 
     def test_get_tree_consistent_multicolors_unrooted_no_wgd_empty(self):
+        # in unrooted tree multicolors are tree consistent, if they represent a perfect split of a tree
+        # resulting from deletion of a single edge
+        # in this case whole genome duplication are not taken into account, as wgd is a directed event
+        # and without a root no direction can be chosen
         tree = BGTree()
         tree_consistent_multicolors = tree.get_tree_consistent_multicolors(rooted=False, account_for_wgd=False)
         self.assertIsInstance(tree_consistent_multicolors, list)
@@ -229,6 +260,7 @@ class BGTreeTestCase(unittest.TestCase):
             tree.get_tree_consistent_multicolors(rooted=False, account_for_wgd=True)
 
     def test_get_tree_consistent_multicolors_with_wgd_correct_non_leaf_root(self):
+        # if a root is specified, each wgd even shall duplicate the number of respected genome ends
         tree = NewickReader.from_string(data_string="(((v1, v2), v3),(v4, v5));")
         tree.set_wgd_count(vertex1=self.v1, vertex2="3", wgd_count=1)
         tree.set_wgd_count(vertex1="3", vertex2="2", wgd_count=2)
@@ -254,6 +286,7 @@ class BGTreeTestCase(unittest.TestCase):
             self.assertIn(multicolor, ref_tree_consistent_multicolor)
 
     def test_get_tree_consistent_multicolors_no_wgd_correct_specified_by_argument(self):
+        # with rooted tree, if account_for_wgd is set to False, result shall be the same, if it was not rooted
         tree = NewickReader.from_string(data_string="(((v1, v2), v3),(v4, v5));")
         tree.set_wgd_count(vertex1=self.v1, vertex2="3", wgd_count=1)
         tree.set_wgd_count(vertex1="3", vertex2="2", wgd_count=2)
@@ -275,6 +308,9 @@ class BGTreeTestCase(unittest.TestCase):
             self.assertIn(multicolor, ref_tree_consistent_multicolors)
 
     def test_get_tree_consistent_multicolors_with_wgd_correct_leaf_root(self):
+        # when a root is set to a leaf color it is a specific case, as the root branch shall not account
+        # for tree consistent multicolor on its own, but rather provide an artificial outgoing branch
+        # corresponding to the previous-to-the-tree events and overall multicolor
         tree = NewickReader.from_string(data_string="(((v1, v2), v3),(v4, v5));")
         tree.set_wgd_count(vertex1=self.v1, vertex2="3", wgd_count=1)
         tree.set_wgd_count(vertex1="3", vertex2="2", wgd_count=2)
@@ -351,6 +387,7 @@ class NewickParserTestCase(unittest.TestCase):
             self.assertEqual(node, BGGenome("genome"))
 
     def test_parse_simple_node_incorrect_edge_length(self):
+        # edge length has to be int/double and nothing else
         incorrectly_formatted_strings = [
             "genome:5.1.1",
             "genome:5a",
@@ -387,6 +424,7 @@ class NewickParserTestCase(unittest.TestCase):
         self.assertListEqual(NewickReader.separate_into_same_level_nodes(data_string), ref_list)
 
     def test_separate_into_same_level_nodes_incorrect(self):
+        # some incorrect versions of our newick format, where empty nodes are forbidden
         error_data_string = [
             ",a,b",
             "a,,b",
@@ -400,6 +438,7 @@ class NewickParserTestCase(unittest.TestCase):
                 NewickReader.separate_into_same_level_nodes(data_string)
 
     def test_is_non_terminal_subtree(self):
+        # newick reader can determine is supplied subtree is actually a terminal node
         data_string = "a"
         self.assertFalse(NewickReader.is_non_terminal_subtree(data_string))
         data_string = "(a,b)"
@@ -412,6 +451,8 @@ class NewickParserTestCase(unittest.TestCase):
         self.assertTrue(NewickReader.is_non_terminal_subtree(data_string))
 
     def test_parse_tree_root(self):
+        # every root has a tree in a newick format, and it will be assigned to the tree.root pointer
+        # this root node name is generated (ass well as other non explicit nodes) on the fly
         data_string = "()a"
         subtree_string, root_string = NewickReader.tree_node_separation(data_string)
         self.assertEqual(subtree_string, "()")
