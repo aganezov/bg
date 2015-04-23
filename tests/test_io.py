@@ -14,6 +14,8 @@ import unittest
 
 class GRIMMReaderTestCase(unittest.TestCase):
     def test_is_genome_declaration_string(self):
+        # string is named as genome declaration string if its first non empty element is ">"
+        # genome name has to be specified after the ">" char, empty genome name is forbidden
         self.assertTrue(GRIMMReader.is_genome_declaration_string(">genome"))
         self.assertTrue(GRIMMReader.is_genome_declaration_string("    >genome"))
         self.assertTrue(GRIMMReader.is_genome_declaration_string("  \t  >genome"))
@@ -30,6 +32,8 @@ class GRIMMReaderTestCase(unittest.TestCase):
         self.assertFalse(GRIMMReader.is_genome_declaration_string(">   "))
 
     def test_parse_genome_declaration_string(self):
+        # genome declaration string is parsed, by stripping the string from the right
+        # and retrieving the string after the ">" character
         self.assertEqual(GRIMMReader.parse_genome_declaration_string(">genome"), BGGenome("genome"))
         self.assertEqual(GRIMMReader.parse_genome_declaration_string("  >genome  "), BGGenome("genome"))
         self.assertEqual(GRIMMReader.parse_genome_declaration_string(">genome__genome"), BGGenome("genome__genome"))
@@ -37,6 +41,8 @@ class GRIMMReaderTestCase(unittest.TestCase):
         self.assertEqual(GRIMMReader.parse_genome_declaration_string(">genome.!/.#4"), BGGenome("genome.!/.#4"))
 
     def test_parse_data_string_error(self):
+        # data string must contain a fragment termination symbol ($ or @)
+        # and must contain space separated gene order information before fragment termination symbol
         data_string_1 = "   a b c d e    "
         data_string_2 = ""
         data_string_3 = " a -b -c d -e "
@@ -53,6 +59,9 @@ class GRIMMReaderTestCase(unittest.TestCase):
                 GRIMMReader.parse_data_string(data_string)
 
     def test_parse_data_string_correct(self):
+        # data string is parsed by getting information about genes order and individual orientations for each block (gene)
+        # string based processing if performed
+        # if no orientation is specified explicitly, positive orientation is assumed
         data_string = "a $"
         result = GRIMMReader.parse_data_string(data_string)
         self.assertEqual(result[0], "$")
@@ -79,7 +88,7 @@ class GRIMMReaderTestCase(unittest.TestCase):
         self.assertListEqual(result_genes, reference_genes)
         self.assertListEqual(result_signs, reference_signs)
 
-        data_string = "     a -b c -d $ e f     "
+        data_string = "     a -b +c -d $ e f     "
         result = GRIMMReader.parse_data_string(data_string)
         self.assertEqual(result[0], "$")
         reference_genes = ["a", "b", "c", "d"]
@@ -100,6 +109,9 @@ class GRIMMReaderTestCase(unittest.TestCase):
         self.assertListEqual(result_signs, reference_signs)
 
     def test_get_list_of_edges(self):
+        # depending on the fragment type adjacencies to be considered in BreakpointGraph are differ
+        # in case of circular genome, additional adjacency is added between to outermost vertices
+        # in case of linear genome, two extremity (infinity) vertices are appended to the start and end of the vertices list
         parsed_data = ("@", [("+", "a"), ("-", "b"), ("-", "a")])
         result = GRIMMReader.get_edges_from_parsed_data(parsed_data)
         reference = [(BlockVertex("at"), BlockVertex("at")),
@@ -128,6 +140,7 @@ class GRIMMReaderTestCase(unittest.TestCase):
         self.assertDictEqual(Counter(result), Counter(reference))
 
     def test_is_comment_string(self):
+        # a sting is considered a comment if it non empty first char is "#"
         self.assertTrue(GRIMMReader.is_comment_string("#"))
         self.assertTrue(GRIMMReader.is_comment_string("     #"))
         self.assertTrue(GRIMMReader.is_comment_string("#    "))
@@ -137,6 +150,8 @@ class GRIMMReaderTestCase(unittest.TestCase):
         self.assertTrue(GRIMMReader.is_comment_string("    ##  "))
 
     def test_get_breakpoint_from_file(self):
+        # full workflow testing with dummy data
+        # correct cases are assumed with all kind of crazy indentation and rubbish data mixed in, but still correct
         data = ["",
                 "\t",
                 "#comment1",
