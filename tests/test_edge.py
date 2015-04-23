@@ -16,6 +16,7 @@ from bg.edge import BGEdge, BGEdge_JSON_SCHEMA_JSON_KEY
 class BGEdgeTestCase(unittest.TestCase):
 
     def setUp(self):
+        # heavily utilized variables
         self.genome1 = BGGenome("red")
         self.genome2 = BGGenome("green")
         self.genome3 = BGGenome("blue")
@@ -24,9 +25,11 @@ class BGEdgeTestCase(unittest.TestCase):
 
     def test_empty_initialization_incorrect(self):
         with self.assertRaises(TypeError):
+            # a BGEdge wrapper is meant to wrap something, but not nothing
             BGEdge()
 
     def test_initialization(self):
+        # simple correct initialization of BGEdge instance
         v1 = BlockVertex("v1")
         v2 = BlockVertex("v2")
         multicolor = Multicolor(self.genome3)
@@ -38,6 +41,10 @@ class BGEdgeTestCase(unittest.TestCase):
         self.assertEqual(edge.multicolor, multicolor)
 
     def test_merging_correct(self):
+        # two BGEdges can be merged together into a third, separate BGEdge
+        # that would contain information from both supplied BGEdges in terms of colors and multiplicities
+        # such merge is allowed only if a pair of vertices in both BGEdges is the same
+        # ordering of vertices if not a concern, since edges in BreakpointGraph are not directed
         v1 = BlockVertex("v1")
         v2 = BlockVertex("v2")
         multicolor = Multicolor(self.genome3)
@@ -50,6 +57,7 @@ class BGEdgeTestCase(unittest.TestCase):
         self.assertEqual(merged_edge.multicolor, multicolor + multicolor1)
 
     def test_merging_incorrect(self):
+        # cases when vertices in two supplied for the merging edges are not consistent
         v1 = BlockVertex("v1")
         v2 = BlockVertex("v2")
         v3 = BlockVertex("v3")
@@ -77,6 +85,7 @@ class BGEdgeTestCase(unittest.TestCase):
             BGEdge.merge(edge1, edge2)
 
     def test_equality(self):
+        # edges are called equal if they connect same pairs of vertices and have same multicolor assigned to them
         v1 = BlockVertex("v1")
         v2 = BlockVertex("v2")
         v3 = BlockVertex("v3")
@@ -101,6 +110,7 @@ class BGEdgeTestCase(unittest.TestCase):
         self.assertNotEqual(edge1, edge6)
 
     def test_is_infinity_edge(self):
+        # and edge is called an infinity edge if at least one of its vertices is an infinity vertex
         v1 = BlockVertex("v1")
         v2 = BlockVertex("v2")
         v3 = InfinityVertex("v3")
@@ -113,6 +123,21 @@ class BGEdgeTestCase(unittest.TestCase):
         self.assertTrue(edge2.is_infinity_edge)
         self.assertTrue(edge3.is_infinity_edge)
         self.assertTrue(edge4.is_infinity_edge)
+
+    def test_is_irregular_edge(self):
+        # and edge is called an irregular edge if at least one of its vertices is an irregular vertex
+        v1 = BlockVertex("v1")
+        v2 = BlockVertex("v2")
+        v3 = InfinityVertex("v3")
+        multicolor = Multicolor(self.genome3)
+        edge1 = BGEdge(vertex1=v1, vertex2=v2, multicolor=multicolor)
+        edge2 = BGEdge(vertex1=v1, vertex2=v3, multicolor=multicolor)
+        edge3 = BGEdge(vertex1=v3, vertex2=v1, multicolor=multicolor)
+        edge4 = BGEdge(vertex1=v3, vertex2=v3, multicolor=multicolor)
+        self.assertFalse(edge1.is_irregular_edge)
+        self.assertTrue(edge2.is_irregular_edge)
+        self.assertTrue(edge3.is_irregular_edge)
+        self.assertTrue(edge4.is_irregular_edge)
 
     def test_iter_over_colors_json_ids(self):
         # when multiedge is serialized into json a list of colors in it referenced by their ids

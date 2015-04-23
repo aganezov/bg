@@ -111,7 +111,11 @@ class BGEdge(object):
 
     @property
     def is_infinity_edge(self):
-        return INFINITY_VERTEX_IDENTIFIER in self.vertex1.name or INFINITY_VERTEX_IDENTIFIER in self.vertex2.name
+        return self.vertex1.is_infinity_vertex or self.vertex2.is_infinity_vertex
+
+    @property
+    def is_irregular_edge(self):
+        return self.vertex1.is_irregular_vertex or self.vertex2.is_irregular_vertex
 
     @property
     def json_schema_name(self):
