@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 __author__ = "Sergey Aganezov"
 __email__ = "aganezov(at)gwu.edu"
-__status__ = "production"
+__status__ = "develop"
 
 import unittest
 from bg.multicolor import Multicolor
@@ -9,7 +9,11 @@ from bg.genome import BGGenome
 
 
 class MulticolorTestCase(unittest.TestCase):
+    # in comments bellow "genome" and "color" represent the same concept
+    # if not specified otherwise explicitly
+
     def setUp(self):
+        # some heavily used variables
         self.genome1 = BGGenome("red")
         self.genome2 = BGGenome("green")
         self.genome3 = BGGenome("blue")
@@ -17,11 +21,13 @@ class MulticolorTestCase(unittest.TestCase):
         self.genome5 = BGGenome("yellow")
 
     def test_empty_initialization(self):
+        # empty multicolor shall be initialisable but contain no information about the colors or their multiplicity
         mc = Multicolor()
         self.assertEqual(len(mc.colors), 0)
         self.assertEqual(len(mc.multicolors), 0)
 
     def test_single_initialization(self):
+        # simple case initialization where only one genome with multiplicity one is supplied
         mc = Multicolor(self.genome1)
         self.assertEqual(len(mc.colors), 1)
         self.assertEqual(len(mc.multicolors), 1)
@@ -34,6 +40,7 @@ class MulticolorTestCase(unittest.TestCase):
         self.assertEqual(mc.multicolors[self.genome1], 1)
 
     def test_multiple_initialization(self):
+        # cases when multiple genomes with different multiplicities (from 1 to >1 are specified)
         mc = Multicolor(self.genome1, self.genome2, self.genome3)
         self.assertEqual(len(mc.colors), 3)
         self.assertEqual(len(mc.multicolors), 3)
@@ -52,6 +59,8 @@ class MulticolorTestCase(unittest.TestCase):
         self.assertEqual(mc1.multicolors[self.genome1], 2)
 
     def test_equality(self):
+        # multicolors are called equal
+        # if they contain information about hte same colors with same multiplicity for each color
         mc1 = Multicolor(self.genome1)
         mc2 = Multicolor(self.genome1)
         self.assertEqual(mc1, mc2)
@@ -66,6 +75,9 @@ class MulticolorTestCase(unittest.TestCase):
         self.assertNotEqual(mc1, mc2)
 
     def test_update(self):
+        # multicolor can be updated by multiple arguments
+        # they shall add information about colors (if color was not present before) and/or their multiplicity
+        # change is inplace
         mc = Multicolor()
         self.assertSetEqual(set(), mc.colors)
         mc.update(self.genome1)
@@ -89,6 +101,8 @@ class MulticolorTestCase(unittest.TestCase):
         self.assertSetEqual({self.genome1, self.genome2, self.genome3}, mc.colors)
 
     def test_left_merge(self):
+        # multicolors can be merged
+        # left_merge adds information about colors and their multiplicity from right specified genome, to the left one
         mc1 = Multicolor(self.genome1)
         mc2 = Multicolor(self.genome3)
         Multicolor.left_merge(mc1, mc2)
@@ -108,6 +122,8 @@ class MulticolorTestCase(unittest.TestCase):
         self.assertEqual(mc4, mc2)
 
     def test_merge(self):
+        # multicolors can be merged into a new multicolor
+        # "merge" method creates a new multicolor with information from a variable number of provided multicolors
         mc1 = Multicolor(self.genome1)
         mc2 = Multicolor(self.genome3)
         mc3 = Multicolor.merge(mc1, mc2)
@@ -129,6 +145,10 @@ class MulticolorTestCase(unittest.TestCase):
         self.assertEqual(mc1, mc6)
 
     def test_inplace_delete(self):
+        # multicolor supports removing information about colors, taking into account to their multiplicity
+        # multicolor support deletion using information from Multicolor instance or any iterable
+        # negative counts for the color multiplicity are not supported:
+        #   so if color had multiplicity 1 and this color was supposed to be deleted twice, it will be just deleted
         mc1 = Multicolor(self.genome1, self.genome3, self.genome2)
         mc1.delete((self.genome1,))
         self.assertTrue(self.genome1 not in mc1.colors)
@@ -162,6 +182,9 @@ class MulticolorTestCase(unittest.TestCase):
             self.assertEqual(mc4.multicolors[color], 1)
 
     def test__sub__(self):
+        # - operator os overloaded to provide "delete" alike behaviour, but with a creation of a new Multicolor instance
+        # only Multicolor instance is supported as an argument
+        # for any other argument type a TypeError is raised
         mc1 = Multicolor(self.genome1, self.genome3, self.genome1, self.genome2)
         mc2 = Multicolor(self.genome3, self.genome2, self.genome5)
         mc3 = mc1 - mc2
@@ -175,6 +198,9 @@ class MulticolorTestCase(unittest.TestCase):
             mc1 - 5
 
     def test__isub__(self):
+        # -= operator is overloaded and support only Multicolor instance as an argument
+        # for any other argument a TypeError is raised
+        # behalves just like the "delete" method
         mc1 = Multicolor(self.genome1, self.genome3, self.genome1, self.genome2)
         mc2 = Multicolor(self.genome3, self.genome2, self.genome5)
         mc1_id = id(mc1)
@@ -188,6 +214,8 @@ class MulticolorTestCase(unittest.TestCase):
             mc1 -= 5
 
     def test__add__(self):
+        # + operator is overloaded and works just like a "merge" method, but support only Multicolor instance as an argument
+        # for any other type of argument a TypeError is raised
         mc1 = Multicolor(self.genome1, self.genome2)
         mc2 = Multicolor(self.genome3, self.genome5, self.genome1)
         mc3 = mc1 + mc2
@@ -202,7 +230,10 @@ class MulticolorTestCase(unittest.TestCase):
         with self.assertRaises(TypeError):
             mc1 + 5
 
-    def test_iadd__(self):
+    def test__iadd__(self):
+        # += operator is overloaded and works just like a "left_merge" method
+        # but supports only a Multicolor instance as an argument
+        # for any other type of argument a TypeError is raised
         mc1 = Multicolor(self.genome1, self.genome2)
         mc2 = Multicolor(self.genome3, self.genome5, self.genome1)
         mc1_id = id(mc1)
@@ -220,6 +251,9 @@ class MulticolorTestCase(unittest.TestCase):
             mc1 += 5
 
     def test__lt__and__le__(self):
+        # multicolor are compared as follows:
+        # for all the colors in the left argument of comparison, checks that multiplicity of that color in right argument is
+        # less (less-equal)
         mc1 = Multicolor(self.genome1, self.genome2, self.genome1)
         mc2 = Multicolor(self.genome1, self.genome2)
         self.assertTrue(mc2 < mc1)
@@ -234,6 +268,9 @@ class MulticolorTestCase(unittest.TestCase):
         self.assertFalse(mc2 <= mc1)
 
     def test__gt__and__ge__(self):
+        # multicolor are compared as follows:
+        # for all the colors in the left argument of comparison, checks that multiplicity of that color in right argument is
+        # greater (greater-equal)
         mc1 = Multicolor(self.genome1, self.genome2, self.genome1)
         mc2 = Multicolor(self.genome1, self.genome2)
         self.assertTrue(mc1 > mc2)
@@ -246,6 +283,9 @@ class MulticolorTestCase(unittest.TestCase):
         self.assertFalse(mc1 >= mc2)
 
     def test_similarity_score(self):
+        # similarity score for multicolors is computed as follows:
+        # for every mutual color, the smallest multiplicity of such color in two Multicolors is considered
+        # similarity score is computed as the sum over such min multiplicities of all shared colors
         mc1 = Multicolor(self.genome1, self.genome2)
         mc2 = Multicolor(self.genome1, self.genome2)
         self.assertEqual(Multicolor.similarity_score(mc1, mc2), 2)
@@ -261,6 +301,7 @@ class MulticolorTestCase(unittest.TestCase):
         self.assertEqual(Multicolor.similarity_score(mc2, mc1), 0)
 
     def test_split_colors_simple_multicolor_no_duplications(self):
+        # TODO: fix with a tree consistent multicolors tests
         # color exists in guidance
         mc = Multicolor(self.genome1)
         guidance = [(self.genome1, )]
@@ -291,6 +332,7 @@ class MulticolorTestCase(unittest.TestCase):
         self.assertEqual(mc.multicolors[self.genome1], 1)
 
     def test_split_colors_simple_multicolor_with_duplications(self):
+        # TODO: fix with a tree consistent multicolors tests
         # color exists in guidance
         mc = Multicolor(self.genome1, self.genome1)
         guidance = [(self.genome1, )]
@@ -325,6 +367,7 @@ class MulticolorTestCase(unittest.TestCase):
         self.assertEqual(mc.multicolors[self.genome1], 2)
 
     def test_split_colors_complex_multicolor_no_duplications(self):
+        # TODO: fix with tree consistent multicolors tests
         # full color exists in guidance
         mc = Multicolor(self.genome1, self.genome4)
         guidance = [(self.genome1, self.genome4)]
@@ -465,6 +508,7 @@ class MulticolorTestCase(unittest.TestCase):
         self.assertEqual(mc.multicolors[self.genome4], 1)
 
     def test_split_colors_complex_multicolor_with_duplications(self):
+        # TODO: fix with tree consistent multicolors tests
         # full color exists in guidance
         mc = Multicolor(self.genome1, self.genome4, self.genome1, self.genome4)
         guidance = [(self.genome1, self.genome4)]
@@ -615,6 +659,9 @@ class MulticolorTestCase(unittest.TestCase):
         self.assertEqual(mc.multicolors[self.genome4], 2)
 
     def test_hashable_representation(self):
+        # every multicolor has to have a hashable representation, that can be utilized in a set/dict
+        # for a fast check against multicolor instance
+        ################################################
         # the idea is to use sorted Counter.elements() method and convert into sorted tuple on the fly
         genome_list = [self.genome1, self.genome2, self.genome3, self.genome4, self.genome1, self.genome2, self.genome1]
         mc = Multicolor(*genome_list)
