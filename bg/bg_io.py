@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 from bg import BreakpointGraph, Multicolor
 from bg.genome import BGGenome
-from bg.vertex import BlockVertex, InfinityVertex
+from bg.vertices import BlockVertex, InfinityVertex
 
 __author__ = "Sergey Aganezov"
 __email__ = "aganezov(at)gwu.edu"

@@ -3,7 +3,7 @@ import io
 from bg import BreakpointGraph, Multicolor
 from bg.bg_io import GRIMMReader
 from bg.genome import BGGenome
-from bg.vertex import BlockVertex, InfinityVertex
+from bg.vertices import BlockVertex, InfinityVertex
 
 __author__ = 'Sergey Aganezov'
 __email__ = "aganezov(at)gwu.edu"

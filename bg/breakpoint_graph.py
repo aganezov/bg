@@ -5,7 +5,7 @@ from bg.edge import BGEdge, BGEdge_JSON_SCHEMA_JSON_KEY
 from bg.genome import BGGenome, BGGenome_JSON_SCHEMA_JSON_KEY
 from bg.kbreak import KBreak
 from bg.multicolor import Multicolor
-from bg.vertex import BGVertex_JSON_SCHEMA_JSON_KEY, BlockVertex, BGVertex, InfinityVertex
+from bg.vertices import BGVertex_JSON_SCHEMA_JSON_KEY, BlockVertex, BGVertex, InfinityVertex
 
 __author__ = "Sergey Aganezov"
 __email__ = "aganezov(at)gwu.edu"
@@ -166,7 +166,7 @@ class BreakpointGraph(object):
         :param vertex_name: a vertex label it is identified by.
         :type vertex_name: any hashable python object. ``str`` expected.
         :return: vertex with supplied label if present in current :class:`BreakpointGraph`, ``None`` otherwise
-        :rtype: :class:`bg.vertex.BGVertex` or ``None``
+        :rtype: :class:`bg.vertices.BGVertex` or ``None``
         """
         vertex_class = BGVertex.get_vertex_class_from_vertex_name(vertex_name)
         name = BGVertex.get_vertex_name_root(vertex_name)
@@ -184,7 +184,7 @@ class BreakpointGraph(object):
         :param vertex_name: a vertex label it is identified by.
         :type vertex_name: any hashable python object. ``str`` expected.
         :return: vertex with supplied label if present in current :class:`BreakpointGraph`, ``None`` otherwise
-        :rtype: :class:`bg.vertex.BGVertex` or ``None``
+        :rtype: :class:`bg.vertices.BGVertex` or ``None``
         """
         return self.__get_vertex_by_name(vertex_name=vertex_name)
 

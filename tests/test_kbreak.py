@@ -3,7 +3,7 @@ from unittest.mock import Mock
 from bg.edge import BGEdge
 from bg.multicolor import Multicolor
 from bg.kbreak import KBreak
-from bg.vertex import BlockVertex, InfinityVertex
+from bg.vertices import BlockVertex, InfinityVertex
 
 __author__ = "Sergey Aganezov"
 __email__ = "aganezov(at)gwu.edu"

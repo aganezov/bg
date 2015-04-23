@@ -5,7 +5,7 @@ from bg.edge import BGEdge
 from bg.genome import BGGenome
 from bg.kbreak import KBreak
 from bg.multicolor import Multicolor
-from bg.vertex import BlockVertex, InfinityVertex
+from bg.vertices import BlockVertex, InfinityVertex
 
 __author__ = "Sergey Aganezov"
 __email__ = "aganezov(at)gwu.edu"

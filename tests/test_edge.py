@@ -3,7 +3,7 @@ from collections import Counter
 from unittest.mock import Mock
 from bg.genome import BGGenome
 from bg.multicolor import Multicolor
-from bg.vertex import BlockVertex, InfinityVertex
+from bg.vertices import BlockVertex, InfinityVertex
 
 __author__ = "Sergey Aganezov"
 __email__ = "aganezov(at)gwu.edu"

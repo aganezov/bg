@@ -4,7 +4,7 @@ __email__ = "aganezov(at)gwu.edu"
 __status__ = "develop"
 
 import unittest
-from bg.vertex import BGVertex_JSON_SCHEMA_JSON_KEY, BGVertex, BlockVertex, InfinityVertex
+from bg.vertices import BGVertex_JSON_SCHEMA_JSON_KEY, BGVertex, BlockVertex, InfinityVertex
 
 
 class BGVertexTestCase(unittest.TestCase):

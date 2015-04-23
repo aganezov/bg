@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 from marshmallow import Schema, fields
-from bg.vertex import INFINITY_VERTEX_IDENTIFIER
+from bg.vertices import INFINITY_VERTEX_IDENTIFIER
 
 __author__ = "Sergey Aganezov"
 __email__ = "aganezov(at)gwu.edu"
