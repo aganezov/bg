@@ -171,7 +171,7 @@ class BGTree(object):
 
     @root.setter
     def root(self, value):
-        if value not in self.graph:
+        if value is not None and value not in self.graph:
             raise ValueError("Only existing node can be set as root")
         self.__root = value
 
