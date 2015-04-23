@@ -140,14 +140,16 @@ class BlockVertex(BGVertex):
 
     @classmethod
     def from_json(cls, data, json_schema_class=None):
-        """ This class overwrites the from_json method thus, making sure, that if from_json is called from this class, it will provide its JSON schema as a default one """
+        """ This class overwrites the from_json method thus, making sure, that if `from_json` is called from this class instance, it will provide its JSON schema as a default one """
         json_schema = cls.json_schema if json_schema_class is None else json_schema_class()
         return super().from_json(data=data, json_schema_class=json_schema.__class__)
 
 
 class InfinityVertex(BGVertex):
+    """ This class represents a special type of breakpoint graph vertex that correspond to a generic extremity of genomic fragment (chromosome, scaffold, contig, etc.)"""
 
     class InfinityVertexJSONSchema(BGVertex.BGVertexJSONSchema):
+        """ JSON Schema for this class is redefined to tune the `make_object` method, that shall return `InfinityVertex` instance, rather than a `BGVertex` one """
         def make_object(self, data):
             try:
                 json_name = data["name"]
@@ -156,32 +158,41 @@ class InfinityVertex(BGVertex):
             except KeyError:
                 raise ValueError("No `name` key in supplied json data for vertex deserialization")
 
+    # InfinityVertex instances have a special suffix in their name that is determined by a class variable `NAME_SUFFIX`
     NAME_SUFFIX = "infinity"
 
+    # a setup for a new JSON schema is performed class-wise to be utilized by all instance of InfinityVertex
     json_schema = InfinityVertexJSONSchema()
 
     def __init__(self, name):
+        # current class allows for a standard access to the `name` attribute, but performs transparent computation behind the scenes
+        # so the name is stored in a private variable __name, and property `name` is implemented
         self.__name = None
         super().__init__(name=name)
 
     @property
     def name(self):
+        """ access to classic name attribute is hidden by this property """
         return self.NAME_SEPARATOR.join([str(self.__name), self.NAME_SUFFIX])
 
     @name.setter
     def name(self, value):
+        """When someone wants to set a new name for the `InfinityVertex` instance, it is transparently store into the `__name` attribute """
         self.__name = value
 
     @property
     def is_irregular_vertex(self):
+        """ This class implements a property check for vertex to belong to a class of vertices, that correspond to extremities of genomic fragments """
         return True
 
     @property
     def is_infinity_vertex(self):
+        """ This class implements a property check for vertex to belong to a class of vertices, that correspond to standard extremities of genomic fragments """
         return True
 
     @classmethod
     def from_json(cls, data, json_schema_class=None):
+        """ This class overwrites the from_json method, thus making sure that if `from_json` is called from this class instance, it will provide its JSON schema as a default one"""
         schema = cls.json_schema if json_schema_class is None else json_schema_class()
         return super().from_json(data=data, json_schema_class=schema.__class__)
 
