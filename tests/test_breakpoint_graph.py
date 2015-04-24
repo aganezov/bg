@@ -1019,7 +1019,7 @@ class BreakpointGraphTestCase(unittest.TestCase):
         graph.add_bgedge(edge1, merge=False)
         self.assertEqual(len(list(graph.nodes())), 2)
         self.assertEqual(len(list(graph.edges())), 2)
-        graph.split_edge(vertex1=v1, vertex2=v2, multicolor=multicolor1, guidance=[(self.genome1, )],
+        graph.split_edge(vertex1=v1, vertex2=v2, multicolor=multicolor1, guidance=[(self.genome1,)],
                          duplication_splitting=False)
         self.assertEqual(len(list(graph.nodes())), 2)
         self.assertEqual(len(list(graph.edges())), 2)
@@ -1051,7 +1051,7 @@ class BreakpointGraphTestCase(unittest.TestCase):
         edge1 = BGEdge(vertex1=v1, vertex2=v2, multicolor=multicolor1)
         graph.add_bgedge(edge1)
         graph.add_bgedge(edge1, merge=False)
-        graph.split_edge(vertex1=v1, vertex2=v2, multicolor=multicolor1, guidance=[(self.genome1, )],
+        graph.split_edge(vertex1=v1, vertex2=v2, multicolor=multicolor1, guidance=[(self.genome1,)],
                          duplication_splitting=False)
         self.assertEqual(len(list(graph.nodes())), 2)
         self.assertEqual(len(list(graph.edges())), 2)
@@ -1110,7 +1110,7 @@ class BreakpointGraphTestCase(unittest.TestCase):
         key = min(graph.bg[v1][v2].keys())
         self.assertEqual(len(list(graph.nodes())), 2)
         self.assertEqual(len(list(graph.edges())), 2)
-        graph.split_edge(vertex1=v1, vertex2=v2, multicolor=multicolor1, guidance=[(self.genome1, )],
+        graph.split_edge(vertex1=v1, vertex2=v2, multicolor=multicolor1, guidance=[(self.genome1,)],
                          duplication_splitting=False, key=key)
         self.assertEqual(len(list(graph.nodes())), 2)
         self.assertEqual(len(list(graph.edges())), 2)
@@ -1150,7 +1150,7 @@ class BreakpointGraphTestCase(unittest.TestCase):
         graph.add_bgedge(edge1)
         graph.add_bgedge(edge1, merge=False)
         key = max(graph.bg[v1][v2].keys())
-        graph.split_edge(vertex1=v1, vertex2=v2, multicolor=multicolor1, guidance=[(self.genome1, )],
+        graph.split_edge(vertex1=v1, vertex2=v2, multicolor=multicolor1, guidance=[(self.genome1,)],
                          duplication_splitting=False, key=key)
         self.assertEqual(len(list(graph.nodes())), 2)
         self.assertEqual(len(list(graph.edges())), 2)
@@ -1219,7 +1219,7 @@ class BreakpointGraphTestCase(unittest.TestCase):
         self.assertEqual(edges[1].multicolor, multicolor1)
         # test with a two one-colored edges (both will stay as is)
         # with guidance
-        graph.split_all_edges_between_two_vertices(vertex1=v1, vertex2=v2, guidance=[(self.genome1, )])
+        graph.split_all_edges_between_two_vertices(vertex1=v1, vertex2=v2, guidance=[(self.genome1,)])
         self.assertEqual(len(list(graph.nodes())), 2)
         self.assertEqual(len(list(graph.edges())), 2)
         edges = list(graph.get_edges_by_vertex(vertex=v1))
@@ -2209,8 +2209,7 @@ class BreakpointGraphTestCase(unittest.TestCase):
             for bgedge in bg.edges_between_two_vertices(vertex1=vertex1, vertex2=vertex2):
                 res_edges.append(bgedge)
         self.assertListEqual(res_edges, ref_edges)
-        self.assertEqual(len(list(bg.nodes())),
-                         2)  # infinity vertices shall not be present if there are no in/out edges
+        self.assertEqual(len(list(bg.nodes())), 2)  # infinity vertices shall not be present if there are no in/out edges
         # case 3, simple 3-break, multiple edges between all targeted pairs of vertices
         # start edges contain a paired infinity vertices
         # result edges contain a paired infinity vertices
@@ -2303,8 +2302,7 @@ class BreakpointGraphTestCase(unittest.TestCase):
         for edge_dict in result["edges"]:
             ref_edge_dict = None
             for ref_dict in doubled_ref_result["edges"]:
-                if ref_dict["vertex1_id"] == edge_dict["vertex1_id"] and ref_dict["vertex2_id"] == edge_dict[
-                    "vertex2_id"]:
+                if ref_dict["vertex1_id"] == edge_dict["vertex1_id"] and ref_dict["vertex2_id"] == edge_dict["vertex2_id"]:
                     ref_edge_dict = ref_dict
                     break
             self.assertDictEqual(Counter(edge_dict["multicolor"]), Counter(ref_edge_dict["multicolor"]))
@@ -2348,8 +2346,8 @@ class BreakpointGraphTestCase(unittest.TestCase):
         bg.add_bgedge(bgedge1)
         bg.add_bgedge(bgedge2)
         bg.add_bgedge(bgedge3)
-        object = bg.to_json()
-        new_bg = BreakpointGraph.from_json(object)
+        bg_json_object = bg.to_json()
+        new_bg = BreakpointGraph.from_json(bg_json_object)
         self.assertEqual(len(list(new_bg.nodes())), 3)
         self.assertEqual(len(list(new_bg.edges())), 3)
         for vertex in new_bg.nodes():
@@ -2427,7 +2425,7 @@ class BreakpointGraphTestCase(unittest.TestCase):
 
     def test_deserialization_incorrect_referencing_non_present_genome_in_multicolor(self):
         # a multicolor for serialized edge is represented as a list of reference values for genome objects
-        # and if some of referencingvalues are pointing towards a non-present genome object, an exception shall be raised
+        # and if some of referencing values are pointing towards a non-present genome object, an exception shall be raised
         with self.assertRaises(ValueError):
             bg = BreakpointGraph()
             v1 = self.v1
