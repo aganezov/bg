@@ -2425,6 +2425,20 @@ class BreakpointGraphTestCase(unittest.TestCase):
             json_object["vertices"] = json_object["vertices"][1:]
             bg.from_json(data=json_object)
 
+    def test_deserialization_incorrect_referencing_non_present_genome_in_multicolor(self):
+        # a multicolor for serialized edge is represented as a list of reference values for genome objects
+        # and if some of referencingvalues are pointing towards a non-present genome object, an exception shall be raised
+        with self.assertRaises(ValueError):
+            bg = BreakpointGraph()
+            v1 = self.v1
+            v2 = self.v2
+            genome = BGGenome("genome1")
+            bgedge = BGEdge(vertex1=v1, vertex2=v2, multicolor=Multicolor(genome))
+            bg.add_bgedge(bgedge=bgedge)
+            json_object = bg.to_json(schema_info=False)
+            json_object["genomes"] = json_object["genomes"][1:]
+            bg.from_json(data=json_object)
+
 
 if __name__ == '__main__':  # pragma: no cover
     unittest.main()  # pragma: no cover
