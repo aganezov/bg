@@ -428,7 +428,7 @@ class Multicolor(object):
         :rtype: ``Boolean``
         """
         if not isinstance(other, Multicolor):
-            raise True
+            return False
         self_keys = self.colors
         other_keys = other.colors
         return any(self.multicolors[key] > other.multicolors[key] for key in self_keys) and \

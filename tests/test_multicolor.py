@@ -298,7 +298,7 @@ class MulticolorTestCase(unittest.TestCase):
         ###############################################################################################
         for non_multicolor_object in [1, (1,), [1,], "1", Mock()]:
             self.assertFalse(mc1 >= non_multicolor_object)
-
+            self.assertFalse(mc1 > non_multicolor_object)
 
     def test_similarity_score(self):
         # similarity score for multicolors is computed as follows:
