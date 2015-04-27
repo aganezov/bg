@@ -291,6 +291,14 @@ class MulticolorTestCase(unittest.TestCase):
         mc2 = Multicolor(self.genome1, self.genome1, self.genome2, self.genome2)
         self.assertFalse(mc1 > mc2)
         self.assertFalse(mc1 >= mc2)
+        ###############################################################################################
+        #
+        # Multicolor object is never greater or equal to the non-Multicolor object
+        #
+        ###############################################################################################
+        for non_multicolor_object in [1, (1,), [1,], "1", Mock()]:
+            self.assertFalse(mc1 >= non_multicolor_object)
+
 
     def test_similarity_score(self):
         # similarity score for multicolors is computed as follows:
