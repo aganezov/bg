@@ -1,4 +1,6 @@
 # -*- coding: utf-8 -*-
+from unittest.mock import Mock
+
 __author__ = "Sergey Aganezov"
 __email__ = "aganezov(at)gwu.edu"
 __status__ = "develop"
@@ -300,363 +302,261 @@ class MulticolorTestCase(unittest.TestCase):
         self.assertEqual(Multicolor.similarity_score(mc1, mc2), 0)
         self.assertEqual(Multicolor.similarity_score(mc2, mc1), 0)
 
-    def test_split_colors_simple_multicolor_no_duplications(self):
-        # TODO: fix with a tree consistent multicolors tests
-        # color exists in guidance
-        mc = Multicolor(self.genome1)
-        guidance = [(self.genome1, )]
-        mc = Multicolor.split_colors(mc, guidance=guidance)[0]
-        self.assertEqual(len(mc.colors), 1)
-        self.assertEqual(len(mc.multicolors), 1)
-        self.assertEqual(mc.multicolors[self.genome1], 1)
-        # color exists in guidance only as subset
-        mc = Multicolor(self.genome1)
-        guidance = [(self.genome1, self.genome4)]
-        mc = Multicolor.split_colors(mc, guidance=guidance)[0]
-        self.assertEqual(len(mc.colors), 1)
-        self.assertEqual(len(mc.multicolors), 1)
-        self.assertEqual(mc.multicolors[self.genome1], 1)
-        # color exists in guidance both as subset and a set itself
-        mc = Multicolor(self.genome1)
-        guidance = [(self.genome1, self.genome4), (self.genome1, ), (self.genome4, )]
-        mc = Multicolor.split_colors(mc, guidance=guidance)[0]
-        self.assertEqual(len(mc.colors), 1)
-        self.assertEqual(len(mc.multicolors), 1)
-        self.assertEqual(mc.multicolors[self.genome1], 1)
-        # color does not exist in guidance
-        mc = Multicolor(self.genome1)
-        guidance = [(self.genome2, self.genome4)]
-        mc = Multicolor.split_colors(mc, guidance=guidance)[0]
-        self.assertEqual(len(mc.colors), 1)
-        self.assertEqual(len(mc.multicolors), 1)
-        self.assertEqual(mc.multicolors[self.genome1], 1)
+    ###############################################################################################
+    #
+    # following tests are aimed at generic splitting based on provided set of good colors
+    # it is compatible with tree consistent multicolor splitting, but is not limited to it
+    #
+    ###############################################################################################
 
-    def test_split_colors_simple_multicolor_with_duplications(self):
-        # TODO: fix with a tree consistent multicolors tests
-        # color exists in guidance
-        mc = Multicolor(self.genome1, self.genome1)
-        guidance = [(self.genome1, )]
-        mc = Multicolor.split_colors(mc, guidance=guidance)[0]
-        self.assertEqual(len(mc.colors), 1)
-        self.assertEqual(len(mc.multicolors), 1)
-        self.assertEqual(mc.multicolors[self.genome1], 2)
-        mc = Multicolor.split_colors(mc)[0]
-        self.assertEqual(len(mc.colors), 1)
-        self.assertEqual(len(mc.multicolors), 1)
-        self.assertEqual(mc.multicolors[self.genome1], 2)
-        # color exists in guidance only as subset
-        mc = Multicolor(self.genome1, self.genome1)
-        guidance = [(self.genome1, self.genome4)]
-        mc = Multicolor.split_colors(mc, guidance=guidance)[0]
-        self.assertEqual(len(mc.colors), 1)
-        self.assertEqual(len(mc.multicolors), 1)
-        self.assertEqual(mc.multicolors[self.genome1], 2)
-        # color exists in guidance both as subset and a set itself
+    def test_split_colors_account_for_multiplicity_in_guidance(self):
+        ###############################################################################################
+        #
+        # when no guidance is specified, a multicolor shall be split according to its own colors
+        # when `account_for_multiplicity_in_guidance` is specified
+        #   each color in the splitted result shall have multiplicity as it had in the targeted multicolor
+        #
+        ###############################################################################################
+        mc = Multicolor(self.genome1, self.genome1, self.genome2, self.genome3, self.genome3, self.genome3)
+        ref = [Multicolor(self.genome1, self.genome1),
+               Multicolor(self.genome2),
+               Multicolor(self.genome3, self.genome3, self.genome3)]
+        result = Multicolor.split_colors(mc, account_for_color_multiplicity_in_guidance=True)
+        self.assertEqual(len(result), 3)
+        for result_mc in result:
+            self.assertIn(result_mc, ref)
+        ###############################################################################################
+        ###############################################################################################
+        #
+        # a simple guidance with a single multicolor, that has only a single color with multiplicity one
+        #
+        ###############################################################################################
         mc = Multicolor(self.genome1)
-        guidance = [(self.genome1, self.genome4), (self.genome1, ), (self.genome4, )]
-        mc = Multicolor.split_colors(mc, guidance=guidance)[0]
+        guidance = [Multicolor(self.genome1)]
+        result = Multicolor.split_colors(mc, guidance=guidance, account_for_color_multiplicity_in_guidance=True)
+        self.assertEqual(len(result), 1)
+        mc = result[0]
         self.assertEqual(len(mc.colors), 1)
         self.assertEqual(len(mc.multicolors), 1)
         self.assertEqual(mc.multicolors[self.genome1], 1)
-        # color does not exist in guidance
-        mc = Multicolor(self.genome1, self.genome1)
-        guidance = [(self.genome2, self.genome4)]
-        mc = Multicolor.split_colors(mc, guidance=guidance)[0]
+        ###############################################################################################
+        ###############################################################################################
+        #
+        # color exists in guidance only as subset, then it shall be retrieved fully on its own
+        #
+        ###############################################################################################
+        mc = Multicolor(self.genome1)
+        guidance = [Multicolor(self.genome1, self.genome4)]
+        result = Multicolor.split_colors(mc, guidance=guidance, account_for_color_multiplicity_in_guidance=True)
+        self.assertEqual(len(result), 1)
+        mc = result[0]
         self.assertEqual(len(mc.colors), 1)
         self.assertEqual(len(mc.multicolors), 1)
-        self.assertEqual(mc.multicolors[self.genome1], 2)
+        self.assertEqual(mc.multicolors[self.genome1], 1)
+        ###############################################################################################
+        ###############################################################################################
+        #
+        # color exists in guidance both as subset and a set itself, and thus shall be retrieved fully
+        #
+        ###############################################################################################
+        mc = Multicolor(self.genome1)
+        guidance = [Multicolor(self.genome1), Multicolor(self.genome1, self.genome4), Multicolor(self.genome4)]
+        result = Multicolor.split_colors(mc, guidance=guidance, account_for_color_multiplicity_in_guidance=True)
+        self.assertEqual(len(result), 1)
+        mc = result[0]
+        self.assertEqual(len(mc.colors), 1)
+        self.assertEqual(len(mc.multicolors), 1)
+        self.assertEqual(mc.multicolors[self.genome1], 1)
+        ###############################################################################################
+        ###############################################################################################
+        #
+        # color does not exist in guidance, and shall be retrieved fully, as an appendix
+        #
+        ###############################################################################################
+        mc = Multicolor(self.genome1)
+        guidance = [Multicolor(self.genome2, self.genome4)]
+        result = Multicolor.split_colors(mc, guidance=guidance, account_for_color_multiplicity_in_guidance=True)
+        self.assertEqual(len(result), 1)
+        mc = result[0]
+        self.assertEqual(len(mc.colors), 1)
+        self.assertEqual(len(mc.multicolors), 1)
+        self.assertEqual(mc.multicolors[self.genome1], 1)
+        ###############################################################################################
+        ###############################################################################################
+        #
+        # some color in guidance present twice in the splitting multicolor
+        # and thus shall be retrieved fully twice
+        #
+        ###############################################################################################
+        mc = Multicolor(self.genome1, self.genome1, self.genome1, self.genome2, self.genome2)
+        guidance = [Multicolor(self.genome1, self.genome2)]
+        ref1 = guidance[0]
+        ref2 = Multicolor(self.genome1)
+        result = Multicolor.split_colors(mc, guidance=guidance, account_for_color_multiplicity_in_guidance=True)
+        self.assertEqual(len(result), 3)
+        for result_mc in result:
+            self.assertIn(result_mc, [ref1, ref2])
+        ###############################################################################################
+        ###############################################################################################
+        #
+        # some colors in guidance have non empty intersections (with multiplicity > 1) with s splitting color
+        #
+        ###############################################################################################
+        mc = Multicolor(self.genome1, self.genome1, self.genome2, self.genome2)
+        guidance = [Multicolor(self.genome1, self.genome2, self.genome3)]
+        ref = Multicolor(self.genome1, self.genome2)
+        result = Multicolor.split_colors(mc, guidance=guidance, account_for_color_multiplicity_in_guidance=True)
+        self.assertEqual(len(result), 2)
+        for result_mc in result:
+            self.assertEqual(result_mc, ref)
+        ###############################################################################################
+        ###############################################################################################
+        #
+        # some color in guidance is present twice in the splitting color
+        # some color in guidance has a non empty intersection with splitting color
+        #   that interferes with multicolor in guidance, that is fully present
+        # full presence must overtake in this case
+        #
+        ###############################################################################################
+        mc = Multicolor(self.genome1, self.genome1, self.genome2, self.genome2)
+        guidance = [Multicolor(self.genome1, self.genome2), Multicolor(self.genome1, self.genome2, self.genome3)]
+        ref = Multicolor(self.genome1, self.genome2)
+        result = Multicolor.split_colors(mc, guidance=guidance,
+                                         account_for_color_multiplicity_in_guidance=True)
+        self.assertEqual(len(result), 2)
+        for result_mc in result:
+            self.assertEqual(result_mc, ref)
+        ###############################################################################################
+        ###############################################################################################
+        #
+        # both fully present and non-empty intersection colors are present in guidance
+        # the most complex test case
+        #
+        ###############################################################################################
+        mc = Multicolor(self.genome1, self.genome1, self.genome2, self.genome2, self.genome3)
+        guidance = [Multicolor(self.genome1, self.genome2, self.genome3),
+                    Multicolor(self.genome1, self.genome1, self.genome2, self.genome2)]
+        ref1 = Multicolor(self.genome1, self.genome1, self.genome2, self.genome2)
+        ref2 = Multicolor(self.genome3)
+        result = Multicolor.split_colors(mc, guidance=guidance,
+                                         account_for_color_multiplicity_in_guidance=True)
+        self.assertEqual(len(result), 2)
+        for result_mc in result:
+            self.assertIn(result_mc, [ref1, ref2])
 
-    def test_split_colors_complex_multicolor_no_duplications(self):
-        # TODO: fix with tree consistent multicolors tests
-        # full color exists in guidance
-        mc = Multicolor(self.genome1, self.genome4)
-        guidance = [(self.genome1, self.genome4)]
-        mc = Multicolor.split_colors(mc, guidance=guidance)[0]
-        self.assertEqual(len(mc.multicolors), 2)
-        self.assertEqual(mc.multicolors[self.genome1], 1)
-        self.assertEqual(mc.multicolors[self.genome4], 1)
-        ################################################################
-        guidance = [(self.genome1, ), (self.genome4, ), (self.genome1, self.genome4)]
-        mc = Multicolor.split_colors(mc, guidance=guidance)[0]
-        self.assertEqual(len(mc.multicolors), 2)
-        self.assertEqual(mc.multicolors[self.genome1], 1)
-        self.assertEqual(mc.multicolors[self.genome4], 1)
-        ################################################################
-        guidance = [(self.genome1, ), (self.genome4, ), (self.genome1, self.genome4),
-                    (self.genome1, self.genome4, self.genome2), (self.genome2, )]
-        mc = Multicolor.split_colors(mc, guidance=guidance)[0]
-        self.assertEqual(len(mc.multicolors), 2)
-        self.assertEqual(mc.multicolors[self.genome1], 1)
-        self.assertEqual(mc.multicolors[self.genome4], 1)
-        # full color exists in guidance only as subset
-        mc = Multicolor(self.genome1, self.genome4)
-        guidance = [(self.genome1, self.genome4, self.genome2), (self.genome2, )]
-        mc = Multicolor.split_colors(mc, guidance=guidance)[0]
-        self.assertEqual(len(mc.multicolors), 2)
-        self.assertEqual(mc.multicolors[self.genome1], 1)
-        self.assertEqual(mc.multicolors[self.genome4], 1)
-        # full color exists in guidance both as subset and a set itself
-        mc = Multicolor(self.genome1, self.genome4)
-        guidance = [(self.genome1, self.genome4, self.genome2), (self.genome2, ), (self.genome1, self.genome4)]
-        mc = Multicolor.split_colors(mc, guidance=guidance)[0]
-        self.assertEqual(len(mc.multicolors), 2)
-        self.assertEqual(mc.multicolors[self.genome1], 1)
-        self.assertEqual(mc.multicolors[self.genome4], 1)
-        # full color exists in guidance both as subset and portions of it intersect with some guidance subsets
-        mc = Multicolor(self.genome1, self.genome4)
-        guidance = [(self.genome1, self.genome4, self.genome2), (self.genome4, self.genome2),
-                    (self.genome1, self.genome2)]
-        mc = Multicolor.split_colors(mc, guidance=guidance)[0]
-        self.assertEqual(len(mc.multicolors), 2)
-        self.assertEqual(mc.multicolors[self.genome1], 1)
-        self.assertEqual(mc.multicolors[self.genome4], 1)
-        # color does not exist in guidance (nor any of its subsets by themselves), but it intersects with some
-        # guidance sets
-        mc = Multicolor(self.genome1, self.genome4)
-        guidance = [(self.genome1, self.genome2), (self.genome4, self.genome3)]
-        mc1, mc2 = Multicolor.split_colors(mc, guidance=guidance)
-        self.assertEqual(len(mc1.colors), 1)
-        self.assertEqual(len(mc1.multicolors), 1)
-        self.assertEqual(len(mc2.colors), 1)
-        self.assertEqual(len(mc2.multicolors), 1)
-        # portion of a color exists in guidance as a set, while rest of it is not mentioned
-        mc = Multicolor(self.genome1, self.genome2, self.genome4, self.genome3)
-        guidance = [(self.genome1, self.genome2), ]
-        mc1, mc2 = Multicolor.split_colors(mc, guidance=guidance)
-        self.assertEqual(len(mc1.colors), 2)
-        self.assertEqual(len(mc1.multicolors), 2)
-        self.assertEqual(len(mc2.colors), 2)
-        self.assertEqual(len(mc2.multicolors), 2)
-        multicolors = [Multicolor(self.genome1, self.genome2), Multicolor(self.genome4, self.genome3)]
-        for mc in [mc1, mc2]:
-            self.assertTrue(mc in multicolors)
-        # portion of a color exists in guidance as subset, while rest of it is not mentioned
-        mc = Multicolor(self.genome1, self.genome2, self.genome4, self.genome3)
-        guidance = [(self.genome1, self.genome2, self.genome5), ]
-        mc1, mc2 = Multicolor.split_colors(mc, guidance=guidance)
-        self.assertEqual(len(mc1.colors), 2)
-        self.assertEqual(len(mc1.multicolors), 2)
-        self.assertEqual(len(mc2.colors), 2)
-        self.assertEqual(len(mc2.multicolors), 2)
-        multicolors = [Multicolor(self.genome1, self.genome2), Multicolor(self.genome4, self.genome3)]
-        for mc in [mc1, mc2]:
-            self.assertTrue(mc in multicolors)
-        # portion of a color exists in guidance as set, while the rest exists as set
-        mc = Multicolor(self.genome1, self.genome2, self.genome4, self.genome3)
-        guidance = [(self.genome1, self.genome2), (self.genome4, self.genome3)]
-        mc1, mc2 = Multicolor.split_colors(mc, guidance=guidance)
-        self.assertEqual(len(mc1.colors), 2)
-        self.assertEqual(len(mc1.multicolors), 2)
-        self.assertEqual(len(mc2.colors), 2)
-        self.assertEqual(len(mc2.multicolors), 2)
-        multicolors = [Multicolor(self.genome1, self.genome2), Multicolor(self.genome4, self.genome3)]
-        for mc in [mc1, mc2]:
-            self.assertTrue(mc in multicolors)
-        # portion of a color exists in guidance as subset, while the rest exists as subset
-        mc = Multicolor(self.genome1, self.genome2, self.genome4, self.genome3)
-        guidance = [(self.genome1, self.genome2, self.genome5), (self.genome4, self.genome3, self.genome5)]
-        mc1, mc2 = Multicolor.split_colors(mc, guidance=guidance)
-        self.assertEqual(len(mc1.colors), 2)
-        self.assertEqual(len(mc1.multicolors), 2)
-        self.assertEqual(len(mc2.colors), 2)
-        self.assertEqual(len(mc2.multicolors), 2)
-        multicolors = [Multicolor(self.genome1, self.genome2), Multicolor(self.genome4, self.genome3)]
-        for mc in [mc1, mc2]:
-            self.assertTrue(mc in multicolors)
-        # portion of a color exists in guidance as set, while the rest exists as subset
-        mc = Multicolor(self.genome1, self.genome2, self.genome4, self.genome3)
-        guidance = [(self.genome1, self.genome2), (self.genome4, self.genome3, self.genome5)]
-        mc1, mc2 = Multicolor.split_colors(mc, guidance=guidance)
-        self.assertEqual(len(mc1.colors), 2)
-        self.assertEqual(len(mc1.multicolors), 2)
-        self.assertEqual(len(mc2.colors), 2)
-        self.assertEqual(len(mc2.multicolors), 2)
-        multicolors = [Multicolor(self.genome1, self.genome2), Multicolor(self.genome4, self.genome3)]
-        for mc in [mc1, mc2]:
-            self.assertTrue(mc in multicolors)
-        # portion of a color exists as intersections, while the rest exists as set
-        mc = Multicolor(self.genome1, self.genome2, self.genome4, self.genome3)
-        guidance = [(self.genome1, self.genome5), (self.genome2, self.genome5), (self.genome4, self.genome3)]
-        mc1, mc2, mc3 = Multicolor.split_colors(mc, guidance=guidance)
-        multicolors = [Multicolor(self.genome1), Multicolor(self.genome4, self.genome3), Multicolor(self.genome2)]
-        for mc in [mc1, mc2, mc3]:
-            self.assertTrue(mc in multicolors)
-        # portion of a color exists as intersection, while the rest exists as subset
-        mc = Multicolor(self.genome1, self.genome2, self.genome4, self.genome3)
-        guidance = [(self.genome1, self.genome5), (self.genome2, self.genome5),
-                    (self.genome4, self.genome3, self.genome5)]
-        mc1, mc2, mc3 = Multicolor.split_colors(mc, guidance=guidance)
-        multicolors = [Multicolor(self.genome1), Multicolor(self.genome4, self.genome3), Multicolor(self.genome2)]
-        for mc in [mc1, mc2, mc3]:
-            self.assertTrue(mc in multicolors)
-        # both portions of color exist as intersections
-        mc = Multicolor(self.genome1, self.genome2, self.genome4, self.genome3)
-        guidance = [(self.genome1, self.genome5), (self.genome2, self.genome5), (self.genome4, self.genome5),
-                    (self.genome3, self.genome5)]
-        mc1, mc2, mc3, mc4 = Multicolor.split_colors(mc, guidance=guidance)
-        multicolors = [Multicolor(self.genome1), Multicolor(self.genome4), Multicolor(self.genome2),
-                       Multicolor(self.genome3)]
-        for mc in [mc1, mc2, mc3, mc4]:
-            self.assertTrue(mc in multicolors)
-        # color does not exist in guidance
-        mc = Multicolor(self.genome1, self.genome4)
-        guidance = [(self.genome2, self.genome3), (self.genome2, ), (self.genome3, )]
-        mc = Multicolor.split_colors(mc, guidance=guidance)[0]
-        self.assertEqual(len(mc.colors), 2)
-        self.assertEqual(len(mc.multicolors), 2)
-        self.assertEqual(mc.multicolors[self.genome1], 1)
-        self.assertEqual(mc.multicolors[self.genome4], 1)
+    def test_split_colors_do_not_account_for_multiplicity_in_guidance(self):
+        ###############################################################################################
+        ###############################################################################################
+        #
+        # no guidance, targeted multicolor shall be split on separate colors
+        # keeping respective colors multiplicity intact in each splitted peace
+        #
+        ###############################################################################################
+        mc = Multicolor(self.genome1, self.genome1, self.genome2, self.genome3, self.genome3, self.genome3)
+        result = Multicolor.split_colors(mc, account_for_color_multiplicity_in_guidance=False)
+        ref = [Multicolor(self.genome1, self.genome1),
+               Multicolor(self.genome2),
+               Multicolor(self.genome3, self.genome3, self.genome3)]
+        self.assertEqual(len(result), 3)
+        for result_mc in result:
+            self.assertIn(result_mc, ref)
+        ###############################################################################################
+        ###############################################################################################
+        #
+        # simple case, where guidance contains already multicolor with multiplicity 1
+        # targeted multicolor shall be split based on those colors
+        #     but multiplicity of respective colors in the result shall be kept as it was in the targetted multicolor
+        #
+        ###############################################################################################
+        mc = Multicolor(self.genome1, self.genome1, self.genome2, self.genome3, self.genome3, self.genome3)
+        guidance = [Multicolor(self.genome1, self.genome2), Multicolor(self.genome3)]
+        result = Multicolor.split_colors(mc, guidance=guidance, account_for_color_multiplicity_in_guidance=False)
+        ref = [Multicolor(self.genome1, self.genome1, self.genome2),
+               Multicolor(self.genome3, self.genome3, self.genome3)]
+        self.assertEqual(len(result), 2)
+        for result_mc in result:
+            self.assertIn(result_mc, ref)
+        ###############################################################################################
+        ###############################################################################################
+        #
+        # more complex case, when guidance contains multicolor with multiplicity of colors bigger than 1
+        # in this case, those guidance multicolors will be simplified to same colors multicolors
+        #   but multiplicity of respective colors will be changed to 1
+        # resulted multicolor split shall contain multiplicity of respective colors, as in the original one
+        #
+        ###############################################################################################
+        mc = Multicolor(self.genome1, self.genome1, self.genome2, self.genome3, self.genome3, self.genome3)
+        guidance = [Multicolor(self.genome1, self.genome2, self.genome1), Multicolor(self.genome3, self.genome3)]
+        result = Multicolor.split_colors(mc, guidance=guidance, account_for_color_multiplicity_in_guidance=False)
+        ref = [Multicolor(self.genome1, self.genome1, self.genome2),
+               Multicolor(self.genome3, self.genome3, self.genome3)]
+        self.assertEqual(len(result), 2)
+        for result_mc in result:
+            self.assertIn(result_mc, ref)
+        ###############################################################################################
+        ###############################################################################################
+        #
+        # case when guidance has multiple multicolors, that after simplification would look the same
+        #   (they differ only in the multiplicity of respective colors)
+        #
+        ###############################################################################################
+        mc = Multicolor(self.genome1, self.genome2, self.genome3, self.genome3, self.genome4, self.genome4)
+        guidance = [Multicolor(self.genome1), Multicolor(self.genome1, self.genome1), Multicolor(self.genome1, self.genome1),
+                    Multicolor(self.genome2, self.genome3),
+                    Multicolor(self.genome4)]
+        result = Multicolor.split_colors(mc, guidance=guidance, account_for_color_multiplicity_in_guidance=False)
+        ref = [Multicolor(self.genome1),
+               Multicolor(self.genome2, self.genome3, self.genome3),
+               Multicolor(self.genome4, self.genome4)]
+        self.assertEqual(len(result), 3)
+        for result_mc in result:
+            self.assertIn(result_mc, ref)
 
-    def test_split_colors_complex_multicolor_with_duplications(self):
-        # TODO: fix with tree consistent multicolors tests
-        # full color exists in guidance
-        mc = Multicolor(self.genome1, self.genome4, self.genome1, self.genome4)
-        guidance = [(self.genome1, self.genome4)]
-        mc = Multicolor.split_colors(mc, guidance=guidance)[0]
-        self.assertEqual(len(mc.multicolors), 2)
-        self.assertEqual(mc.multicolors[self.genome1], 2)
-        self.assertEqual(mc.multicolors[self.genome4], 2)
-        ################################################################
-        guidance = [(self.genome1, ), (self.genome4, ), (self.genome1, self.genome4)]
-        mc = Multicolor.split_colors(mc, guidance=guidance)[0]
-        self.assertEqual(len(mc.multicolors), 2)
-        self.assertEqual(mc.multicolors[self.genome1], 2)
-        self.assertEqual(mc.multicolors[self.genome4], 2)
-        ################################################################
-        guidance = [(self.genome1, ), (self.genome4, ), (self.genome1, self.genome4),
-                    (self.genome1, self.genome4, self.genome2), (self.genome2, )]
-        mc = Multicolor.split_colors(mc, guidance=guidance)[0]
-        self.assertEqual(len(mc.multicolors), 2)
-        self.assertEqual(mc.multicolors[self.genome1], 2)
-        self.assertEqual(mc.multicolors[self.genome4], 2)
-        # full color exists in guidance only as subset
-        mc = Multicolor(self.genome1, self.genome4, self.genome1, self.genome4, self.genome1)
-        guidance = [(self.genome1, self.genome4, self.genome2), (self.genome2, )]
-        mc = Multicolor.split_colors(mc, guidance=guidance)[0]
-        self.assertEqual(len(mc.multicolors), 2)
-        self.assertEqual(mc.multicolors[self.genome1], 3)
-        self.assertEqual(mc.multicolors[self.genome4], 2)
-        # full color exists in guidance both as subset and a set itself
-        mc = Multicolor(self.genome1, self.genome4, self.genome1, self.genome1)
-        guidance = [(self.genome1, self.genome4, self.genome2), (self.genome2, ), (self.genome1, self.genome4)]
-        mc = Multicolor.split_colors(mc, guidance=guidance)[0]
-        self.assertEqual(len(mc.multicolors), 2)
-        self.assertEqual(mc.multicolors[self.genome1], 3)
-        self.assertEqual(mc.multicolors[self.genome4], 1)
-        # full color exists in guidance both as subset and portions of it intersect with some guidance subsets
-        mc = Multicolor(self.genome1, self.genome4, self.genome1, self.genome4)
-        guidance = [(self.genome1, self.genome4, self.genome2), (self.genome4, self.genome2),
-                    (self.genome1, self.genome2)]
-        mc = Multicolor.split_colors(mc, guidance=guidance)[0]
-        self.assertEqual(len(mc.multicolors), 2)
-        self.assertEqual(mc.multicolors[self.genome1], 2)
-        self.assertEqual(mc.multicolors[self.genome4], 2)
-        # color does not exist in guidance (nor any of its subsets by themselves), but it intersects with some
-        # guidance sets
-        mc = Multicolor(self.genome1, self.genome4, self.genome1, self.genome4, self.genome1, self.genome4)
-        guidance = [(self.genome1, self.genome2), (self.genome4, self.genome3)]
-        mc1, mc2 = Multicolor.split_colors(mc, guidance=guidance)
-        self.assertEqual(len(mc1.colors), 1)
-        self.assertEqual(len(mc1.multicolors), 1)
-        self.assertEqual(len(mc2.colors), 1)
-        self.assertEqual(len(mc2.multicolors), 1)
-        for mc in [mc1, mc2]:
-            for color in mc.colors:
-                self.assertEqual(mc.multicolors[color], 3)
-        # portion of a color exists in guidance as a set, while rest of it is not mentioned
-        mc = Multicolor(self.genome1, self.genome2, self.genome4, self.genome3)
-        guidance = [(self.genome1, self.genome2), ]
-        mc1, mc2 = Multicolor.split_colors(mc, guidance=guidance)
-        self.assertEqual(len(mc1.colors), 2)
-        self.assertEqual(len(mc1.multicolors), 2)
-        self.assertEqual(len(mc2.colors), 2)
-        self.assertEqual(len(mc2.multicolors), 2)
-        multicolors = [Multicolor(self.genome1, self.genome2), Multicolor(self.genome4, self.genome3)]
-        for mc in [mc1, mc2]:
-            self.assertTrue(mc in multicolors)
-        # portion of a color exists in guidance as subset, while rest of it is not mentioned
-        mc = Multicolor(self.genome1, self.genome2, self.genome4, self.genome3)
-        guidance = [(self.genome1, self.genome2, self.genome5), ]
-        mc1, mc2 = Multicolor.split_colors(mc, guidance=guidance)
-        self.assertEqual(len(mc1.colors), 2)
-        self.assertEqual(len(mc1.multicolors), 2)
-        self.assertEqual(len(mc2.colors), 2)
-        self.assertEqual(len(mc2.multicolors), 2)
-        multicolors = [Multicolor(self.genome1, self.genome2), Multicolor(self.genome4, self.genome3)]
-        for mc in [mc1, mc2]:
-            self.assertTrue(mc in multicolors)
-        # portion of a color exists in guidance as set, while the rest exists as set
-        mc = Multicolor(self.genome1, self.genome2, self.genome4, self.genome3)
-        guidance = [(self.genome1, self.genome2), (self.genome4, self.genome3)]
-        mc1, mc2 = Multicolor.split_colors(mc, guidance=guidance)
-        self.assertEqual(len(mc1.colors), 2)
-        self.assertEqual(len(mc1.multicolors), 2)
-        self.assertEqual(len(mc2.colors), 2)
-        self.assertEqual(len(mc2.multicolors), 2)
-        multicolors = [Multicolor(self.genome1, self.genome2), Multicolor(self.genome4, self.genome3)]
-        for mc in [mc1, mc2]:
-            self.assertTrue(mc in multicolors)
-        # portion of a color exists in guidance as subset, while the rest exists as subset
-        mc = Multicolor(self.genome1, self.genome2, self.genome4, self.genome3)
-        guidance = [(self.genome1, self.genome2, self.genome5), (self.genome4, self.genome3, self.genome5)]
-        mc1, mc2 = Multicolor.split_colors(mc, guidance=guidance)
-        self.assertEqual(len(mc1.colors), 2)
-        self.assertEqual(len(mc1.multicolors), 2)
-        self.assertEqual(len(mc2.colors), 2)
-        self.assertEqual(len(mc2.multicolors), 2)
-        multicolors = [Multicolor(self.genome1, self.genome2), Multicolor(self.genome4, self.genome3)]
-        for mc in [mc1, mc2]:
-            self.assertTrue(mc in multicolors)
-        # portion of a color exists in guidance as set, while the rest exists as subset
-        mc = Multicolor(self.genome1, self.genome2, self.genome4, self.genome3, self.genome1, self.genome2,
-                        self.genome4)
-        guidance = [(self.genome1, self.genome2), (self.genome4, self.genome3, self.genome5)]
-        mc1, mc2 = Multicolor.split_colors(mc, guidance=guidance)
-        self.assertEqual(len(mc1.colors), 2)
-        self.assertEqual(len(mc1.multicolors), 2)
-        self.assertEqual(len(mc2.colors), 2)
-        self.assertEqual(len(mc2.multicolors), 2)
-        multicolors = [Multicolor(self.genome1, self.genome2, self.genome1, self.genome2),
-                       Multicolor(self.genome4, self.genome3, self.genome4)]
-        for mc in [mc1, mc2]:
-            self.assertTrue(mc in multicolors)
-        # portion of a color exists as intersections, while the rest exists as set
-        mc = Multicolor(self.genome1, self.genome2, self.genome4, self.genome3, self.genome2, self.genome4,
-                        self.genome3)
-        guidance = [(self.genome1, self.genome5), (self.genome2, self.genome5), (self.genome4, self.genome3)]
-        mc1, mc2, mc3 = Multicolor.split_colors(mc, guidance=guidance)
-        multicolors = [Multicolor(self.genome1), Multicolor(self.genome4, self.genome3, self.genome4, self.genome3),
-                       Multicolor(self.genome2, self.genome2)]
-        for mc in [mc1, mc2, mc3]:
-            self.assertTrue(mc in multicolors)
-        # portion of a color exists as intersection, while the rest exists as subset
-        mc = Multicolor(self.genome1, self.genome2, self.genome4, self.genome3, self.genome2, self.genome4)
-        guidance = [(self.genome1, self.genome5), (self.genome2, self.genome5),
-                    (self.genome4, self.genome3, self.genome5)]
-        mc1, mc2, mc3 = Multicolor.split_colors(mc, guidance=guidance)
-        multicolors = [Multicolor(self.genome1), Multicolor(self.genome4, self.genome3, self.genome4),
-                       Multicolor(self.genome2, self.genome2)]
-        for mc in [mc1, mc2, mc3]:
-            self.assertTrue(mc in multicolors)
-        # both portions of color exist as intersections
-        mc = Multicolor(self.genome1, self.genome2, self.genome4, self.genome3, self.genome1, self.genome2,
-                        self.genome4, self.genome3)
-        guidance = [(self.genome1, self.genome5), (self.genome2, self.genome5), (self.genome4, self.genome5),
-                    (self.genome3, self.genome5)]
-        mc1, mc2, mc3, mc4 = Multicolor.split_colors(mc, guidance=guidance)
-        multicolors = [Multicolor(self.genome1, self.genome1), Multicolor(self.genome4, self.genome4),
-                       Multicolor(self.genome2, self.genome2),
-                       Multicolor(self.genome3, self.genome3)]
-        for mc in [mc1, mc2, mc3, mc4]:
-            self.assertTrue(mc in multicolors)
-        # color does not exist in guidance
-        mc = Multicolor(self.genome1, self.genome4, self.genome1, self.genome4)
-        guidance = [(self.genome2, self.genome3), (self.genome2, ), (self.genome3, )]
-        mc = Multicolor.split_colors(mc, guidance=guidance)[0]
-        self.assertEqual(len(mc.colors), 2)
-        self.assertEqual(len(mc.multicolors), 2)
-        self.assertEqual(mc.multicolors[self.genome1], 2)
-        self.assertEqual(mc.multicolors[self.genome4], 2)
+    def test_color_splits_no_guidance_sorting(self):
+        ###############################################################################################
+        #
+        # order of multicolors in guidance affects the splitting
+        # if two colors in guidance are both present in the splitting multicolor
+        #   then the first multicolor in the guidance  will be retrieved, but the second might not be,
+        #   as not enough information will be left in the splitting multicolor
+        #
+        ###############################################################################################
+        ###############################################################################################
+        #
+        # simple case, when there are two multicolors in the guidance
+        # we don't account for the
+        #
+        ###############################################################################################
+        mc = Multicolor(self.genome1, self.genome2, self.genome3)
+        guidance = [Multicolor(self.genome1, self.genome2),
+                    Multicolor(self.genome1, self.genome2, self.genome3)]
+        result = Multicolor.split_colors(mc, guidance=guidance, sorted_guidance=True)
+        self.assertEqual(len(result), 2)
+        ref = [Multicolor(self.genome1, self.genome2), Multicolor(self.genome3)]
+        for result_mc in result:
+            self.assertIn(result_mc, ref)
+        ###############################################################################################
+        ###############################################################################################
+        #
+        # simple case, when there are two multicolors in the guidance
+        # we don't account for the
+        #
+        ###############################################################################################
+        mc = Multicolor(self.genome1, self.genome1, self.genome2, self.genome3, self.genome3, self.genome3)
+        guidance = [Multicolor(self.genome1),
+                    Multicolor(self.genome1, self.genome2),
+                    Multicolor(self.genome3, self.genome3, self.genome3, self.genome2)]
+        result = Multicolor.split_colors(mc, guidance=guidance, sorted_guidance=True)
+        ref = [Multicolor(self.genome1), Multicolor(self.genome2, self.genome3, self.genome3, self.genome3)]
+        self.assertEqual(len(result), 3)
+        for result_mc in result:
+            self.assertIn(result_mc, ref)
+
+    ###############################################################################################
+    #
+    # end of splitting test cases
+    #
+    ###############################################################################################
 
     def test_hashable_representation(self):
         # every multicolor has to have a hashable representation, that can be utilized in a set/dict
@@ -706,6 +606,37 @@ class MulticolorTestCase(unittest.TestCase):
         for incorrect_multiplier in [.1, (1,), [1], "1"]:
             with self.assertRaises(TypeError):
                 mc = mc * incorrect_multiplier
+
+    def test_intersect(self):
+        # intersection of two multicolors shall be considered in the same fashion, as intersection of sets
+        # with a note, that multiplicity if shared colors shall be represented in the result
+        mc1 = Multicolor(self.genome1, self.genome2, self.genome3)
+        mc2 = Multicolor(self.genome1, self.genome2)
+        mc3 = mc1.intersect(mc2)
+        self.assertEqual(len(mc3.colors), 2)
+        self.assertEqual(mc3.multicolors[self.genome1], 1)
+        self.assertEqual(mc3.multicolors[self.genome2], 1)
+        self.assertEqual(mc1.intersect(mc2), mc2.intersect(mc1))
+        ###############################################################################################
+        mc1 = Multicolor(self.genome1, self.genome1, self.genome2, self.genome3)
+        mc2 = Multicolor(self.genome2, self.genome2, self.genome1, self.genome3)
+        mc3 = mc1.intersect(mc2)
+        self.assertEqual(len(mc2.colors), 3)
+        self.assertEqual(mc3.multicolors[self.genome1], 1)  # second multicolor has only one copy of this color
+        self.assertEqual(mc3.multicolors[self.genome2], 1)  # first multicolor has only one copy of this color
+        self.assertEqual(mc1.intersect(mc2), mc2.intersect(mc1))
+        ###############################################################################################
+        mc1 = Multicolor(self.genome1, self.genome2, self.genome2, self.genome2)
+        mc2 = Multicolor(self.genome2, self.genome2, self.genome2)
+        mc3 = mc1.intersect(mc2)
+        self.assertEqual(len(mc3.colors), 1)
+        self.assertEqual(mc3.multicolors[self.genome2], 3)
+        self.assertEqual(mc1.intersect(mc2), mc2.intersect(mc1))
+
+    def test_intersect_incorrect_type(self):
+        for incorrect_argument in [1, (1,), [1], "1", Mock()]:
+            with self.assertRaises(TypeError):
+                Multicolor().intersect(incorrect_argument)
 
 
 if __name__ == '__main__':  # pragma: no cover
