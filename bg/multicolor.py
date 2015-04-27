@@ -207,12 +207,10 @@ class Multicolor(object):
         #
         # a reference to the targeted multicolor.
         # such reference is created only for the future requirement to access information about original multicolor
-        # a reference to original multicolor is utilized only in the case, when splitting multicolor is assigned to a new object
-        # before any additional changes are performed.
         # Is done for the sake of code clarity and consistency.
         #
         ###############################################################################################
-        splitting_multicolor = multicolor
+        splitting_multicolor = deepcopy(multicolor)
         if not account_for_color_multiplicity_in_guidance:
             ###############################################################################################
             #
