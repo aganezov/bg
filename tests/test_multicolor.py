@@ -75,6 +75,14 @@ class MulticolorTestCase(unittest.TestCase):
         mc1 = Multicolor(self.genome1, self.genome1, self.genome3)
         mc2 = Multicolor(self.genome1, self.genome3)
         self.assertNotEqual(mc1, mc2)
+        ###############################################################################################
+        #
+        # cases when Multicolor object is compared with a non-Multicolor object
+        # this equality comparison is always False
+        #
+        ###############################################################################################
+        for non_multicolor_type_object in [1, (1,), [1], "1", Mock()]:
+            self.assertNotEqual(Multicolor(), non_multicolor_type_object)
 
     def test_update(self):
         # multicolor can be updated by multiple arguments
