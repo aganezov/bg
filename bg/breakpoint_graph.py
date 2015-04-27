@@ -395,7 +395,8 @@ class BreakpointGraph(object):
         """
         self.__delete_bgedge(bgedge=bgedge, key=key)
 
-    def __split_bgedge(self, bgedge, guidance=None, duplication_splitting=False, key=None):
+    def __split_bgedge(self, bgedge, guidance=None, sorted_guidance=False,
+                       account_for_colors_multiplicity_in_guidance=True, key=None):
         # TODO: redo to support tree consistent multicolors
         """ Splits a :class:`bg.edge.BGEdge` in current :class:`BreakpointGraph` most similar to supplied one (if no unique identifier ``key`` is provided) with respect to supplied guidance.
 
@@ -418,8 +419,9 @@ class BreakpointGraph(object):
         candidate_score = 0
         candidate_data = None
         if key is not None:
-            new_multicolors = Multicolor.split_colors(
-                multicolor=self.bg[bgedge.vertex1][bgedge.vertex2][key]["multicolor"], guidance=guidance)
+            new_multicolors = Multicolor.split_colors(multicolor=self.bg[bgedge.vertex1][bgedge.vertex2][key]["multicolor"],
+                                                      guidance=guidance, sorted_guidance=sorted_guidance,
+                                                      account_for_color_multiplicity_in_guidance=account_for_colors_multiplicity_in_guidance)
             self.__delete_bgedge(bgedge=BGEdge(vertex1=bgedge.vertex1, vertex2=bgedge.vertex2,
                                                multicolor=self.bg[bgedge.vertex1][bgedge.vertex2][key]["multicolor"]),
                                  key=key)
@@ -435,7 +437,9 @@ class BreakpointGraph(object):
                         candidate_data = data
                         candidate_score = score
             if candidate_data is not None:
-                new_multicolors = Multicolor.split_colors(multicolor=candidate_data["multicolor"], guidance=guidance)
+                new_multicolors = Multicolor.split_colors(multicolor=candidate_data["multicolor"],
+                                                          guidance=guidance, sorted_guidance=sorted_guidance,
+                                                          account_for_color_multiplicity_in_guidance=account_for_colors_multiplicity_in_guidance)
                 self.__delete_bgedge(bgedge=BGEdge(vertex1=bgedge.vertex1, vertex2=bgedge.vertex2,
                                                    multicolor=candidate_data["multicolor"]),
                                      key=candidate_id)
@@ -443,7 +447,8 @@ class BreakpointGraph(object):
                     self.__add_bgedge(BGEdge(vertex1=bgedge.vertex1, vertex2=bgedge.vertex2,
                                              multicolor=multicolor), merge=False)
 
-    def split_edge(self, vertex1, vertex2, multicolor, guidance=None, duplication_splitting=False, key=None):
+    def split_edge(self, vertex1, vertex2, multicolor, guidance=None, sorted_guidance=False,
+                   account_for_colors_multiplicity_in_guidance=True, key=None):
         """ Splits an edge in current :class:`BreakpointGraph` most similar to supplied data (if no unique identifier ``key`` is provided) with respect to supplied guidance.
 
         Proxies a call to :meth:`BreakpointGraph._BreakpointGraph__split_bgedge` method.
@@ -461,9 +466,13 @@ class BreakpointGraph(object):
         :return: ``None``, performs inplace changes
         """
         self.__split_bgedge(bgedge=BGEdge(vertex1=vertex1, vertex2=vertex2, multicolor=multicolor), guidance=guidance,
-                            duplication_splitting=duplication_splitting, key=key)
+                            sorted_guidance=sorted_guidance,
+                            account_for_colors_multiplicity_in_guidance=account_for_colors_multiplicity_in_guidance,
+                            key=key)
 
-    def split_bgedge(self, bgedge, guidance=None, duplication_splitting=False, key=None):
+    def split_bgedge(self, bgedge, guidance=None, sorted_guidance=False,
+                     account_for_colors_multiplicity_in_guidance=True,
+                     key=None):
         """ Splits a :class:`bg.edge.BGEdge` in current :class:`BreakpointGraph` most similar to supplied one (if no unique identifier ``key`` is provided) with respect to supplied guidance.
 
         Proxies a call to :meth:`BreakpointGraph._BreakpointGraph__split_bgedge` method.
@@ -478,10 +487,12 @@ class BreakpointGraph(object):
         :type key: any python object. ``int`` is expected
         :return: ``None``, performs inplace changes
         """
-        self.__split_bgedge(bgedge=bgedge, guidance=guidance, duplication_splitting=duplication_splitting,
+        self.__split_bgedge(bgedge=bgedge, guidance=guidance, sorted_guidance=sorted_guidance,
+                            account_for_colors_multiplicity_in_guidance=account_for_colors_multiplicity_in_guidance,
                             key=key)
 
-    def __split_all_edges_between_two_vertices(self, vertex1, vertex2, guidance=None):
+    def __split_all_edges_between_two_vertices(self, vertex1, vertex2, guidance=None, sorted_guidance=False,
+                                               account_for_colors_multiplicity_in_guidance=True):
         """ Splits all edges between two supplied vertices in current :class:`BreakpointGraph` instance with respect to the provided guidance.
 
         Iterates over all edges between two supplied vertices and splits each one of them with respect to the guidance.
@@ -496,9 +507,13 @@ class BreakpointGraph(object):
         """
         edges_to_be_split_keys = [key for v1, v2, key in self.bg.edges_iter(nbunch=vertex1, keys=True) if v2 == vertex2]
         for key in edges_to_be_split_keys:
-            self.__split_bgedge(BGEdge(vertex1=vertex1, vertex2=vertex2, multicolor=None), guidance=guidance, key=key)
+            self.__split_bgedge(BGEdge(vertex1=vertex1, vertex2=vertex2, multicolor=None), guidance=guidance,
+                                sorted_guidance=sorted_guidance,
+                                account_for_colors_multiplicity_in_guidance=account_for_colors_multiplicity_in_guidance,
+                                key=key)
 
-    def split_all_edges_between_two_vertices(self, vertex1, vertex2, guidance=None):
+    def split_all_edges_between_two_vertices(self, vertex1, vertex2, guidance=None, sorted_guidance=False,
+                                             account_for_colors_multiplicity_in_guidance=True):
         """ Splits all edges between two supplied vertices in current :class:`BreakpointGraph` instance with respect to the provided guidance.
 
         Proxies a call to :meth:`BreakpointGraph._BreakpointGraph__split_all_edges_between_two_vertices` method.
@@ -511,9 +526,11 @@ class BreakpointGraph(object):
         :type guidance: iterable where each entry is iterable with colors entries
         :return: ``None``, performs inplace changes
         """
-        self.__split_all_edges_between_two_vertices(vertex1=vertex1, vertex2=vertex2, guidance=guidance)
+        self.__split_all_edges_between_two_vertices(vertex1=vertex1, vertex2=vertex2, guidance=guidance,
+                                                    sorted_guidance=sorted_guidance,
+                                                    account_for_colors_multiplicity_in_guidance=account_for_colors_multiplicity_in_guidance)
 
-    def split_all_edges(self, guidance=None):
+    def split_all_edges(self, guidance=None, sorted_guidance=False, account_for_colors_multiplicity_in_guidance=True):
         """ Splits all edge in current :class:`BreakpointGraph` instance with respect to the provided guidance.
 
         Iterate over all possible distinct pairs of vertices in current :class:`BreakpointGraph` instance and splits all edges between such pairs with respect to provided guidance.
@@ -523,7 +540,9 @@ class BreakpointGraph(object):
         :return: ``None``, performs inplace changes
         """
         for v1, v2 in itertools.combinations(self.bg.nodes_iter(), 2):
-            self.__split_all_edges_between_two_vertices(vertex1=v1, vertex2=v2, guidance=guidance)
+            self.__split_all_edges_between_two_vertices(vertex1=v1, vertex2=v2, guidance=guidance,
+                                                        sorted_guidance=sorted_guidance,
+                                                        account_for_colors_multiplicity_in_guidance=account_for_colors_multiplicity_in_guidance)
 
     def __delete_all_bgedges_between_two_vertices(self, vertex1, vertex2):
         """ Deletes all edges between two supplied vertices
@@ -535,7 +554,7 @@ class BreakpointGraph(object):
         :return: ``None``, performs inplace changes
         """
         edges_to_be_deleted_with_keys = [(key, data) for v1, v2, key, data in self.bg.edges_iter(nbunch=vertex1, keys=True,
-                                                                                          data=True) if v2 == vertex2]
+                                                                                                 data=True) if v2 == vertex2]
         for key, data in edges_to_be_deleted_with_keys:
             self.__delete_bgedge(BGEdge(vertex1=vertex1, vertex2=vertex2, multicolor=data["multicolor"]), key=key)
 

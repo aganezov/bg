@@ -720,7 +720,7 @@ class BreakpointGraphTestCase(unittest.TestCase):
         graph.add_bgedge(edge1)
         self.assertEqual(len(list(graph.nodes())), 2)
         self.assertEqual(len(list(graph.edges())), 1)
-        graph.split_edge(vertex1=v1, vertex2=v2, multicolor=multicolor1, guidance=None, duplication_splitting=False)
+        graph.split_edge(vertex1=v1, vertex2=v2, multicolor=multicolor1)
         self.assertEqual(len(list(graph.nodes())), 2)
         self.assertEqual(len(list(graph.edges())), 1)
         # test with a simple multi-colored edge, no duplications of same color
@@ -732,7 +732,7 @@ class BreakpointGraphTestCase(unittest.TestCase):
         graph.add_bgedge(edge1)
         self.assertEqual(len(list(graph.nodes())), 2)
         self.assertEqual(len(list(graph.edges())), 1)
-        graph.split_edge(vertex1=v1, vertex2=v2, multicolor=multicolor1, guidance=None, duplication_splitting=False)
+        graph.split_edge(vertex1=v1, vertex2=v2, multicolor=multicolor1)
         self.assertEqual(len(list(graph.nodes())), 2)
         self.assertEqual(len(list(graph.edges())), 3)
         edges = list(graph.get_edges_by_vertex(vertex=v1))
@@ -746,7 +746,7 @@ class BreakpointGraphTestCase(unittest.TestCase):
         multicolor1 = Multicolor(self.genome1, self.genome1)
         edge1 = BGEdge(vertex1=v1, vertex2=v2, multicolor=multicolor1)
         graph.add_bgedge(edge1)
-        graph.split_edge(vertex1=v1, vertex2=v2, multicolor=multicolor1, guidance=None, duplication_splitting=False)
+        graph.split_edge(vertex1=v1, vertex2=v2, multicolor=multicolor1)
         self.assertEqual(len(list(graph.nodes())), 2)
         self.assertEqual(len(list(graph.edges())), 1)
         edges = list(graph.get_edges_by_vertex(vertex=v1))
@@ -758,7 +758,7 @@ class BreakpointGraphTestCase(unittest.TestCase):
         multicolor1 = Multicolor(self.genome1, self.genome2, self.genome1, self.genome2, self.genome4)
         edge1 = BGEdge(vertex1=v1, vertex2=v2, multicolor=multicolor1)
         graph.add_bgedge(edge1)
-        graph.split_edge(vertex1=v1, vertex2=v2, multicolor=multicolor1, guidance=None, duplication_splitting=False)
+        graph.split_edge(vertex1=v1, vertex2=v2, multicolor=multicolor1)
         self.assertEqual(len(list(graph.nodes())), 2)
         self.assertEqual(len(list(graph.edges())), 3)
         edges = list(graph.get_edges_by_vertex(vertex=v1))
@@ -777,8 +777,7 @@ class BreakpointGraphTestCase(unittest.TestCase):
         graph.add_bgedge(edge1)
         self.assertEqual(len(list(graph.nodes())), 2)
         self.assertEqual(len(list(graph.edges())), 1)
-        graph.split_bgedge(BGEdge(vertex1=v1, vertex2=v2, multicolor=multicolor1), guidance=None,
-                           duplication_splitting=False)
+        graph.split_bgedge(BGEdge(vertex1=v1, vertex2=v2, multicolor=multicolor1))
         self.assertEqual(len(list(graph.nodes())), 2)
         self.assertEqual(len(list(graph.edges())), 1)
         # test with a simple multi-colored edge, no duplications of same color
@@ -790,8 +789,7 @@ class BreakpointGraphTestCase(unittest.TestCase):
         graph.add_bgedge(edge1)
         self.assertEqual(len(list(graph.nodes())), 2)
         self.assertEqual(len(list(graph.edges())), 1)
-        graph.split_bgedge(BGEdge(vertex1=v1, vertex2=v2, multicolor=multicolor1), guidance=None,
-                           duplication_splitting=False)
+        graph.split_bgedge(BGEdge(vertex1=v1, vertex2=v2, multicolor=multicolor1))
         self.assertEqual(len(list(graph.nodes())), 2)
         self.assertEqual(len(list(graph.edges())), 3)
         edges = list(graph.get_edges_by_vertex(vertex=v1))
@@ -805,8 +803,7 @@ class BreakpointGraphTestCase(unittest.TestCase):
         multicolor1 = Multicolor(self.genome1, self.genome1)
         edge1 = BGEdge(vertex1=v1, vertex2=v2, multicolor=multicolor1)
         graph.add_bgedge(edge1)
-        graph.split_bgedge(BGEdge(vertex1=v1, vertex2=v2, multicolor=multicolor1), guidance=None,
-                           duplication_splitting=False)
+        graph.split_bgedge(BGEdge(vertex1=v1, vertex2=v2, multicolor=multicolor1))
         self.assertEqual(len(list(graph.nodes())), 2)
         self.assertEqual(len(list(graph.edges())), 1)
         edges = list(graph.get_edges_by_vertex(vertex=v1))
@@ -818,8 +815,7 @@ class BreakpointGraphTestCase(unittest.TestCase):
         multicolor1 = Multicolor(self.genome1, self.genome2, self.genome1, self.genome2, self.genome4)
         edge1 = BGEdge(vertex1=v1, vertex2=v2, multicolor=multicolor1)
         graph.add_bgedge(edge1)
-        graph.split_bgedge(BGEdge(vertex1=v1, vertex2=v2, multicolor=multicolor1), guidance=None,
-                           duplication_splitting=False)
+        graph.split_bgedge(BGEdge(vertex1=v1, vertex2=v2, multicolor=multicolor1))
         self.assertEqual(len(list(graph.nodes())), 2)
         self.assertEqual(len(list(graph.edges())), 3)
         edges = list(graph.get_edges_by_vertex(vertex=v1))
@@ -839,8 +835,7 @@ class BreakpointGraphTestCase(unittest.TestCase):
         graph.add_bgedge(edge1, merge=False)
         self.assertEqual(len(list(graph.nodes())), 2)
         self.assertEqual(len(list(graph.edges())), 2)
-        graph.split_bgedge(BGEdge(vertex1=v1, vertex2=v2, multicolor=multicolor1), guidance=None,
-                           duplication_splitting=False)
+        graph.split_bgedge(BGEdge(vertex1=v1, vertex2=v2, multicolor=multicolor1))
         self.assertEqual(len(list(graph.nodes())), 2)
         self.assertEqual(len(list(graph.edges())), 2)
         for bgedge in graph.edges():
@@ -855,8 +850,7 @@ class BreakpointGraphTestCase(unittest.TestCase):
         graph.add_bgedge(edge1, merge=False)
         self.assertEqual(len(list(graph.nodes())), 2)
         self.assertEqual(len(list(graph.edges())), 2)
-        graph.split_bgedge(BGEdge(vertex1=v1, vertex2=v2, multicolor=multicolor1), guidance=None,
-                           duplication_splitting=False)
+        graph.split_bgedge(BGEdge(vertex1=v1, vertex2=v2, multicolor=multicolor1))
         self.assertEqual(len(list(graph.nodes())), 2)
         self.assertEqual(len(list(graph.edges())), 4)
         edges = list(graph.get_edges_by_vertex(vertex=v1))
@@ -871,8 +865,7 @@ class BreakpointGraphTestCase(unittest.TestCase):
         edge1 = BGEdge(vertex1=v1, vertex2=v2, multicolor=multicolor1)
         graph.add_bgedge(edge1)
         graph.add_bgedge(edge1, merge=False)
-        graph.split_bgedge(BGEdge(vertex1=v1, vertex2=v2, multicolor=multicolor1), guidance=None,
-                           duplication_splitting=False)
+        graph.split_bgedge(BGEdge(vertex1=v1, vertex2=v2, multicolor=multicolor1))
         self.assertEqual(len(list(graph.nodes())), 2)
         self.assertEqual(len(list(graph.edges())), 2)
         edges = list(graph.get_edges_by_vertex(vertex=v1))
@@ -888,8 +881,7 @@ class BreakpointGraphTestCase(unittest.TestCase):
         edge2 = BGEdge(vertex1=v1, vertex2=v2, multicolor=multicolor2)
         graph.add_bgedge(edge1)
         graph.add_bgedge(edge2, merge=False)
-        graph.split_bgedge(BGEdge(vertex1=v1, vertex2=v2, multicolor=multicolor1), guidance=None,
-                           duplication_splitting=False)
+        graph.split_bgedge(BGEdge(vertex1=v1, vertex2=v2, multicolor=multicolor1))
         self.assertEqual(len(list(graph.nodes())), 2)
         self.assertEqual(len(list(graph.edges())), 4)
         edges = list(graph.get_edges_by_vertex(vertex=v1))
@@ -909,8 +901,7 @@ class BreakpointGraphTestCase(unittest.TestCase):
         edge2 = BGEdge(vertex1=v1, vertex2=v2, multicolor=multicolor2)
         graph.add_bgedge(edge1)
         graph.add_bgedge(edge2, merge=False)
-        graph.split_bgedge(BGEdge(vertex1=v1, vertex2=v2, multicolor=Multicolor(self.genome5)), guidance=None,
-                           duplication_splitting=False)
+        graph.split_bgedge(BGEdge(vertex1=v1, vertex2=v2, multicolor=Multicolor(self.genome5)))
         self.assertEqual(len(list(graph.nodes())), 2)
         self.assertEqual(len(list(graph.edges())), 2)
         edges = list(graph.get_edges_by_vertex(vertex=v1))
@@ -929,8 +920,7 @@ class BreakpointGraphTestCase(unittest.TestCase):
         graph.add_bgedge(edge1, merge=False)
         self.assertEqual(len(list(graph.nodes())), 2)
         self.assertEqual(len(list(graph.edges())), 2)
-        graph.split_edge(vertex1=v1, vertex2=v2, multicolor=multicolor1, guidance=None,
-                         duplication_splitting=False)
+        graph.split_edge(vertex1=v1, vertex2=v2, multicolor=multicolor1)
         self.assertEqual(len(list(graph.nodes())), 2)
         self.assertEqual(len(list(graph.edges())), 2)
         for bgedge in graph.edges():
@@ -945,8 +935,7 @@ class BreakpointGraphTestCase(unittest.TestCase):
         graph.add_bgedge(edge1, merge=False)
         self.assertEqual(len(list(graph.nodes())), 2)
         self.assertEqual(len(list(graph.edges())), 2)
-        graph.split_edge(vertex1=v1, vertex2=v2, multicolor=multicolor1, guidance=None,
-                         duplication_splitting=False)
+        graph.split_edge(vertex1=v1, vertex2=v2, multicolor=multicolor1)
         self.assertEqual(len(list(graph.nodes())), 2)
         self.assertEqual(len(list(graph.edges())), 4)
         edges = list(graph.get_edges_by_vertex(vertex=v1))
@@ -961,8 +950,7 @@ class BreakpointGraphTestCase(unittest.TestCase):
         edge1 = BGEdge(vertex1=v1, vertex2=v2, multicolor=multicolor1)
         graph.add_bgedge(edge1)
         graph.add_bgedge(edge1, merge=False)
-        graph.split_edge(vertex1=v1, vertex2=v2, multicolor=multicolor1, guidance=None,
-                         duplication_splitting=False)
+        graph.split_edge(vertex1=v1, vertex2=v2, multicolor=multicolor1)
         self.assertEqual(len(list(graph.nodes())), 2)
         self.assertEqual(len(list(graph.edges())), 2)
         edges = list(graph.get_edges_by_vertex(vertex=v1))
@@ -978,8 +966,7 @@ class BreakpointGraphTestCase(unittest.TestCase):
         edge2 = BGEdge(vertex1=v1, vertex2=v2, multicolor=multicolor2)
         graph.add_bgedge(edge1)
         graph.add_bgedge(edge2, merge=False)
-        graph.split_edge(vertex1=v1, vertex2=v2, multicolor=multicolor1, guidance=None,
-                         duplication_splitting=False)
+        graph.split_edge(vertex1=v1, vertex2=v2, multicolor=multicolor1)
         self.assertEqual(len(list(graph.nodes())), 2)
         self.assertEqual(len(list(graph.edges())), 4)
         edges = list(graph.get_edges_by_vertex(vertex=v1))
@@ -999,8 +986,7 @@ class BreakpointGraphTestCase(unittest.TestCase):
         edge2 = BGEdge(vertex1=v1, vertex2=v2, multicolor=multicolor2)
         graph.add_bgedge(edge1)
         graph.add_bgedge(edge2, merge=False)
-        graph.split_edge(vertex1=v1, vertex2=v2, multicolor=Multicolor(self.genome5), guidance=None,
-                         duplication_splitting=False)
+        graph.split_edge(vertex1=v1, vertex2=v2, multicolor=Multicolor(self.genome5))
         self.assertEqual(len(list(graph.nodes())), 2)
         self.assertEqual(len(list(graph.edges())), 2)
         edges = list(graph.get_edges_by_vertex(vertex=v1))
@@ -1019,13 +1005,12 @@ class BreakpointGraphTestCase(unittest.TestCase):
         graph.add_bgedge(edge1, merge=False)
         self.assertEqual(len(list(graph.nodes())), 2)
         self.assertEqual(len(list(graph.edges())), 2)
-        graph.split_edge(vertex1=v1, vertex2=v2, multicolor=multicolor1, guidance=[(self.genome1,)],
-                         duplication_splitting=False)
+        graph.split_edge(vertex1=v1, vertex2=v2, multicolor=multicolor1, guidance=[Multicolor(self.genome1)])
         self.assertEqual(len(list(graph.nodes())), 2)
         self.assertEqual(len(list(graph.edges())), 2)
         for bgedge in graph.edges():
             self.assertEqual(bgedge, edge1)
-        # test with a multiple multi-colored edges, no duplications of same color (one splits, another stays)
+        # test with a multiple multi-colored edges, no duplications of same color (one is splitted, another stays as is)
         graph = BreakpointGraph()
         v1 = self.v1
         v2 = self.v2
@@ -1035,8 +1020,7 @@ class BreakpointGraphTestCase(unittest.TestCase):
         graph.add_bgedge(edge1, merge=False)
         self.assertEqual(len(list(graph.nodes())), 2)
         self.assertEqual(len(list(graph.edges())), 2)
-        graph.split_edge(vertex1=v1, vertex2=v2, multicolor=multicolor1, guidance=[(self.genome1, self.genome4)],
-                         duplication_splitting=False)
+        graph.split_edge(vertex1=v1, vertex2=v2, multicolor=multicolor1, guidance=[Multicolor(self.genome1, self.genome4)])
         self.assertEqual(len(list(graph.nodes())), 2)
         self.assertEqual(len(list(graph.edges())), 3)
         edges = list(graph.get_edges_by_vertex(vertex=v1))
@@ -1051,13 +1035,12 @@ class BreakpointGraphTestCase(unittest.TestCase):
         edge1 = BGEdge(vertex1=v1, vertex2=v2, multicolor=multicolor1)
         graph.add_bgedge(edge1)
         graph.add_bgedge(edge1, merge=False)
-        graph.split_edge(vertex1=v1, vertex2=v2, multicolor=multicolor1, guidance=[(self.genome1,)],
-                         duplication_splitting=False)
+        graph.split_edge(vertex1=v1, vertex2=v2, multicolor=multicolor1, guidance=[Multicolor(self.genome1)])
         self.assertEqual(len(list(graph.nodes())), 2)
-        self.assertEqual(len(list(graph.edges())), 2)
+        self.assertEqual(len(list(graph.edges())), 3)
         edges = list(graph.get_edges_by_vertex(vertex=v1))
-        self.assertEqual(edges[0].multicolor, multicolor1)
-        self.assertEqual(edges[1].multicolor, multicolor1)
+        for bgedge in edges:
+            self.assertIn(bgedge.multicolor, [multicolor1, Multicolor(self.genome1)])
         # test case with two a multi-colored edge with duplications of same color
         graph = BreakpointGraph()
         v1 = self.v1
@@ -1068,12 +1051,11 @@ class BreakpointGraphTestCase(unittest.TestCase):
         edge2 = BGEdge(vertex1=v1, vertex2=v2, multicolor=multicolor2)
         graph.add_bgedge(edge1)
         graph.add_bgedge(edge2, merge=False)
-        graph.split_edge(vertex1=v1, vertex2=v2, multicolor=multicolor1, guidance=[(self.genome1, self.genome4)],
-                         duplication_splitting=False)
+        graph.split_edge(vertex1=v1, vertex2=v2, multicolor=multicolor1, guidance=[Multicolor(self.genome1, self.genome4)])
         self.assertEqual(len(list(graph.nodes())), 2)
-        self.assertEqual(len(list(graph.edges())), 3)
+        self.assertEqual(len(list(graph.edges())), 4)
         edges = list(graph.get_edges_by_vertex(vertex=v1))
-        multicolors = [Multicolor(self.genome1, self.genome1, self.genome4), Multicolor(self.genome2, self.genome2),
+        multicolors = [Multicolor(self.genome1, self.genome4), Multicolor(self.genome2, self.genome2), Multicolor(self.genome1),
                        multicolor2]
         for bgedge in edges:
             self.assertTrue(bgedge.multicolor in multicolors)
@@ -1089,8 +1071,7 @@ class BreakpointGraphTestCase(unittest.TestCase):
         graph.add_bgedge(edge1)
         graph.add_bgedge(edge2, merge=False)
         graph.split_edge(vertex1=v1, vertex2=v2, multicolor=Multicolor(self.genome5),
-                         guidance=[(self.genome1, self.genome2)],
-                         duplication_splitting=False)
+                         guidance=[Multicolor(self.genome1, self.genome2)])
         self.assertEqual(len(list(graph.nodes())), 2)
         self.assertEqual(len(list(graph.edges())), 2)
         edges = list(graph.get_edges_by_vertex(vertex=v1))
@@ -1110,8 +1091,8 @@ class BreakpointGraphTestCase(unittest.TestCase):
         key = min(graph.bg[v1][v2].keys())
         self.assertEqual(len(list(graph.nodes())), 2)
         self.assertEqual(len(list(graph.edges())), 2)
-        graph.split_edge(vertex1=v1, vertex2=v2, multicolor=multicolor1, guidance=[(self.genome1,)],
-                         duplication_splitting=False, key=key)
+        graph.split_edge(vertex1=v1, vertex2=v2, multicolor=multicolor1, guidance=[Multicolor(self.genome1)],
+                         key=key)
         self.assertEqual(len(list(graph.nodes())), 2)
         self.assertEqual(len(list(graph.edges())), 2)
         for bgedge in graph.edges():
@@ -1132,8 +1113,7 @@ class BreakpointGraphTestCase(unittest.TestCase):
         self.assertEqual(len(list(graph.nodes())), 2)
         self.assertEqual(len(edges), 2)
         graph.split_edge(vertex1=v1, vertex2=v2, multicolor=Multicolor(self.genome1, self.genome4, self.genome2),
-                         guidance=[(self.genome1, self.genome4)],
-                         duplication_splitting=False,
+                         guidance=[Multicolor(self.genome1, self.genome4)],
                          key=key)
         self.assertEqual(len(list(graph.nodes())), 2)
         self.assertEqual(len(list(graph.edges())), 3)
@@ -1150,13 +1130,13 @@ class BreakpointGraphTestCase(unittest.TestCase):
         graph.add_bgedge(edge1)
         graph.add_bgedge(edge1, merge=False)
         key = max(graph.bg[v1][v2].keys())
-        graph.split_edge(vertex1=v1, vertex2=v2, multicolor=multicolor1, guidance=[(self.genome1,)],
-                         duplication_splitting=False, key=key)
+        graph.split_edge(vertex1=v1, vertex2=v2, multicolor=multicolor1, guidance=[Multicolor(self.genome1)],
+                         key=key)
         self.assertEqual(len(list(graph.nodes())), 2)
-        self.assertEqual(len(list(graph.edges())), 2)
+        self.assertEqual(len(list(graph.edges())), 3)
         edges = list(graph.get_edges_by_vertex(vertex=v1))
-        self.assertEqual(edges[0].multicolor, multicolor1)
-        self.assertEqual(edges[1].multicolor, multicolor1)
+        for bgedge in edges:
+            self.assertIn(bgedge.multicolor, [Multicolor(self.genome1, self.genome1), Multicolor(self.genome1)])
         # test case with two a multi-colored edge with duplications of same color, key prevails over
         # similarity score of multicolor
         graph = BreakpointGraph()
@@ -1169,12 +1149,12 @@ class BreakpointGraphTestCase(unittest.TestCase):
         graph.add_bgedge(edge1)
         graph.add_bgedge(edge2, merge=False)
         key = max(graph.bg[v1][v2].keys())
-        graph.split_edge(vertex1=v1, vertex2=v2, multicolor=multicolor1, guidance=[(self.genome1, self.genome4)],
-                         duplication_splitting=False, key=key)
+        graph.split_edge(vertex1=v1, vertex2=v2, multicolor=multicolor1, guidance=[Multicolor(self.genome1, self.genome4)],
+                         key=key)
         self.assertEqual(len(list(graph.nodes())), 2)
-        self.assertEqual(len(list(graph.edges())), 3)
+        self.assertEqual(len(list(graph.edges())), 4)
         edges = list(graph.get_edges_by_vertex(vertex=v1))
-        multicolors = [Multicolor(self.genome1, self.genome1), Multicolor(self.genome2, self.genome2),
+        multicolors = [Multicolor(self.genome1, self.genome4), Multicolor(self.genome2, self.genome2), Multicolor(self.genome1),
                        multicolor1]
         for bgedge in edges:
             self.assertTrue(bgedge.multicolor in multicolors)
@@ -1191,13 +1171,12 @@ class BreakpointGraphTestCase(unittest.TestCase):
         graph.add_bgedge(edge2, merge=False)
         key = min(graph.bg[v1][v2].keys())
         graph.split_edge(vertex1=v1, vertex2=v2, multicolor=Multicolor(self.genome5),
-                         guidance=[(self.genome1, self.genome2)],
-                         duplication_splitting=False, key=key)
+                         guidance=[Multicolor(self.genome1, self.genome2)],
+                         key=key)
         self.assertEqual(len(list(graph.nodes())), 2)
-        self.assertEqual(len(list(graph.edges())), 3)
+        self.assertEqual(len(list(graph.edges())), 4)
         edges = list(graph.get_edges_by_vertex(vertex=v1))
-        multicolors = [multicolor2, Multicolor(self.genome1, self.genome1, self.genome2, self.genome2),
-                       Multicolor(self.genome4)]
+        multicolors = [multicolor2, Multicolor(self.genome1, self.genome2), Multicolor(self.genome4)]
         for bgedge in edges:
             self.assertTrue(bgedge.multicolor in multicolors)
 
@@ -1219,7 +1198,7 @@ class BreakpointGraphTestCase(unittest.TestCase):
         self.assertEqual(edges[1].multicolor, multicolor1)
         # test with a two one-colored edges (both will stay as is)
         # with guidance
-        graph.split_all_edges_between_two_vertices(vertex1=v1, vertex2=v2, guidance=[(self.genome1,)])
+        graph.split_all_edges_between_two_vertices(vertex1=v1, vertex2=v2, guidance=[Multicolor(self.genome1)])
         self.assertEqual(len(list(graph.nodes())), 2)
         self.assertEqual(len(list(graph.edges())), 2)
         edges = list(graph.get_edges_by_vertex(vertex=v1))
@@ -1250,11 +1229,11 @@ class BreakpointGraphTestCase(unittest.TestCase):
         edge1 = BGEdge(vertex1=v1, vertex2=v2, multicolor=multicolor1)
         graph.add_bgedge(edge1)
         graph.add_bgedge(edge1, merge=False)
-        graph.split_all_edges_between_two_vertices(vertex1=v1, vertex2=v2, guidance=[(self.genome1, self.genome4)])
+        graph.split_all_edges_between_two_vertices(vertex1=v1, vertex2=v2, guidance=[Multicolor(self.genome1, self.genome4)])
         self.assertEqual(len(list(graph.nodes())), 2)
         self.assertEqual(len(list(graph.edges())), 4)
         edges = list(graph.get_edges_by_vertex(vertex=v1))
-        multicolors = Multicolor.split_colors(multicolor=multicolor1, guidance=[(self.genome1, self.genome4)])
+        multicolors = Multicolor.split_colors(multicolor=multicolor1, guidance=[Multicolor(self.genome1, self.genome4)])
         for bgedge in edges:
             self.assertTrue(bgedge.multicolor in multicolors)
         # test with a two multi-colored edges no duplications
@@ -1266,7 +1245,7 @@ class BreakpointGraphTestCase(unittest.TestCase):
         edge1 = BGEdge(vertex1=v1, vertex2=v2, multicolor=multicolor1)
         graph.add_bgedge(edge1)
         graph.add_bgedge(edge1, merge=False)
-        graph.split_all_edges_between_two_vertices(vertex1=v1, vertex2=v2, guidance=None)
+        graph.split_all_edges_between_two_vertices(vertex1=v1, vertex2=v2)
         self.assertEqual(len(list(graph.nodes())), 2)
         self.assertEqual(len(list(graph.edges())), 6)
         edges = list(graph.get_edges_by_vertex(vertex=v1))
@@ -1282,11 +1261,11 @@ class BreakpointGraphTestCase(unittest.TestCase):
         edge1 = BGEdge(vertex1=v1, vertex2=v2, multicolor=multicolor1)
         graph.add_bgedge(edge1)
         graph.add_bgedge(edge1, merge=False)
-        graph.split_all_edges_between_two_vertices(vertex1=v1, vertex2=v2, guidance=[(self.genome1, self.genome4)])
+        graph.split_all_edges_between_two_vertices(vertex1=v1, vertex2=v2, guidance=[Multicolor(self.genome1, self.genome4)])
         self.assertEqual(len(list(graph.nodes())), 2)
-        self.assertEqual(len(list(graph.edges())), 4)
+        self.assertEqual(len(list(graph.edges())), 6)
         edges = list(graph.get_edges_by_vertex(vertex=v1))
-        multicolors = Multicolor.split_colors(multicolor=multicolor1, guidance=[(self.genome1, self.genome4)])
+        multicolors = Multicolor.split_colors(multicolor=multicolor1, guidance=[Multicolor(self.genome1, self.genome4)])
         for bgedge in edges:
             self.assertTrue(bgedge.multicolor in multicolors)
 
@@ -1367,14 +1346,14 @@ class BreakpointGraphTestCase(unittest.TestCase):
         graph.add_bgedge(edge1, merge=False)
         graph.add_bgedge(edge2)
         graph.add_bgedge(edge3)
-        graph.split_all_edges(guidance=[(self.genome1, self.genome4)])
+        graph.split_all_edges(guidance=[Multicolor(self.genome1, self.genome4)])
         self.assertEqual(len(list(graph.nodes())), 5)
         self.assertEqual(len(list(graph.edges())), 8)
         self.assertEqual(len(list(graph.get_edges_by_vertex(vertex=v1))), 6)
         self.assertEqual(len(list(graph.get_edges_by_vertex(vertex=v2))), 4)
         self.assertEqual(len(list(graph.get_edges_by_vertex(vertex=v4))), 2)
         edges = list(graph.edges())
-        multicolors = Multicolor.split_colors(multicolor=multicolor1, guidance=[(self.genome1, self.genome4)])
+        multicolors = Multicolor.split_colors(multicolor=multicolor1, guidance=[Multicolor(self.genome1, self.genome4)])
         for bgedge in edges:
             self.assertTrue(bgedge.multicolor in multicolors)
         # test with a four multi-colored edges with duplications
@@ -1425,14 +1404,14 @@ class BreakpointGraphTestCase(unittest.TestCase):
         graph.add_bgedge(edge1, merge=False)
         graph.add_bgedge(edge2)
         graph.add_bgedge(edge3)
-        graph.split_all_edges(guidance=[(self.genome1, self.genome4)])
+        graph.split_all_edges(guidance=[Multicolor(self.genome1, self.genome4)])
         self.assertEqual(len(list(graph.nodes())), 5)
-        self.assertEqual(len(list(graph.edges())), 8)
-        self.assertEqual(len(list(graph.get_edges_by_vertex(vertex=v1))), 6)
-        self.assertEqual(len(list(graph.get_edges_by_vertex(vertex=v2))), 4)
-        self.assertEqual(len(list(graph.get_edges_by_vertex(vertex=v4))), 2)
+        self.assertEqual(len(list(graph.edges())), 12)
+        self.assertEqual(len(list(graph.get_edges_by_vertex(vertex=v1))), 9)
+        self.assertEqual(len(list(graph.get_edges_by_vertex(vertex=v2))), 6)
+        self.assertEqual(len(list(graph.get_edges_by_vertex(vertex=v4))), 3)
         edges = list(graph.edges())
-        multicolors = Multicolor.split_colors(multicolor=multicolor1, guidance=[(self.genome1, self.genome4)])
+        multicolors = Multicolor.split_colors(multicolor=multicolor1, guidance=[Multicolor(self.genome1, self.genome4)])
         for bgedge in edges:
             self.assertTrue(bgedge.multicolor in multicolors)
 
