@@ -397,7 +397,6 @@ class BreakpointGraph(object):
 
     def __split_bgedge(self, bgedge, guidance=None, sorted_guidance=False,
                        account_for_colors_multiplicity_in_guidance=True, key=None):
-        # TODO: redo to support tree consistent multicolors
         """ Splits a :class:`bg.edge.BGEdge` in current :class:`BreakpointGraph` most similar to supplied one (if no unique identifier ``key`` is provided) with respect to supplied guidance.
 
         If no unique identifier for edge to be changed is specified, edge to be split is determined by iterating over all edges between vertices in supplied :class:`bg.edge.BGEdge` instance and the edge with most similarity score to supplied one is chosen.
