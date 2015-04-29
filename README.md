@@ -1,7 +1,7 @@
 Breakpoint Graph
 ================
-[![Build Status](https://travis-ci.org/sergey-aganezov-jr/bg.svg?branch=aganezov)](https://travis-ci.org/sergey-aganezov-jr/bg) 
-[![Coverage Status](https://coveralls.io/repos/sergey-aganezov-jr/bg/badge.svg?branch=aganezov)](https://coveralls.io/r/sergey-aganezov-jr/bg?branch=aganezov)
+[![Build Status](https://travis-ci.org/aganezov/bg.svg?branch=aganezov)](https://travis-ci.org/aganezov/bg) 
+[![Coverage Status](https://coveralls.io/repos/aganezov/bg/badge.svg?branch=aganezov)](https://coveralls.io/r/aganezov/bg?branch=aganezov)
 
 [![Supported Python versions](https://pypip.in/py_versions/bg/badge.svg?style=flat)](https://pypi.python.org/pypi/bg/) 
 [![Wheel Status](https://pypip.in/wheel/bg/badge.svg?style=flat)](https://pypi.python.org/pypi/bg/)
