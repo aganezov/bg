@@ -3,7 +3,7 @@ from marshmallow import Schema, fields
 
 __author__ = "aganezov"
 __email__ = "aganezov(at)gwu.edu"
-__status__ = "develop"
+__status__ = "production"
 
 # module wide constant, that is utilized for json dict key creation
 BGGenome_JSON_SCHEMA_JSON_KEY = "_py__bg_genome_json_schema"

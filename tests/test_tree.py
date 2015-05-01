@@ -6,7 +6,7 @@ from bg.tree import BGTree, NewickReader, DEFAULT_EDGE_LENGTH
 
 __author__ = "Sergey Aganezov"
 __email__ = "aganezov(at)gwu.edu"
-__status__ = "develop"
+__status__ = "production"
 
 import unittest
 

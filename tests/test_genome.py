@@ -1,6 +1,6 @@
 __author__ = "Sergey Aganezov"
 __email__ = "aganezov(at)gwu.edu"
-__status__ = "develop"
+__status__ = "production"
 
 import unittest
 from bg.genome import BGGenome, BGGenome_JSON_SCHEMA_JSON_KEY
