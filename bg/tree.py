@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+from copy import deepcopy
 import itertools
 from networkx import Graph
 import networkx as nx
@@ -268,6 +269,12 @@ class BGTree(object):
     def __init__(self):
         self.__root = None
         self.graph = Graph()
+        self.multicolors_are_up_to_date = True
+        self.__consistent_multicolors_set = {Multicolor().hashable_representation}
+        self.__consistent_multicolors = [Multicolor()]
+        self.account_for_wgd = False
+        self.__prev_account_for_wgd = False
+        self.__prev_rooted = False
 
     def nodes(self, data=False):
         """ Proxies iteration to the underlying networkx.Graph.nodes iterator
@@ -293,6 +300,7 @@ class BGTree(object):
         """ Adds a new node to current graph
         """
         self.graph.add_node(node)
+        self.multicolors_are_up_to_date = False
 
     def __set_wgd_count(self, vertex1, vertex2, wgd_count):
         """ Explicit method to update a number of wgd events associate with current edge (defined by a pair of vertices)
@@ -308,6 +316,7 @@ class BGTree(object):
         if not isinstance(wgd_count, int):
             raise ValueError("Only integer values can be assigned as a whole genome duplication count for tree edges")
         self.graph[vertex1][vertex2][self.wgd_events_count_attribute_name] = wgd_count
+        self.multicolors_are_up_to_date = False
 
     def set_wgd_count(self, vertex1, vertex2, wgd_count):
         """ Subclass safe method for explicit wgd setting, that proxies a call to __set_wgd_count """
@@ -348,6 +357,7 @@ class BGTree(object):
         self.graph.add_edge(u=vertex1, v=vertex2)
         self.__set_wgd_count(vertex1=vertex1, vertex2=vertex2, wgd_count=wgd_events)
         self.__set_edge_length(vertex1=vertex1, vertex2=vertex2, edge_length=edge_length)
+        self.multicolors_are_up_to_date = False
 
     @property
     def is_valid_tree(self):
@@ -387,6 +397,7 @@ class BGTree(object):
         if value is not None and value not in self.graph:
             raise ValueError("Only existing node can be set as root")
         self.__root = value
+        self.multicolors_are_up_to_date = False
 
     def append(self, tree):
         """ Append a specified tree, to a current one in a fashion of taken union of edges and vertices between two trees
@@ -398,6 +409,7 @@ class BGTree(object):
         :return: nothing, inplace changes
         """
         self.graph.add_edges_from(tree.graph.edges_iter(data=True))
+        self.multicolors_are_up_to_date = False
 
     def edge_length(self, vertex1, vertex2):
         """ Returns a length of an edge, if exists, from the current tree
@@ -504,11 +516,24 @@ class BGTree(object):
         return result
 
     def get_tree_consistent_multicolors(self, rooted=True, account_for_wgd=True):
-        """ Obtains all tree consistent multicolors for a current tree
+        """ Checks for basic properties of a request for a consistent multicolors, updates internal values if needed and returns a frech copy of a list of tree consistent multicolors
 
         :param rooted: a flag to indicate if one want to obtain tree consistent multicolor, assuming tree is rooted somewhere
         :param account_for_wgd: a flag to indicate if whole genome duplication events shall have any impact on tree consistency of multicolors
-        :return: a list of tree consistent multicolor
+        :return: a deepcopy of a list of tree consistent multicolors
+        :raises: ValueError
+        """
+        if not self.multicolors_are_up_to_date or rooted != self.__prev_rooted or account_for_wgd != self.__prev_account_for_wgd:
+            self.__update_consistet_multicolors(rooted=rooted, account_for_wgd=account_for_wgd)
+        self.account_for_wgd = self.__prev_account_for_wgd
+        return deepcopy(self.consistent_multicolors)
+
+    def __update_consistet_multicolors(self, rooted=True, account_for_wgd=True):
+        """ Updates information about tree consistent multicolors for the tree, that might have been changed
+
+        :param rooted: a flag to indicate if one want to obtain tree consistent multicolor, assuming tree is rooted somewhere
+        :param account_for_wgd: a flag to indicate if whole genome duplication events shall have any impact on tree consistency of multicolors
+        :return: updates internal values
         :raises: ValueError
         """
         #########################################################################################################
@@ -522,13 +547,6 @@ class BGTree(object):
         if not rooted and account_for_wgd or rooted and self.root is None:
             raise ValueError("Tree consistent colors, that take whole genome duplication into consideration can not "
                              "be constructed on the unrooted tree")
-        #########################################################################################################
-        #
-        # empty tree has only a single tree consistent multicolor, which is an empty multicolor
-        #
-        #########################################################################################################
-        if self.graph.number_of_nodes() == 0:
-            return [Multicolor()]
         #########################################################################################################
         #
         # when we don't account for whole genome duplication events we still need to start from some node
@@ -577,4 +595,31 @@ class BGTree(object):
         #
         #########################################################################################################
         hashed_vertex_tree_consistent_multicolors = {mc.hashable_representation for mc in result}
-        return [Multicolor(*hashed_multicolor) for hashed_multicolor in hashed_vertex_tree_consistent_multicolors]
+        self.consistent_multicolors_set = hashed_vertex_tree_consistent_multicolors
+        self.consistent_multicolors = [Multicolor(*hashed_multicolor) for hashed_multicolor in
+                                       hashed_vertex_tree_consistent_multicolors]
+        self.multicolors_are_up_to_date = True
+        self.__prev_account_for_wgd = account_for_wgd
+        self.__prev_rooted = rooted
+
+    @property
+    def consistent_multicolors(self):
+        if not self.multicolors_are_up_to_date or self.account_for_wgd != self.__prev_account_for_wgd or (self.root is not None) != self.__prev_rooted:
+            self.__update_consistet_multicolors(rooted=self.root is not None, account_for_wgd=self.account_for_wgd)
+        self.account_for_wgd = self.__prev_account_for_wgd
+        return self.__consistent_multicolors
+
+    @property
+    def consistent_multicolors_set(self):
+        if not self.multicolors_are_up_to_date or self.account_for_wgd != self.__prev_account_for_wgd or (self.root is not None) != self.__prev_rooted:
+            self.__update_consistet_multicolors(rooted=self.root is not None, account_for_wgd=self.account_for_wgd)
+        self.account_for_wgd = self.__prev_account_for_wgd
+        return self.__consistent_multicolors_set
+
+    @consistent_multicolors.setter
+    def consistent_multicolors(self, value):
+        self.__consistent_multicolors = value
+
+    @consistent_multicolors_set.setter
+    def consistent_multicolors_set(self, value):
+        self.__consistent_multicolors_set = value

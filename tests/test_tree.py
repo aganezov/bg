@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+from unittest.mock import Mock
 from bg import Multicolor
 from bg.genome import BGGenome
 from bg.tree import BGTree, NewickReader, DEFAULT_EDGE_LENGTH
@@ -27,6 +28,10 @@ class BGTreeTestCase(unittest.TestCase):
         self.assertTrue(tree.is_valid_tree)
         self.assertEqual(len(list(tree.nodes())), 0)
         self.assertEqual(len(list(tree.edges())), 0)
+        self.assertListEqual(tree.consistent_multicolors, [Multicolor()])
+        self.assertSetEqual(tree.consistent_multicolors_set, {Multicolor().hashable_representation})
+        self.assertFalse(tree.account_for_wgd)
+        self.assertTrue(tree.multicolors_are_up_to_date)
 
     def test_add_genome(self):
         # tree support additional of genomes on their own, without edges
@@ -36,6 +41,7 @@ class BGTreeTestCase(unittest.TestCase):
         self.assertTrue(tree.is_valid_tree)
         self.assertEqual(len(list(tree.nodes())), 1)
         self.assertEqual(len(list(tree.edges())), 0)
+        self.assertFalse(tree.multicolors_are_up_to_date)
 
     def test_edge_length(self):
         # every edge in a tree has a length
@@ -79,6 +85,7 @@ class BGTreeTestCase(unittest.TestCase):
         self.assertEqual(len(list(tree.nodes())), 2)
         self.assertEqual(len(list(tree.edges())), 1)
         self.assertEqual(tree.edge_length(self.v1, self.v2), 1)
+        self.assertFalse(tree.multicolors_are_up_to_date)
 
     def test_add_edge_explicit_edge_length(self):
         # when an edge is added, one can explicitly set its length
@@ -88,6 +95,7 @@ class BGTreeTestCase(unittest.TestCase):
         self.assertEqual(len(list(tree.nodes())), 2)
         self.assertEqual(len(list(tree.edges())), 1)
         self.assertEqual(tree.edge_length(self.v1, self.v2), 5)
+        self.assertFalse(tree.multicolors_are_up_to_date)
 
     def test_add_edge_explicit_wgd(self):
         # when an edge is added, one can explicitly set the number of whole genome duplication events associated with it
@@ -95,6 +103,7 @@ class BGTreeTestCase(unittest.TestCase):
         tree.add_edge(vertex1=self.v1, vertex2=self.v2, wgd_events=5)
         self.assertEqual(tree.edge_wgd_count(vertex1=self.v1, vertex2=self.v2), 5)
         self.assertEqual(tree.edge_wgd_count(vertex1=self.v2, vertex2=self.v1), 5)
+        self.assertFalse(tree.multicolors_are_up_to_date)
 
     def test_has_edge(self):
         # tree has a O(1) method to check, if an edge exists between two given vertices
@@ -133,6 +142,7 @@ class BGTreeTestCase(unittest.TestCase):
         self.assertEqual(tree.root, self.v1)
         tree.root = None
         self.assertIsNone(tree.root)
+        self.assertFalse(tree.multicolors_are_up_to_date)
 
     def test_append_tree(self):
         # two trees can be combined together
@@ -143,14 +153,18 @@ class BGTreeTestCase(unittest.TestCase):
         tree2.add_edge(vertex1=self.v2, vertex2=self.v3)
         self.assertTrue(tree1.is_valid_tree)
         self.assertTrue(tree2.is_valid_tree)
+        tree1.multicolors_are_up_to_date = True
+        tree2.multicolors_are_up_to_date = True
         tree1.append(tree=tree2)
         #####
+        self.assertFalse(tree1.multicolors_are_up_to_date)
         self.assertTrue(tree1.is_valid_tree)
         self.assertEqual(len(list(tree1.nodes())), 3)
         self.assertEqual(len(list(tree1.edges())), 2)
         self.assertTrue(tree1.has_edge(vertex1=self.v3, vertex2=self.v2))
         self.assertTrue(tree1.has_edge(vertex1=self.v1, vertex2=self.v2))
         #####
+        self.assertTrue(tree2.multicolors_are_up_to_date)
         self.assertTrue(tree2.is_valid_tree)
         self.assertEqual(len(list(tree2.nodes())), 2)
         self.assertEqual(len(list(tree2.edges())), 1)
@@ -159,23 +173,31 @@ class BGTreeTestCase(unittest.TestCase):
         # a wgd events count can be set for a specific edge explicitly
         tree = BGTree()
         tree.add_edge(vertex1=self.v1, vertex2=self.v2)
+        tree.multicolors_are_up_to_date = True
         self.assertEqual(tree.edge_wgd_count(vertex1=self.v1, vertex2=self.v2), 0)
         tree.set_wgd_count(vertex1=self.v1, vertex2=self.v2, wgd_count=2)
+        self.assertFalse(tree.multicolors_are_up_to_date)
+        tree.multicolors_are_up_to_date = True
         self.assertEqual(tree.edge_wgd_count(vertex1=self.v1, vertex2=self.v2), 2)
         tree.set_wgd_count(vertex1=self.v2, vertex2=self.v1, wgd_count=3)
         self.assertEqual(tree.edge_wgd_count(vertex1=self.v1, vertex2=self.v2), 3)
+        self.assertFalse(tree.multicolors_are_up_to_date)
 
     def test_set_wgd_count_incorrect(self):
         # only for existing edges such setup if possible
         tree = BGTree()
+        tree.multicolors_are_up_to_date = True
         with self.assertRaises(ValueError):
             self.assertEqual(tree.set_wgd_count(vertex1=self.v1, vertex2=self.v2, wgd_count=2), 2)
         # only positive integers are allowed as values for whole genome duplication count
+        self.assertTrue(tree.multicolors_are_up_to_date)
         tree.add_edge(vertex1=self.v1, vertex2=self.v2)
+        tree.multicolors_are_up_to_date = True
         incorrect_counts = [0.5, "a", (1,), [1]]
         for incorrect_count in incorrect_counts:
             with self.assertRaises(ValueError):
                 tree.set_wgd_count(vertex1=self.v1, vertex2=self.v2, wgd_count=incorrect_count)
+            self.assertTrue(tree.multicolors_are_up_to_date)
 
     def test_set_edge_length(self):
         # a length of a specific edge can be set explicitly
@@ -198,8 +220,17 @@ class BGTreeTestCase(unittest.TestCase):
         # in this case whole genome duplication are not taken into account, as wgd is a directed event
         # and without a root no direction can be chosen
         tree = BGTree()
+        tree.account_for_wgd = True
         tree_consistent_multicolors = tree.get_tree_consistent_multicolors(rooted=False, account_for_wgd=False)
+        self.assertFalse(tree.account_for_wgd)
+        self.assertTrue(tree.multicolors_are_up_to_date)
         self.assertIsInstance(tree_consistent_multicolors, list)
+        self.assertListEqual(tree_consistent_multicolors, tree.consistent_multicolors)
+        self.assertFalse(tree_consistent_multicolors is tree.consistent_multicolors)
+        for obtained_mc, stored_mc in zip(tree_consistent_multicolors, tree.consistent_multicolors):
+            self.assertFalse(obtained_mc is stored_mc)
+        self.assertSetEqual({mc.hashable_representation for mc in tree_consistent_multicolors},
+                            tree.consistent_multicolors_set)
         self.assertEqual(len(tree_consistent_multicolors), 1)
         self.assertIn(Multicolor(), tree_consistent_multicolors)
 
@@ -207,12 +238,17 @@ class BGTreeTestCase(unittest.TestCase):
         # if `rooted` argument is set to `False`, then regardless of `tree.root` value outcome shall be the same
         tree = NewickReader.from_string(data_string="(((v1, v2), v3),(v4, v5));")
         for root in [self.v1, self.v2, self.v3, self.v4, self.v5, "1", "2", "3", "4", None]:
-            if root is not None:
-                tree.root = root
-            else:
-                tree._BGTree__root = root
+            tree.root = root
+            self.assertFalse(tree.multicolors_are_up_to_date)
             tree_consistent_multicolors = tree.get_tree_consistent_multicolors(rooted=False, account_for_wgd=False)
+            self.assertTrue(tree.multicolors_are_up_to_date)
             self.assertIsInstance(tree_consistent_multicolors, list)
+            self.assertListEqual(tree_consistent_multicolors, tree.consistent_multicolors)
+            self.assertFalse(tree_consistent_multicolors is tree.consistent_multicolors)
+            for obtained_mc, stored_mc in zip(tree_consistent_multicolors, tree.consistent_multicolors):
+                self.assertFalse(obtained_mc is stored_mc)
+            self.assertSetEqual({mc.hashable_representation for mc in tree_consistent_multicolors},
+                                tree.consistent_multicolors_set)
             self.assertEqual(len(tree_consistent_multicolors), 16)
             ref_tree_consistent_multicolors = [
                 Multicolor(), Multicolor(self.v1, self.v2, self.v3, self.v4, self.v5),
@@ -232,8 +268,16 @@ class BGTreeTestCase(unittest.TestCase):
         tree = NewickReader.from_string(data_string="(((v1, v2), v3),(v4, v5));")
         for root in [self.v1, self.v2, self.v3, self.v4, self.v4, "1", "2", "3"]:
             tree.root = root
+            self.assertFalse(tree.multicolors_are_up_to_date)
             tree_consistent_multicolors = tree.get_tree_consistent_multicolors(rooted=True, account_for_wgd=False)
+            self.assertTrue(tree.multicolors_are_up_to_date)
             self.assertIsInstance(tree_consistent_multicolors, list)
+            self.assertTrue(tree_consistent_multicolors, tree.consistent_multicolors)
+            self.assertFalse(tree_consistent_multicolors is tree.consistent_multicolors)
+            for obtained_mc, stored_mc in zip(tree_consistent_multicolors, tree.consistent_multicolors):
+                self.assertFalse(obtained_mc is stored_mc)
+            self.assertSetEqual({mc.hashable_representation for mc in tree_consistent_multicolors},
+                                tree.consistent_multicolors_set)
             self.assertEqual(len(tree_consistent_multicolors), 16)
             ref_tree_consistent_multicolors = [
                 Multicolor(), Multicolor(self.v1, self.v2, self.v3, self.v4, self.v5),
@@ -251,13 +295,16 @@ class BGTreeTestCase(unittest.TestCase):
     def test_get_tree_consistent_multicolors_with_wgd_incorrect(self):
         # if `account_for_wgd` option is set to `True`, `rooted` argument must be set to `True` as well
         tree = BGTree()
+        tree.multicolors_are_up_to_date = False
         with self.assertRaises(ValueError):
             tree.get_tree_consistent_multicolors(rooted=False, account_for_wgd=True)
+        self.assertFalse(tree.multicolors_are_up_to_date)
         # root of the tree must be not None (can happen if tree is built manually)
         tree = BGTree()
         tree.add_edge(vertex1=self.v1, vertex2=self.v2)
         with self.assertRaises(ValueError):
             tree.get_tree_consistent_multicolors(rooted=False, account_for_wgd=True)
+        self.assertFalse(tree.multicolors_are_up_to_date)
 
     def test_get_tree_consistent_multicolors_with_wgd_correct_non_leaf_root(self):
         # if a root is specified, each wgd even shall duplicate the number of respected genome ends
@@ -265,8 +312,16 @@ class BGTreeTestCase(unittest.TestCase):
         tree.set_wgd_count(vertex1=self.v1, vertex2="3", wgd_count=1)
         tree.set_wgd_count(vertex1="3", vertex2="2", wgd_count=2)
         tree.root = "1"
+        self.assertFalse(tree.multicolors_are_up_to_date)
         tree_consistent_multicolors = tree.get_tree_consistent_multicolors(rooted=True, account_for_wgd=True)
+        self.assertTrue(tree.multicolors_are_up_to_date)
         self.assertIsInstance(tree_consistent_multicolors, list)
+        self.assertListEqual(tree_consistent_multicolors, tree.consistent_multicolors)
+        self.assertFalse(tree_consistent_multicolors is tree.consistent_multicolors)
+        for obtained_mc, stored_mc in zip(tree_consistent_multicolors, tree.consistent_multicolors):
+            self.assertFalse(obtained_mc is stored_mc)
+        self.assertSetEqual({mc.hashable_representation for mc in tree_consistent_multicolors},
+                            tree.consistent_multicolors_set)
         self.assertEqual(len(tree_consistent_multicolors), 22)
         overall_multicolor = Multicolor(self.v1) * 8 + Multicolor(self.v2) * 4 + Multicolor(self.v3, self.v4, self.v5)
         ref_tree_consistent_multicolor = [
@@ -291,8 +346,14 @@ class BGTreeTestCase(unittest.TestCase):
         tree.set_wgd_count(vertex1=self.v1, vertex2="3", wgd_count=1)
         tree.set_wgd_count(vertex1="3", vertex2="2", wgd_count=2)
         tree.root = "1"
+        self.assertFalse(tree.multicolors_are_up_to_date)
         tree_consistent_multicolors = tree.get_tree_consistent_multicolors(rooted=True, account_for_wgd=False)
+        self.assertTrue(tree.multicolors_are_up_to_date)
         self.assertIsInstance(tree_consistent_multicolors, list)
+        self.assertListEqual(tree_consistent_multicolors, tree.consistent_multicolors)
+        self.assertFalse(tree_consistent_multicolors is tree.consistent_multicolors)
+        for obtained_mc, stored_mc in zip(tree_consistent_multicolors, tree.consistent_multicolors):
+            self.assertFalse(obtained_mc is stored_mc)
         self.assertEqual(len(tree_consistent_multicolors), 16)
         ref_tree_consistent_multicolors = [
                 Multicolor(), Multicolor(self.v1, self.v2, self.v3, self.v4, self.v5),
@@ -315,8 +376,16 @@ class BGTreeTestCase(unittest.TestCase):
         tree.set_wgd_count(vertex1=self.v1, vertex2="3", wgd_count=1)
         tree.set_wgd_count(vertex1="3", vertex2="2", wgd_count=2)
         tree.root = self.v1
+        self.assertFalse(tree.multicolors_are_up_to_date)
         tree_consistent_multicolors = tree.get_tree_consistent_multicolors(rooted=True, account_for_wgd=True)
+        self.assertTrue(tree.multicolors_are_up_to_date)
         self.assertIsInstance(tree_consistent_multicolors, list)
+        self.assertListEqual(tree_consistent_multicolors, tree.consistent_multicolors)
+        self.assertFalse(tree_consistent_multicolors is tree.consistent_multicolors)
+        for obtained_mc, stored_mc in zip(tree_consistent_multicolors, tree.consistent_multicolors):
+            self.assertFalse(obtained_mc is stored_mc)
+        self.assertSetEqual({mc.hashable_representation for mc in tree_consistent_multicolors},
+                            tree.consistent_multicolors_set)
         self.assertEqual(len(tree_consistent_multicolors), 21)
         overall_multicolor = Multicolor(self.v1) + Multicolor(self.v2) * 2 + Multicolor(self.v4, self.v5, self.v3) * 8
         ref_tree_consistent_multicolor = [
@@ -334,6 +403,27 @@ class BGTreeTestCase(unittest.TestCase):
         ]
         for multicolor in tree_consistent_multicolors:
             self.assertIn(multicolor, ref_tree_consistent_multicolor)
+
+    def test_consistent_multicolor_transparent_update_with_change_occurring(self):
+        tree = BGTree()
+        tcm1 = tree.consistent_multicolors
+        self.assertListEqual(tcm1, [Multicolor()])
+        tree.add_edge(vertex1=self.v1, vertex2=self.v2)
+        tcm2 = tree.consistent_multicolors
+        self.assertEqual(len(tcm2), 4)
+        for mc in tcm2:
+            self.assertIn(mc, [Multicolor(), Multicolor(self.v1), Multicolor(self.v2), Multicolor(self.v1, self.v2)])
+
+    def test_consistent_multicolors_set_transparent_update_with_change_occurring(self):
+        tree = BGTree()
+        tcm1 = tree.consistent_multicolors_set
+        self.assertSetEqual(tcm1, {Multicolor().hashable_representation})
+        tree.add_edge(vertex1=self.v1, vertex2=self.v2)
+        tcm2 = tree.consistent_multicolors_set
+        self.assertEqual(len(tcm2), 4)
+        ref = {mc.hashable_representation for mc in [Multicolor(), Multicolor(self.v1), Multicolor(self.v2), Multicolor(self.v1, self.v2)]}
+        for mc in tcm2:
+            self.assertIn(mc, ref)
 
 
 class NewickParserTestCase(unittest.TestCase):
