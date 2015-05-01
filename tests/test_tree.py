@@ -425,6 +425,73 @@ class BGTreeTestCase(unittest.TestCase):
         for mc in tcm2:
             self.assertIn(mc, ref)
 
+    def test_is_tree_consistent(self):
+        # tests if supplied multicolor complies with tree topology
+        ##########################################################################################
+        #
+        # empty multicolor complies with any tree
+        #
+        ##########################################################################################
+        mc = Multicolor()
+        self.assertTrue(BGTree().is_multicolor_consistent(mc))
+        ##########################################################################################
+        #
+        # simple cases
+        #
+        ##########################################################################################
+        tree = NewickReader.from_string("(((v1, v2), v3),(v4, v5));")
+        self.assertTrue(tree.is_multicolor_consistent(Multicolor(self.v1)))
+        ##########################################################################################
+        #
+        # a small v1, v2 subtree, still consistent
+        #
+        ##########################################################################################
+        self.assertTrue(tree.is_multicolor_consistent(Multicolor(self.v1, self.v2)))
+        ##########################################################################################
+        #
+        # bigger v1, v2, v3 subtree, still consistent
+        #
+        ##########################################################################################
+        self.assertTrue(tree.is_multicolor_consistent(Multicolor(self.v1, self.v2, self.v3)))
+        ##########################################################################################
+        #
+        # v2, v3 is not a valid subtree (its compliment is two subtrees, instead of one)
+        #
+        ##########################################################################################
+        self.assertFalse(tree.is_multicolor_consistent(Multicolor(self.v2, self.v3)))
+        ##########################################################################################
+        #
+        # if some genomes in multicolor are not present in tree, then multicolor will not be consistent with the tree
+        #
+        ##########################################################################################
+        self.assertFalse(tree.is_multicolor_consistent(Multicolor(self.v1, BGGenome("v6"))))
+        ##########################################################################################
+        #
+        # other cases for a non wgd tree
+        #
+        ##########################################################################################
+        self.assertTrue(tree.is_multicolor_consistent(Multicolor(self.v1, self.v2, self.v3, self.v4)))
+        self.assertTrue(tree.is_multicolor_consistent(Multicolor(self.v1, self.v2, self.v3, self.v5)))
+        self.assertTrue(tree.is_multicolor_consistent(Multicolor(self.v1, self.v2, self.v4, self.v5)))
+        self.assertTrue(tree.is_multicolor_consistent(Multicolor(self.v1, self.v3, self.v4, self.v5)))
+        self.assertTrue(tree.is_multicolor_consistent(Multicolor(self.v2, self.v3, self.v4, self.v5)))
+        self.assertTrue(tree.is_multicolor_consistent(Multicolor(self.v1, self.v2, self.v3, self.v4, self.v5)))
+        self.assertTrue(tree.is_multicolor_consistent(Multicolor(self.v5, self.v4)))
+        self.assertTrue(tree.is_multicolor_consistent(Multicolor(self.v3, self.v4, self.v5)))
+        self.assertFalse(tree.is_multicolor_consistent(Multicolor(self.v3, self.v5)))
+        ##########################################################################################
+        #
+        # if we have account for wgd, v1, v1 san become a valid subtree
+        #
+        ##########################################################################################
+        tree.set_wgd_count(vertex1=self.v1, vertex2="3", wgd_count=1)
+        tree.root = "1"
+        tree.account_for_wgd = True
+        self.assertTrue(tree.is_multicolor_consistent(Multicolor(self.v1)))
+        self.assertTrue(tree.is_multicolor_consistent(Multicolor(self.v1, self.v1)))
+        self.assertFalse(tree.is_multicolor_consistent(Multicolor(self.v1, self.v2)))
+        self.assertTrue(tree.is_multicolor_consistent(Multicolor(self.v1, self.v1, self.v2)))
+
 
 class NewickParserTestCase(unittest.TestCase):
     def test_parse_simple_node_no_edge_length_correct(self):
