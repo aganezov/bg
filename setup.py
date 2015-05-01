@@ -13,7 +13,7 @@ setup(
     description="Implementation of Breakpoint Graph data structure",
     license="LGPLv3",
     keywords=["breakpoint graph", "data structures", "python"],
-    url="https://github.com/sergey-aganezov-jr/bg",
+    url="https://github.com/aganezov/bg",
     classifiers=[
         "Development status :: 5 - Production/Stable",
         "License :: OSI Approved :: GNU Lesser General Public License v3 (LGPLv3)",
