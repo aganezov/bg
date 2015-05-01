@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 from unittest.mock import Mock
-from bg import Multicolor
+from bg import Multicolor, BGEdge
 from bg.genome import BGGenome
 from bg.tree import BGTree, NewickReader, DEFAULT_EDGE_LENGTH
 
@@ -491,6 +491,94 @@ class BGTreeTestCase(unittest.TestCase):
         self.assertTrue(tree.is_multicolor_consistent(Multicolor(self.v1, self.v1)))
         self.assertFalse(tree.is_multicolor_consistent(Multicolor(self.v1, self.v2)))
         self.assertTrue(tree.is_multicolor_consistent(Multicolor(self.v1, self.v1, self.v2)))
+
+    def test_is_bgedge_consistent(self):
+        # tests if supplied bgedge has a multicolor that is consistent with tree topology
+        v1, v2 = "v1", "v2"
+        bgedge = BGEdge(vertex1=v1, vertex2=v2, multicolor=Multicolor())
+        ##########################################################################################
+        #
+        # bgedge with an empty multicolor complies with any tree
+        #
+        ##########################################################################################
+        mc = Multicolor()
+        bgedge.multicolor = mc
+        self.assertTrue(BGTree().is_bgedge_consistent(bgedge))
+        ##########################################################################################
+        #
+        # simple cases
+        #
+        ##########################################################################################
+        tree = NewickReader.from_string("(((v1, v2), v3),(v4, v5));")
+        bgedge.multicolor = Multicolor(self.v1)
+        self.assertTrue(tree.is_bgedge_consistent(bgedge))
+        ##########################################################################################
+        #
+        # a small v1, v2 subtree, still consistent
+        #
+        ##########################################################################################
+        bgedge.multicolor = Multicolor(self.v1, self.v2)
+        self.assertTrue(tree.is_bgedge_consistent(bgedge))
+        ##########################################################################################
+        #
+        # bigger v1, v2, v3 subtree, still consistent
+        #
+        ##########################################################################################
+        bgedge.multicolor = Multicolor(self.v1, self.v2, self.v3)
+        self.assertTrue(tree.is_bgedge_consistent(bgedge))
+        ##########################################################################################
+        #
+        # v2, v3 is not a valid subtree (its compliment is two subtrees, instead of one)
+        #
+        ##########################################################################################
+        bgedge.multicolor = Multicolor(self.v2, self.v3)
+        self.assertFalse(tree.is_bgedge_consistent(bgedge))
+        ##########################################################################################
+        #
+        # if some genomes in multicolor are not present in tree, then multicolor will not be consistent with the tree
+        #
+        ##########################################################################################
+        bgedge.multicolor = Multicolor(self.v1, BGGenome("v6"))
+        self.assertFalse(tree.is_bgedge_consistent(bgedge))
+        ##########################################################################################
+        #
+        # other cases for a non wgd tree
+        #
+        ##########################################################################################
+        bgedge.multicolor = Multicolor(self.v1, self.v2, self.v3, self.v4)
+        self.assertTrue(tree.is_bgedge_consistent(bgedge))
+        bgedge.multicolor = Multicolor(self.v1, self.v2, self.v3, self.v5)
+        self.assertTrue(tree.is_bgedge_consistent(bgedge))
+        bgedge.multicolor = Multicolor(self.v1, self.v2, self.v4, self.v5)
+        self.assertTrue(tree.is_bgedge_consistent(bgedge))
+        bgedge.multicolor = Multicolor(self.v1, self.v3, self.v4, self.v5)
+        self.assertTrue(tree.is_bgedge_consistent(bgedge))
+        bgedge.multicolor = Multicolor(self.v2, self.v3, self.v4, self.v5)
+        self.assertTrue(tree.is_bgedge_consistent(bgedge))
+        bgedge.multicolor = Multicolor(self.v1, self.v2, self.v3, self.v4, self.v5)
+        self.assertTrue(tree.is_bgedge_consistent(bgedge))
+        bgedge.multicolor = Multicolor(self.v5, self.v4)
+        self.assertTrue(tree.is_bgedge_consistent(bgedge))
+        bgedge.multicolor = Multicolor(self.v3, self.v4, self.v5)
+        self.assertTrue(tree.is_bgedge_consistent(bgedge))
+        bgedge.multicolor = Multicolor(self.v3, self.v5)
+        self.assertFalse(tree.is_bgedge_consistent(bgedge))
+        ##########################################################################################
+        #
+        # if we have account for wgd, v1, v1 san become a valid subtree
+        #
+        ##########################################################################################
+        tree.set_wgd_count(vertex1=self.v1, vertex2="3", wgd_count=1)
+        tree.root = "1"
+        tree.account_for_wgd = True
+        bgedge.multicolor = Multicolor(self.v1)
+        self.assertTrue(tree.is_bgedge_consistent(bgedge))
+        bgedge.multicolor = Multicolor(self.v1, self.v1)
+        self.assertTrue(tree.is_bgedge_consistent(bgedge))
+        bgedge.multicolor = Multicolor(self.v1, self.v2)
+        self.assertFalse(tree.is_bgedge_consistent(bgedge))
+        bgedge.multicolor = Multicolor(self.v1, self.v1, self.v2)
+        self.assertTrue(tree.is_bgedge_consistent(bgedge))
 
 
 class NewickParserTestCase(unittest.TestCase):

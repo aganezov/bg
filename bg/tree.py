@@ -626,3 +626,6 @@ class BGTree(object):
 
     def is_multicolor_consistent(self, multicolor):
         return multicolor.hashable_representation in self.consistent_multicolors_set
+
+    def is_bgedge_consistent(self, bgedge):
+        return self.is_multicolor_consistent(bgedge.multicolor)
