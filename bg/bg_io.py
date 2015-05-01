@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
-from bg import BreakpointGraph, BGVertex, Multicolor
+from bg import BreakpointGraph, Multicolor
+from bg.genome import BGGenome
+from bg.vertices import BlockVertex, InfinityVertex
 
 __author__ = "Sergey Aganezov"
 __email__ = "aganezov(at)gwu.edu"
@@ -69,15 +71,15 @@ class GRIMMReader(object):
 
     @staticmethod
     def parse_genome_declaration_string(data_string):
-        """ Parses a string marked as ``genome declaration`` and returns a corresponding genome name
+        """ Parses a string marked as ``genome declaration`` and returns a corresponding :class:`bg.genome.BGGenome`
 
         :param data_string: a string to retrieve genome name from
         :type data_string: ``str``
         :return: genome name from supplied genome declaration string
-        :rtype: ``str``
+        :rtype: :class:`bg.genome.BGGenome`
         """
         data_string = data_string.strip()
-        return data_string[1:]
+        return BGGenome(data_string[1:])
 
     @staticmethod
     def parse_data_string(data_string):
@@ -99,21 +101,49 @@ class GRIMMReader(object):
         linear_terminator_index = data_string.index("$") if "$" in data_string else -1
         circular_terminator_index = data_string.index("@") if "@" in data_string else -1
         if linear_terminator_index < 0 and circular_terminator_index < 0:
-            raise ValueError("Invalid data string. No chromosome termination sign (+|-) found.")
+            raise ValueError("Invalid data string. No chromosome termination sign ($|@) found.")
         if linear_terminator_index == 0 or circular_terminator_index == 0:
             raise ValueError("Invalid data string. No data found before chromosome was terminated.")
         if linear_terminator_index < 0 or 0 < circular_terminator_index < linear_terminator_index:
+            ###############################################################################################
+            #
+            # we either encountered only a circular chromosome termination sign
+            # or we have encountered it before we've encountered the circular chromosome termination sign first
+            #
+            ###############################################################################################
             chr_type = "@"
             terminator_index = circular_terminator_index
         else:
             chr_type = "$"
             terminator_index = linear_terminator_index
+        ###############################################################################################
+        #
+        # everything after first fragment termination sign is omitted
+        #
+        ###############################################################################################
         data = data_string[:terminator_index].strip()
+        ###############################################################################################
+        #
+        # genomic blocks are separated between each other by the space character
+        #
+        ###############################################################################################
         split_data = data.split()
         blocks = []
         for block in split_data:
+            ###############################################################################################
+            #
+            # since positively oriented blocks can be denoted both as "+block" as well as "block"
+            # we need to figure out where "block" name starts
+            #
+            ###############################################################################################
             cut_index = 1 if block.startswith("-") or block.startswith("+") else 0
             if cut_index == 1 and len(block) == 1:
+                ###############################################################################################
+                #
+                # block can not be empty
+                # from this one can derive the fact, that names "+" and "-" for blocks are forbidden
+                #
+                ###############################################################################################
                 raise ValueError("Empty block name definition")
             blocks.append(("-" if block.startswith("-") else "+", block[cut_index:]))
         return chr_type, blocks
@@ -131,6 +161,7 @@ class GRIMMReader(object):
         """
         sign, name = block
         tail, head = name + "t", name + "h"
+        tail, head = BlockVertex(tail), BlockVertex(head)
         return (tail, head) if sign == "+" else (head, tail)
 
     @staticmethod
@@ -147,15 +178,31 @@ class GRIMMReader(object):
         chr_type, blocks = parsed_data
         vertices = []
         for block in blocks:
+            ###############################################################################################
+            #
+            # each block is represented as a pair of vertices (that correspond to block extremities)
+            #
+            ###############################################################################################
             v1, v2 = GRIMMReader.__assign_vertex_pair(block)
             vertices.append(v1)
             vertices.append(v2)
         if chr_type == "@":
+            ###############################################################################################
+            #
+            # if we parse a circular genomic fragment we must introduce an additional pair of vertices (edge)
+            # that would connect two outer most vertices in the vertex list, thus connecting fragment extremities
+            #
+            ###############################################################################################
             vertex = vertices.pop()
             vertices.insert(0, vertex)
         else:
-            infty_vertex1, infty_vertex2 = BGVertex.construct_infinity_vertex_companion(
-                vertices[0]), BGVertex.construct_infinity_vertex_companion(vertices[-1])
+            ###############################################################################################
+            #
+            # if we parse linear genomic fragment, we introduce two artificial (infinity) vertices
+            # that correspond to fragments ends, and introduce edges between them and respective outermost block vertices
+            #
+            ###############################################################################################
+            infty_vertex1, infty_vertex2 = InfinityVertex(vertices[0].name), InfinityVertex(vertices[-1].name)
             vertices.insert(0, infty_vertex1)
             vertices.append(infty_vertex2)
         return [(v1, v2) for v1, v2 in zip(vertices[::2], vertices[1::2])]
@@ -170,19 +217,36 @@ class GRIMMReader(object):
         :rtype: :class:`bg.breakpoint_graph.BreakpointGraph`
         """
         result = BreakpointGraph()
-        current_genome_name = None
+        current_genome = None
         for line in stream:
             line = line.strip()
             if len(line) == 0:
+                ###############################################################################################
+                #
+                # empty lines are omitted
+                #
+                ###############################################################################################
                 continue
             if GRIMMReader.is_genome_declaration_string(data_string=line):
-                current_genome_name = GRIMMReader.parse_genome_declaration_string(data_string=line)
+                ###############################################################################################
+                #
+                # is we have a genome declaration, we must update current genome
+                # all following gene order data (before EOF or next genome declaration) will be attributed to current genome
+                #
+                ###############################################################################################
+                current_genome = GRIMMReader.parse_genome_declaration_string(data_string=line)
             elif GRIMMReader.is_comment_string(data_string=line):
                 continue
-            elif current_genome_name is not None:
+            elif current_genome is not None:
+                ###############################################################################################
+                #
+                # gene order information that is specified before the first genome is specified can not be attributed to anything
+                # and thus omitted
+                #
+                ###############################################################################################
                 parsed_data = GRIMMReader.parse_data_string(data_string=line)
                 edges = GRIMMReader.get_edges_from_parsed_data(parsed_data=parsed_data)
                 for v1, v2 in edges:
-                    result.add_edge(vertex1=BGVertex(v1), vertex2=BGVertex(v2),
-                                    multicolor=Multicolor(current_genome_name))
+                    result.add_edge(vertex1=v1, vertex2=v2,
+                                    multicolor=Multicolor(current_genome))
         return result

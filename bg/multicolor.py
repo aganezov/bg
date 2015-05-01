@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 from collections import Counter
+from copy import deepcopy
 
 __author__ = "Sergey Aganezov"
 __email__ = "aganezov(at)gwu.edu"
@@ -50,11 +51,13 @@ class Multicolor(object):
         """
         self.multicolors = self.multicolors + Counter(arg for arg in args)
 
-    @staticmethod
-    def left_merge(multicolor1, multicolor2):
+    @classmethod
+    def left_merge(cls, multicolor1, multicolor2):
         """ Updates first supplied :class:`Multicolor` instance with information from second supplied :class:`Multicolor` instance.
 
         Works as proxy to respective call to private static method :meth:`Multicolor._Multicolor__left_merge` for purposes of inheritance compatibility.
+
+        Accounts for subclassing.
 
         :param multicolor1: instance to update information in
         :type multicolor1: :class:`Multicolor`
@@ -63,10 +66,10 @@ class Multicolor(object):
         :return: updated first supplied :class:`Multicolor` instance
         :rtype: :class:`Multicolor`
         """
-        return Multicolor.__left_merge(multicolor1, multicolor2)
+        return cls.__left_merge(multicolor1, multicolor2)
 
-    @staticmethod
-    def merge(*multicolors):
+    @classmethod
+    def merge(cls, *multicolors):
         """ Produces a new :class:`Multicolor` object resulting from gathering information from all supplied :class:`Multicolor` instances.
 
         Works as proxy to respective call to private static method :meth:`Multicolor._Multicolor__merge` for purposes of inheritance compatibility.
@@ -76,7 +79,7 @@ class Multicolor(object):
         :return: object containing gathered information from all supplied arguments
         :rtype: :class:`Multicolor`
         """
-        return Multicolor.__merge(*multicolors)
+        return cls.__merge(*multicolors)
 
     def delete(self, multicolor):
         """ Reduces information :class:`Multicolor` attribute by iterating over supplied colors data.
@@ -107,18 +110,20 @@ class Multicolor(object):
             to_delete = Counter(color for color in multicolor)
         self.multicolors = self.multicolors - to_delete
 
-    @staticmethod
-    def __merge(*multicolors):
+    @classmethod
+    def __merge(cls, *multicolors):
         """ Produces a new :class:`Multicolor` object resulting from gathering information from all supplied :class:`Multicolor` instances.
 
         New :class:`Multicolor` is created and its :attr:`Multicolor.multicolors` attribute is updated with similar attributes of supplied :class:`Multicolor` objects.
+
+        Accounts for subclassing.
 
         :param multicolors: variable number of :class:`Multicolor` objects
         :type multicolors: :class:`Multicolor`
         :return: object containing gathered information from all supplied arguments
         :rtype: :class:`Multicolor`
         """
-        result = Multicolor()
+        result = cls()
         for multicolor in multicolors:
             result.multicolors = result.multicolors + multicolor.multicolors
         return result
@@ -158,8 +163,9 @@ class Multicolor(object):
                 result += min(value, multicolor2.multicolors[key])
         return result
 
-    @staticmethod
-    def split_colors(multicolor, guidance=None):
+    @classmethod
+    def split_colors(cls, multicolor, guidance=None, sorted_guidance=False,
+                     account_for_color_multiplicity_in_guidance=True):
         """ Produces several new instances of :class:`Multicolor` object by splitting information about colors by using provided guidance iterable set-like object.
 
         Guidance is an iterable type of object where each entry has information about groups of colors that has to be separated for current :attr:`Multicolor.multicolors` chunk.
@@ -172,35 +178,121 @@ class Multicolor(object):
 
         Multiplicity of all separated colors in respective chunks is preserved.
 
+        Accounts for subclassing.
+
         :param multicolor: an instance information about colors in which is to be split
         :type multicolor: :class:`Multicolor`
         :param guidance: information how colors have to be split in current :class:`Multicolor` object
         :type guidance: iterable where each entry is iterable with colors entries
-        :return: a list of new :class:`Multicolor` object colors information in which complies with guidance informaiton
+        :param sorted_guidance: a flag, that indicates is sorting of provided guidance is in order
+        :return: a list of new :class:`Multicolor` object colors information in which complies with guidance information
         :rtype: ``list`` of :class:`Multicolor` objects
         """
         if guidance is None:
-            guidance = [(color, ) for color in multicolor.colors]
-        guidance = sorted([set(subset) for subset in guidance], key=lambda subset: len(subset), reverse=True)
+            ###############################################################################################
+            #
+            # if guidance is not specified, it will be derived from colors in the targeted multicolor
+            # initially the multiplicity of colors remains as is
+            #
+            ###############################################################################################
+            guidance = [Multicolor(*(color for _ in range(multicolor.multicolors[color]))) for color in multicolor.colors]
+            ###############################################################################################
+            #
+            # since at this we have a single-colored (maybe with multiplicity greater than 1)
+            # we don't need to sort anything, as there will be no overlapping multicolor in guidance
+            #
+            ###############################################################################################
+            sorted_guidance = True
+        ###############################################################################################
+        #
+        # a reference to the targeted multicolor.
+        # such reference is created only for the future requirement to access information about original multicolor
+        # Is done for the sake of code clarity and consistency.
+        #
+        ###############################################################################################
+        splitting_multicolor = deepcopy(multicolor)
+        if not account_for_color_multiplicity_in_guidance:
+            ###############################################################################################
+            #
+            # we need to create a new guidance (even if original is perfect)
+            # a new one shall preserve the order of the original, but all multicolors in it
+            #   while keeping information about the actual colors itself, shall have multiplicity equal to 1
+            #
+            ###############################################################################################
+            splitting_multicolor = Multicolor(*multicolor.colors)
+            colors_guidance = [Multicolor(*multicolor.colors) for multicolor in guidance]
+            ###############################################################################################
+            #
+            # since there might be different multicolors, with the same colors content
+            # and they will be changed to same multicolors object, after colors multiplicity adjustment
+            # we need, while preserving the order, leave only unique ones in (the first appearance)
+            #
+            ###############################################################################################
+            unique = set()
+            guidance = []
+            for c_multicolor in colors_guidance:
+                if c_multicolor.hashable_representation not in unique:
+                    unique.add(c_multicolor.hashable_representation)
+                    guidance.append(c_multicolor)
+        if not sorted_guidance:
+            ###############################################################################################
+            #
+            # if arguments in function call do not specify explicitly, that the guidance shall be used "as is"
+            # it is sorted to put "bigger" multicolors in front, and smaller at the back
+            # as bigger multicolor might contain several smaller multicolors from the guidance, but the correct splitting
+            # always assumes that the smaller is the splitted result, the better it is
+            # and such minimization can be obtained only if the biggest chunk of targeted multicolor are ripped off of it first
+            #
+            ###############################################################################################
+            guidance = sorted({g_multicolor.hashable_representation for g_multicolor in guidance},
+                              key=lambda g_multicolor: len(g_multicolor),
+                              reverse=True)
+            guidance = [Multicolor(*hashed) for hashed in guidance]
         first_run_result = []
         second_run_result = []
-        colors = multicolor.colors
-        for color_set in guidance:
-            if color_set.issubset(colors):
-                first_run_result.append(color_set)
-                colors -= color_set
-        for color_set in guidance:
-            if len(color_set.intersection(colors)) > 0:
-                second_run_result.append(color_set.intersection(colors))
-                colors -= color_set.intersection(colors)
-        appendix = colors
-        preliminary_result = first_run_result + second_run_result + ([appendix] if len(appendix) > 0 else [])
-        result = []
-        for color_set in preliminary_result:
-            colors = []
-            for color in color_set:
-                colors.extend([color for _ in range(multicolor.multicolors[color])])
-            result.append(Multicolor(*colors))
+        for g_multicolor in guidance:
+            ###############################################################################################
+            #
+            # first we determine which multicolors in guidance are fully present in the multicolor to split
+            #   "<=" operator can be read as "is_multi_subset_of"
+            # and retrieve as many copies of it from the multicolor, as we can
+            # Example:
+            #   multicolor has only one color "blue" with multiplicity "4"
+            #   in guidance we have multicolor with color "blue" with multiplicity "2"
+            #   we must retrieve it fully twice
+            #
+            ###############################################################################################
+            while g_multicolor <= splitting_multicolor:
+                first_run_result.append(g_multicolor)
+                splitting_multicolor -= g_multicolor
+        for g_multicolor in guidance:
+            ###############################################################################################
+            #
+            # secondly we determine which multicolors in guidance are partially present in the multicolor
+            # NOTE that this is not possible for the case of tree consistent multicolor
+            #   as every partially present
+            #
+            ###############################################################################################
+            while len(g_multicolor.intersect(splitting_multicolor).multicolors) > 0:
+                second_run_result.append(g_multicolor.intersect(splitting_multicolor))
+                splitting_multicolor -= g_multicolor.intersect(splitting_multicolor)
+        appendix = splitting_multicolor
+        result = first_run_result + second_run_result + ([appendix] if len(appendix.multicolors) > 0 else [])
+        if not account_for_color_multiplicity_in_guidance:
+            ###############################################################################################
+            #
+            # if we didn't care for guidance multicolors colors multiplicity, we we splitting a specially created Multicolor
+            # based only on the colors content.
+            # After this is done, we need to restore the original multiplicity of each color in result multicolors to the
+            # count they had in the targeted for splitting multicolor.
+            # This is possible since in the case when we do not account for colors multiplicity in guidance, we have
+            # splitting_color variable referencing not the supplied multicolor, and thus internal changes are not made to
+            # supplied multicolor.
+            #
+            ###############################################################################################
+            for r_multicolor in result:
+                for color in r_multicolor.colors:
+                    r_multicolor.multicolors[color] = multicolor.multicolors[color]
         return result
 
     def __sub__(self, other):
@@ -286,7 +378,9 @@ class Multicolor(object):
     def __lt__(self, other):
         """ Implementation of ``<`` operation for :class:`Multicolor`
 
-        One :class:`Multicolor` instance is said to be "less than" the other :class:`Multicolor` instance, if it contains all colors, as the other :class:`Multicolor` object does, and multiplicity of at least one of colors is less in current object, than in the other one.
+        One :class:`Multicolor` instance is said to be "less than" the other :class:`Multicolor` instance, if it contains less or equal number of colors colors,
+        as the other :class:`Multicolor` object does, and multiplicity of all of them is less or equal than in the other multicolor,
+        and at least one color has multiplicity less, than in the other multicolor.
         :class:`Multicolor` instance is never less, than non-:class:`Multicolor` object.
 
         :param other: an object to compare to
@@ -296,21 +390,68 @@ class Multicolor(object):
         """
         if not isinstance(other, Multicolor):
             return False
-        self_keys = set(self.multicolors.keys())
-        other_keys = set(other.multicolors.keys())
-        return any(self.multicolors[key] < other.multicolors[key] for key in self_keys) and self_keys <= other_keys
+        self_keys = self.colors
+        other_keys = other.colors
+        return all(self.multicolors[key] <= other.multicolors[key] for key in self_keys) and \
+               self_keys <= other_keys and \
+               any(self.multicolors[key] < other.multicolors[key] for key in self_keys)
 
     def __le__(self, other):
         """ Implementation of "<=" operation for :class:`Multicolor`
 
-        Proxy calls ``<`` and ``==`` methods of :class:`Multicolor` and returns ``True``, if and only if at least one of them is ``True``.
+        One :class:`Multicolor` instance is said to be "less or equal than" the other :class:`Multicolor` instance, if it contains less or equal number colors,
+        as the other :class:`Multicolor` object does, and multiplicity of all of them is less or equal than in the other multicolor.
+        :class:`Multicolor` instance is never less or equal, than non-:class:`Multicolor` object.
 
         :param other: an object to compare to
         :type other: any python object
         :return: a flag if current :class:`Multicolor` object is less or equal than supplied object
         :rtype: ``Boolean``
         """
-        return self.__lt__(other) or self.__eq__(other)
+        if not isinstance(other, Multicolor):
+            return False
+        self_keys = self.colors
+        other_keys = other.colors
+        return all(self.multicolors[key] <= other.multicolors[key] for key in self_keys) and self_keys <= other_keys
+
+    def __gt__(self, other):
+        """ Implementation of ``>`` operation for :class:`Multicolor`
+
+        One :class:`Multicolor` instance is said to be "greater than" the other :class:`Multicolor` instance, if it contains greater os equal number of colors,
+        as the other :class:`Multicolor` object does, and multiplicity of all of them is greater or equal than in the other multicolor,
+        and at least one color has multiplicity greater, than in the other multicolor.
+        :class:`Multicolor` instance is never less, than non-:class:`Multicolor` object.
+
+        :param other: an object to compare to
+        :type other: any python object
+        :return: a flag if current :class:`Multicolor` object is less than supplied object
+        :rtype: ``Boolean``
+        """
+        if not isinstance(other, Multicolor):
+            return False
+        self_keys = self.colors
+        other_keys = other.colors
+        return any(self.multicolors[key] > other.multicolors[key] for key in self_keys) and \
+               self_keys >= other_keys and \
+               all(self.multicolors[key] >= other.multicolors[key] for key in self_keys)
+
+    def __ge__(self, other):
+        """ Implementation of ">=" operation for :class:`Multicolor`
+
+        One :class:`Multicolor` instance is said to be "greater than" the other :class:`Multicolor` instance, if it contains greater or equal number of colors,
+        as the other :class:`Multicolor` object does, and multiplicity of all of them is greater or equal than in the other multicolor.
+        :class:`Multicolor` instance is never less, than non-:class:`Multicolor` object.
+
+        :param other: an object to compare to
+        :type other: any python object
+        :return: a flag if current :class:`Multicolor` object is greater or equal than supplied object
+        :rtype: ``Boolean``
+        """
+        if not isinstance(other, Multicolor):
+            return False
+        self_keys = self.colors
+        other_keys = other.colors
+        return all(self.multicolors[key] >= other.multicolors[key] for key in self_keys) and self_keys >= other_keys
 
     @property
     def colors(self):
@@ -322,3 +463,36 @@ class Multicolor(object):
         :rtype: ``set``
         """
         return set(self.multicolors.keys())
+
+    @property
+    def hashable_representation(self):
+        """ For a sake of speed check for multicolor presence, each multicolor has a deterministic hashable representation """
+        return tuple(sorted(self.multicolors.elements()))
+
+    def __mul__(self, other):
+        """ Multicolor can be multiplied by a number and it multiplies multiplicity of each present color respectively
+
+        :param other: an integer multiplier
+        :return: a new multicolor object resulted from multiplying each colors multiplicity by the multiplier
+        """
+        if not isinstance(other, int) or other < 0:
+            raise TypeError("Multicolor can be multiplied only by integer values")
+        if other == 0:
+            return Multicolor()
+        result = deepcopy(self)
+        for value in result.multicolors:
+            result.multicolors[value] *= other
+        return result
+
+    def intersect(self, other):
+        """ Computes the multiset intersection, between the current Multicolor and the supplied Multicolor
+
+        :param other: another Multicolor object to compute a multiset intersection with
+        :return:
+        :raise TypeError: an intersection can be computed only between two Multicolor objects
+        """
+        if not isinstance(other, Multicolor):
+            raise TypeError("Multicolor can be intersected only with another Multicolor object")
+        intersection_colors_core = self.colors.intersection(other.colors)
+        colors_count = {color: min(self.multicolors[color], other.multicolors[color]) for color in intersection_colors_core}
+        return Multicolor(*(color for color in colors_count for _ in range(colors_count[color])))
