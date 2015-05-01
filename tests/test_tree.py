@@ -425,7 +425,7 @@ class BGTreeTestCase(unittest.TestCase):
         for mc in tcm2:
             self.assertIn(mc, ref)
 
-    def test_is_tree_consistent(self):
+    def test_is_multicolor_consistent(self):
         # tests if supplied multicolor complies with tree topology
         ##########################################################################################
         #
