@@ -262,6 +262,13 @@ class Multicolor(object):
             #   we must retrieve it fully twice
             #
             ###############################################################################################
+            ###############################################################################################
+            #
+            # empty guidance multicolors shall be ignored, as they have no impact on the splitting algorithm
+            #
+            ###############################################################################################
+            if len(g_multicolor.colors) == 0:
+                continue
             while g_multicolor <= splitting_multicolor:
                 first_run_result.append(g_multicolor)
                 splitting_multicolor -= g_multicolor
@@ -277,7 +284,7 @@ class Multicolor(object):
                 second_run_result.append(g_multicolor.intersect(splitting_multicolor))
                 splitting_multicolor -= g_multicolor.intersect(splitting_multicolor)
         appendix = splitting_multicolor
-        result = first_run_result + second_run_result + ([appendix] if len(appendix.multicolors) > 0 else [])
+        result = deepcopy(first_run_result) + deepcopy(second_run_result) + deepcopy([appendix] if len(appendix.multicolors) > 0 else [])
         if not account_for_color_multiplicity_in_guidance:
             ###############################################################################################
             #

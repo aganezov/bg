@@ -568,6 +568,20 @@ class MulticolorTestCase(unittest.TestCase):
         for result_mc in result:
             self.assertIn(result_mc, ref)
 
+    def test_split_colors_with_empty_multicolor_in_guidance(self):
+        ###############################################################################################
+        #
+        # empty multicolor in splitting guidance shall not have any affect on the splitting procedure
+        #
+        ###############################################################################################
+        mc = Multicolor(self.genome1, self.genome2)
+        guidance = [Multicolor(self.genome1), Multicolor()]
+        result = Multicolor.split_colors(mc, guidance=guidance)
+        self.assertEqual(len(result), 2)
+        ref = [Multicolor(self.genome1), Multicolor(self.genome2)]
+        for result_mc in result:
+            self.assertIn(result_mc, ref)
+
     ###############################################################################################
     #
     # end of splitting test cases
