@@ -340,6 +340,30 @@ class BGTreeTestCase(unittest.TestCase):
         for multicolor in tree_consistent_multicolors:
             self.assertIn(multicolor, ref_tree_consistent_multicolor)
 
+    def test_get_tree_consistent_multicolors_no_wgd_correct_no_binary_tree(self):
+        # tree might be not binary
+        # simple case
+        tree = NewickReader.from_string(data_string="(v1, v2, v3, v4);")
+        self.assertTrue(tree.is_valid_tree)
+        tree_consistent_multicolors = tree.get_tree_consistent_multicolors(rooted=True, account_for_wgd=False)
+        self.assertTrue(tree.multicolors_are_up_to_date)
+        self.assertIsInstance(tree_consistent_multicolors, list)
+        self.assertListEqual(tree_consistent_multicolors, tree.consistent_multicolors)
+        self.assertFalse(tree_consistent_multicolors is tree.consistent_multicolors)
+        for obtained_mc, stored_mc in zip(tree_consistent_multicolors, tree.consistent_multicolors):
+            self.assertFalse(obtained_mc is stored_mc)
+        self.assertEqual(len(tree_consistent_multicolors), 10)
+        ref_tree_consistent_multicolors = [
+            Multicolor(), Multicolor(self.v1, self.v2, self.v3, self.v4),
+            Multicolor(self.v1), Multicolor(self.v2), Multicolor(self.v3), Multicolor(self.v4),
+            Multicolor(self.v1, self.v2, self.v3),
+            Multicolor(self.v2, self.v3, self.v4),
+            Multicolor(self.v1, self.v2, self.v4),
+            Multicolor(self.v1, self.v3, self.v4)
+        ]
+        for multicolor in tree_consistent_multicolors:
+            self.assertIn(multicolor, ref_tree_consistent_multicolors)
+
     def test_get_tree_consistent_multicolors_no_wgd_correct_specified_by_argument(self):
         # with rooted tree, if account_for_wgd is set to False, result shall be the same, if it was not rooted
         tree = NewickReader.from_string(data_string="(((v1, v2), v3),(v4, v5));")
