@@ -677,7 +677,7 @@ class BreakpointGraph(object):
         Only :class:`bg.kbreak.KBreak` (or its heirs) instances are allowed as ``kbreak`` argument.
         KBreak must correspond to the valid kbreak and, since some changes to its internals might have been done since its creation, a validity check in terms of starting/resulting edges is performed.
         All vertices in supplied KBreak (except for paired infinity vertices) must be present in current :class:`BreakpointGraph`.
-        For all supplied pairs of vertices (except for paired infinity vertices), there must be edges between such pairs of vertices, at least one of which must have a multicolor matching a multicolor of supplied kbreak.
+        For all supplied pairs of vertices (except for paired infinity vertices), there must be edges between such pairs of vertices, at least one of which must contain a multicolor matching a multicolor of supplied kbreak.
 
         Edges of specified in kbreak multicolor are deleted between supplied pairs of vertices in kbreak.start_edges (except for paired infinity vertices).
         New edges of specified in kbreak multicolor are added between all pairs of vertices in kbreak.result_edges (except for paired infinity vertices).
@@ -720,10 +720,10 @@ class BreakpointGraph(object):
             for bgedge in self.__edges_between_two_vertices(vertex1=vertex1, vertex2=vertex2):
                 ############################################################################################################
                 #
-                # at least one edge between supplied pair of vertices must have a multicolor that is specified for the kbreak
+                # at least one edge between supplied pair of vertices must contain a multicolor that is specified for the kbreak
                 #
                 ############################################################################################################
-                if bgedge.multicolor == kbreak.multicolor:
+                if kbreak.multicolor <= bgedge.multicolor:
                     break
             else:
                 raise ValueError("Some targeted by kbreak edge with specified multicolor does not exists")

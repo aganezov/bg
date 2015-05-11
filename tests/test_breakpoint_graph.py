@@ -2227,6 +2227,35 @@ class BreakpointGraphTestCase(unittest.TestCase):
         self.assertEqual(bg.get_edge_by_two_vertices(vertex1=v1, vertex2=v2).multicolor, multicolor2)
         self.assertEqual(len(list(bg.edges_between_two_vertices(vertex1=v1, vertex2=v2))), 2)
 
+    def test_apply_kbreak_correct_submulticolor(self):
+        #############################################################################
+        #
+        # case when a kbreak is applied to a pair of edges, where at least one edge
+        # contains a larger multicolor, than is specified in the kbreak
+        # in this circumstances kbreak shall be successfully applied and respective kbreak multicolor
+        #   shall be substracted from targeted edge multicolor
+        #
+        #############################################################################
+        bg = BreakpointGraph()
+        v1, v2, v3, v4 = self.v1, self.v2, self.v3, self.v4
+        multicolor = Multicolor(self.genome2)
+        multicolor2 = Multicolor(self.genome2, self.genome1)
+        bgedge1 = BGEdge(vertex1=v1, vertex2=v2, multicolor=multicolor)
+        bgedge2 = BGEdge(vertex1=v3, vertex2=v4, multicolor=multicolor2)
+        bg.add_bgedge(bgedge1)
+        bg.add_bgedge(bgedge2)
+        start_edges = [(v1, v2), (v3, v4)]
+        result_edges = [(v1, v3), (v2, v4)]
+        kbreak = KBreak(start_edges=start_edges,
+                        result_edges=result_edges,
+                        multicolor=multicolor)
+        bg.apply_kbreak(kbreak=kbreak)
+        self.assertEqual(len(list(bg.nodes())), 4)
+        self.assertEqual(len(list(bg.edges())), 3)
+        self.assertEqual(bg.get_edge_by_two_vertices(v1, v3).multicolor, multicolor)
+        self.assertEqual(bg.get_edge_by_two_vertices(v3, v4).multicolor, Multicolor(self.genome1))
+        self.assertEqual(bg.get_edge_by_two_vertices(v2, v4).multicolor, multicolor)
+
     def test_json_serialization_no_subclassing(self):
         # breakpoint graph shall be serialized into json format, by utilizing to_json methods of its edges and vertices
         # BreakpointGraph does not utilize a simple json schema, but rather a more complex workflow
