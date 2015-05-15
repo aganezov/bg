@@ -212,9 +212,9 @@ class TaggedVertex(BGVertex):
         def make_object(self, data):
             try:
                 json_name = data["name"]
-                splited_name = json_name.split(TaggedVertex.NAME_SEPARATOR)
-                root = splited_name[0]
-                tags = list(filter(lambda name_part: TaggedVertex.TAG_SEPARATOR in name_part, splited_name[1:]))
+                split_name = json_name.split(TaggedVertex.NAME_SEPARATOR)
+                root = split_name[0]
+                tags = list(filter(lambda name_part: TaggedVertex.TAG_SEPARATOR in name_part, split_name[1:]))
                 tags = [entry.split(TaggedVertex.TAG_SEPARATOR) for entry in tags]
                 result = TaggedVertex(name=root)
                 result.tags = sorted(tags)
