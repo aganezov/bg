@@ -3,7 +3,7 @@ from marshmallow import Schema, fields
 
 __author__ = "Sergey Aganezov"
 __email__ = "aganezov(at)gwu.edu"
-__status__ = "production"
+__status__ = "devel"
 
 INFINITY_VERTEX_IDENTIFIER = "__infinity"
 BGVertex_JSON_SCHEMA_JSON_KEY = "_py__bg_vertex_json_schema"

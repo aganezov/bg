@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 __author__ = "Sergey Aganezov"
 __email__ = "aganezov(at)gwu.edu"
-__status__ = "production"
+__status__ = "devel"
 
 import unittest
 from bg.vertices import BGVertex_JSON_SCHEMA_JSON_KEY, BGVertex, BlockVertex, InfinityVertex
