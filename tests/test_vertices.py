@@ -256,6 +256,7 @@ class InfinityVertexTestCase(BGVertexTestCase):
             json_object = {"json_id": 1}
             self.vertex_class.from_json(json_object)
 
+
 class TaggedVertexTestCase(BGVertexTestCase):
     """ Update vertex_class to call InfinityVertex rather than BGVertex, and update overwritten portions of the class """
     def setUp(self):
@@ -347,6 +348,24 @@ class TaggedVertexTestCase(BGVertexTestCase):
         ref_name = self.tagged_vertex.NAME_SEPARATOR.join([self.str_name1] + tags_as_strings)
         self.assertEqual(t_v.name, ref_name)
 
+    def test_is_something_vertex_based_on_tags_name(self):
+        # all calls "is_something_vertex" shall be aware of the tags, that are stored in the vertex.tags container
+        # if there is a tag -- key pair in the container, such, that tag equals to "something", the vertex shall be
+        # be considered as "is_something_vertex"
+        t_v = TaggedVertex(self.str_name1)
+        tag_name = "tag_name_1"
+        tag_value = 1
+        t_v.add_tag(tag_name, tag_value)
+        self.assertTrue(getattr(t_v, "is_" + tag_name + "_vertex"))
+        # if the "something" is not found in tags, than the call shall be proxied forward
+        self.assertTrue(t_v.is_tagged_vertex)
+        # if the tag is not present, than the result of proxied call shall be returned
+        t_v.remove_tag(tag_name, tag_value)
+        self.assertFalse(getattr(t_v, "is_" + tag_name + "_vertex"))
+        t_v.add_tag("repeat", 1)
+        self.assertTrue(t_v.is_repeat_vertex)
+        t_v.remove_tag("repeat", 1)
+        self.assertFalse(t_v.is_repeat_vertex)
 
 if __name__ == '__main__':  # pragma: no cover
     unittest.main()         # pragma: no cover

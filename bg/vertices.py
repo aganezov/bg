@@ -236,14 +236,19 @@ class TaggedVertex(BGVertex):
 
     @property
     def name(self):
+        """ access to classic name attribute is hidden by this property """
         return self.NAME_SEPARATOR.join([super().name] +
                                         [self.TAG_SEPARATOR.join([str(tag), str(value)]) for tag, value in self.tags])
 
     @name.setter
     def name(self, value):
+        """ shared "protected" variable for the name storing attribute """
         self._name = value
 
     def add_tag(self, tag, value):
+        """ as tags are kept in a sorted order, a bisection is a fastest way to identify a correct position
+        of or a new tag to be added. An additional check is required to make sure w don't add duplicates
+        """
         index = bisect_left(self.tags, (tag, value))
         contains = False
         if index < len(self.tags):
@@ -251,7 +256,17 @@ class TaggedVertex(BGVertex):
         if not contains:
             self.tags.insert(index, (tag, value))
 
+    def __getattr__(self, item):
+        """  """
+        if item.startswith("is_") and item.endswith("_vertex"):
+            tag = item[3:-7]
+            index = bisect_left([tag_name for tag_name, _ in self.tags], tag)
+            if index < len(self.tags):
+                return True
+        return super().__getattr__(item)
+
     def remove_tag(self, tag, value, silent_fail=False):
+        """ we try to remove supplied pair tag -- value, and if does not exist outcome depends on the silent_fail flag """
         try:
             self.tags.remove((tag, value))
         except ValueError as err:
