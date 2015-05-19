@@ -4,7 +4,8 @@ __email__ = "aganezov(at)gwu.edu"
 __status__ = "devel"
 
 import unittest
-from bg.vertices import BGVertex_JSON_SCHEMA_JSON_KEY, BGVertex, BlockVertex, InfinityVertex, TaggedVertex
+from bg.vertices import BGVertex_JSON_SCHEMA_JSON_KEY, BGVertex, BlockVertex, InfinityVertex, TaggedVertex, TaggedBlockVertex, \
+    TaggedInfinityVertex
 
 
 class BGVertexTestCase(unittest.TestCase):
@@ -102,7 +103,7 @@ class BGVertexTestCase(unittest.TestCase):
             "json_id": 1
         }
         vertex = self.vertex_class.from_json(json_object)
-        self.assertTrue(isinstance(vertex, self.vertex_class))
+        self.assertIsInstance(vertex, self.vertex_class)
         # explicitly specified json schema to work with
         # but since nothing is passed into in "schema" argument to the from_json function
         # default to the BGVertex.json_schema is performed
@@ -113,7 +114,7 @@ class BGVertexTestCase(unittest.TestCase):
             "json_id": 1
         }
         vertex = self.vertex_class.from_json(json_object)
-        self.assertTrue(isinstance(vertex, self.vertex_class))
+        self.assertIsInstance(vertex, self.vertex_class)
         self.assertEqual(vertex.name, self.str_name1)
         # there must be a "name" field in json object to be serialized
         with self.assertRaises(ValueError):
@@ -150,6 +151,7 @@ class BGVertexTestCase(unittest.TestCase):
 
 class BlockVertexTestCase(BGVertexTestCase):
     """ Update vertex_class to call BlockVertex rather than BGVertex, and update overwritten portions of the class """
+
     def setUp(self):
         super().setUp()
         self.vertex_class = BlockVertex
@@ -168,6 +170,7 @@ class BlockVertexTestCase(BGVertexTestCase):
 
 class InfinityVertexTestCase(BGVertexTestCase):
     """ Update vertex_class to call InfinityVertex rather than BGVertex, and update overwritten portions of the class """
+
     def setUp(self):
         super().setUp()
         self.vertex_class = InfinityVertex
@@ -259,6 +262,7 @@ class InfinityVertexTestCase(BGVertexTestCase):
 
 class TaggedVertexTestCase(BGVertexTestCase):
     """ Update vertex_class to call InfinityVertex rather than BGVertex, and update overwritten portions of the class """
+
     def setUp(self):
         super().setUp()
         self.vertex_class = TaggedVertex
@@ -272,7 +276,7 @@ class TaggedVertexTestCase(BGVertexTestCase):
         self.assertTrue(t_v.is_tagged_vertex)
         self.assertListEqual(t_v.tags, [])
         # when the tags list is empty the "name", when accessed, will be equal to the root portion of itself
-        self.assertEqual(t_v.name, self.str_name1)
+        self.assertIn(self.str_name1, t_v.name)
 
     def test_is_tagged_vertex(self):
         self.assertTrue(self.tagged_vertex.is_tagged_vertex)
@@ -346,13 +350,13 @@ class TaggedVertexTestCase(BGVertexTestCase):
         t_v.add_tag("repeat", 1)
         tags_as_strings = [self.tagged_vertex.TAG_SEPARATOR.join([str(tag), str(value)]) for tag, value in t_v.tags]
         ref_name = self.tagged_vertex.NAME_SEPARATOR.join([self.str_name1] + tags_as_strings)
-        self.assertEqual(t_v.name, ref_name)
+        self.assertIn(ref_name,t_v.name)
 
     def test_is_something_vertex_based_on_tags_name(self):
         # all calls "is_something_vertex" shall be aware of the tags, that are stored in the vertex.tags container
         # if there is a tag -- key pair in the container, such, that tag equals to "something", the vertex shall be
         # be considered as "is_something_vertex"
-        t_v = TaggedVertex(self.str_name1)
+        t_v = self.vertex_class(self.str_name1)
         tag_name = "tag_name_1"
         tag_value = 1
         t_v.add_tag(tag_name, tag_value)
@@ -367,5 +371,46 @@ class TaggedVertexTestCase(BGVertexTestCase):
         t_v.remove_tag("repeat", 1)
         self.assertFalse(t_v.is_repeat_vertex)
 
+
+class TaggedBlockVertexTestCase(TaggedVertexTestCase, BlockVertexTestCase):
+    def setUp(self):
+        super().setUp()
+        self.vertex_class = TaggedBlockVertex
+        self.tagged_block_vertex = TaggedBlockVertex(self.str_name1)
+
+    def test_is_regular_and_is_tagged_vertex(self):
+        self.assertTrue(self.tagged_block_vertex.is_regular_vertex)
+        self.assertTrue(self.tagged_block_vertex.is_tagged_vertex)
+
+    def test_name_creation_order(self):
+        # name has to go as root + tags, just as in the tagged vertex
+        tbv = self.vertex_class(self.str_name1)
+        tbv.add_tag("tag1", 1)
+        ref_name = BGVertex.NAME_SEPARATOR.join([self.str_name1] + [TaggedVertex.TAG_SEPARATOR.join([str(tag), str(value)])
+                                                                    for tag, value in tbv.tags])
+        self.assertIn(ref_name, tbv.name)
+
+
+class TaggedInfinityVertexTestCase(TaggedVertexTestCase, InfinityVertexTestCase):
+    def setUp(self):
+        super().setUp()
+        self.vertex_class = TaggedInfinityVertex
+        self.tagged_infinity_vertex = TaggedInfinityVertex(self.str_name1)
+
+    def test_is_irregular_and_is_tagged_vertex(self):
+        self.assertTrue(self.tagged_infinity_vertex.is_irregular_vertex)
+        self.assertTrue(self.tagged_infinity_vertex.is_infinity_vertex)
+        self.assertTrue(self.tagged_infinity_vertex.is_tagged_vertex)
+
+    def test_name_creation_order(self):
+        # name has to go as root + tags + infinity suffix
+        tbv = self.vertex_class(self.str_name1)
+        tbv.add_tag("tag1", 1)
+        ref_name = BGVertex.NAME_SEPARATOR.join([self.str_name1] +
+                                                [TaggedVertex.TAG_SEPARATOR.join([str(tag), str(value)]) for tag, value in tbv.tags] +
+                                                [InfinityVertex.NAME_SUFFIX])
+        self.assertIn(ref_name, tbv.name)
+
+
 if __name__ == '__main__':  # pragma: no cover
-    unittest.main()         # pragma: no cover
+    unittest.main()  # pragma: no cover

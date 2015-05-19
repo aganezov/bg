@@ -209,14 +209,17 @@ class InfinityVertex(BGVertex):
 class TaggedVertex(BGVertex):
 
     class TaggedVertexJSONSchema(BGVertex.BGVertexJSONSchema):
+
         def make_object(self, data):
+            predefined_object_class = getattr(self, "object_class", None)
+            object_class = TaggedVertex if predefined_object_class is None else predefined_object_class
             try:
                 json_name = data["name"]
                 split_name = json_name.split(TaggedVertex.NAME_SEPARATOR)
                 root = split_name[0]
                 tags = list(filter(lambda name_part: TaggedVertex.TAG_SEPARATOR in name_part, split_name[1:]))
                 tags = [entry.split(TaggedVertex.TAG_SEPARATOR) for entry in tags]
-                result = TaggedVertex(name=root)
+                result = object_class(name=root)
                 result.tags = sorted(tags)
                 return result
             except KeyError:
@@ -278,4 +281,20 @@ class TaggedVertex(BGVertex):
         """ This class overwrites the from_json method, thus making sure that if `from_json` is called from this class instance, it will provide its JSON schema as a default one"""
         schema = cls.json_schema if json_schema_class is None else json_schema_class()
         return super().from_json(data=data, json_schema_class=schema.__class__)
+
+class TaggedBlockVertex(BlockVertex, TaggedVertex):
+    class TaggedBlockVertexJSONSchema(TaggedVertex.TaggedVertexJSONSchema, BlockVertex.BlockVertexJSONSchema):
+        def make_object(self, data):
+            setattr(self, "object_class", TaggedBlockVertex)
+            return super().make_object(data)
+
+    json_schema = TaggedBlockVertexJSONSchema()
+
+class TaggedInfinityVertex(InfinityVertex, TaggedVertex):
+    class TaggedBlockVertexJSONSchema(TaggedVertex.TaggedVertexJSONSchema, InfinityVertex.InfinityVertexJSONSchema):
+        def make_object(self, data):
+            setattr(self, "object_class", TaggedInfinityVertex)
+            return super().make_object(data)
+
+    json_schema = TaggedBlockVertexJSONSchema()
 
