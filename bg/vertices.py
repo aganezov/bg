@@ -109,12 +109,10 @@ class BGVertex(object):
     def get_vertex_class_from_vertex_name(string):
         # since every vertex even of different classes shall have a class specific `name` attribute, is is possible to distinguish between vertices classes
         # default value is BlockVertex, the most utilized vertex in the standard breakpoint graph
-        result = BlockVertex
-        data = string.split(BGVertex.NAME_SEPARATOR)
-        suffixes = data[1:]
-        if InfinityVertex.NAME_SUFFIX in suffixes:
-            result = InfinityVertex
-        return result
+        if InfinityVertex.NAME_SUFFIX in string.split(BGVertex.NAME_SEPARATOR)[1:]:
+            return TaggedInfinityVertex
+        else:
+            return TaggedBlockVertex
 
     @staticmethod
     def get_vertex_name_root(string):
@@ -291,10 +289,10 @@ class TaggedBlockVertex(BlockVertex, TaggedVertex):
     json_schema = TaggedBlockVertexJSONSchema()
 
 class TaggedInfinityVertex(InfinityVertex, TaggedVertex):
-    class TaggedBlockVertexJSONSchema(TaggedVertex.TaggedVertexJSONSchema, InfinityVertex.InfinityVertexJSONSchema):
+    class TaggedInfinityVertexJSONSchema(TaggedVertex.TaggedVertexJSONSchema, InfinityVertex.InfinityVertexJSONSchema):
         def make_object(self, data):
             setattr(self, "object_class", TaggedInfinityVertex)
             return super().make_object(data)
 
-    json_schema = TaggedBlockVertexJSONSchema()
+    json_schema = TaggedInfinityVertexJSONSchema()
 

@@ -125,10 +125,10 @@ class BGVertexTestCase(unittest.TestCase):
         # correct versions
         # as different types of vertices have different repr names,
         # they shall be ambiguously identified by their string name
-        block_vertex_class = BlockVertex
-        infinity_vertex_class = InfinityVertex
-        bv = BlockVertex(self.str_name1)
-        iv = InfinityVertex(self.str_name1)
+        block_vertex_class = TaggedBlockVertex
+        infinity_vertex_class = TaggedInfinityVertex
+        bv = TaggedBlockVertex(self.str_name1)
+        iv = TaggedInfinityVertex(self.str_name1)
         self.assertEqual(BGVertex.get_vertex_class_from_vertex_name(bv.name), block_vertex_class)
         self.assertEqual(BGVertex.get_vertex_class_from_vertex_name(iv.name), infinity_vertex_class)
 
@@ -410,6 +410,11 @@ class TaggedInfinityVertexTestCase(TaggedVertexTestCase, InfinityVertexTestCase)
         ref_name = BGVertex.NAME_SEPARATOR.join([self.str_name1] +
                                                 [TaggedVertex.TAG_SEPARATOR.join([str(tag), str(value)]) for tag, value in tbv.tags] +
                                                 [InfinityVertex.NAME_SUFFIX])
+        self.assertIn(ref_name, tbv.name)
+
+        # with no tag, just a single name separator is to be inserted between root, and infinity suffix
+        tbv = self.vertex_class(self.str_name1)
+        ref_name = BGVertex.NAME_SEPARATOR.join([self.str_name1] + [InfinityVertex.NAME_SUFFIX])
         self.assertIn(ref_name, tbv.name)
 
 
