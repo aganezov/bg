@@ -366,6 +366,7 @@ class TaggedVertexTestCase(BGVertexTestCase):
         # if the tag is not present, than the result of proxied call shall be returned
         t_v.remove_tag(tag_name, tag_value)
         self.assertFalse(getattr(t_v, "is_" + tag_name + "_vertex"))
+        t_v.add_tag("tag", 1)
         t_v.add_tag("repeat", 1)
         self.assertTrue(t_v.is_repeat_vertex)
         t_v.remove_tag("repeat", 1)

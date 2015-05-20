@@ -265,7 +265,7 @@ class TaggedVertex(BGVertex):
             tag = item[3:-7]
             index = bisect_left([tag_name for tag_name, _ in self.tags], tag)
             if index < len(self.tags):
-                return True
+                return self.tags[index][0] == tag
         return super().__getattr__(item)
 
     def remove_tag(self, tag, value, silent_fail=False):
