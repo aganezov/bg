@@ -5,11 +5,11 @@ from bg.edge import BGEdge
 from bg.genome import BGGenome
 from bg.kbreak import KBreak
 from bg.multicolor import Multicolor
-from bg.vertices import BlockVertex, InfinityVertex
+from bg.vertices import BlockVertex, InfinityVertex, TaggedBlockVertex, TaggedInfinityVertex
 
 __author__ = "Sergey Aganezov"
 __email__ = "aganezov(at)gwu.edu"
-__status__ = "production"
+__status__ = "devel"
 
 import unittest
 from bg.breakpoint_graph import BreakpointGraph
@@ -23,14 +23,14 @@ class BreakpointGraphTestCase(unittest.TestCase):
         self.genome3 = BGGenome("blue")
         self.genome4 = BGGenome("black")
         self.genome5 = BGGenome("yellow")
-        self.v1 = BlockVertex("v1")
-        self.v2 = BlockVertex("v2")
-        self.v3 = BlockVertex("v3")
-        self.v4 = BlockVertex("v4")
-        self.inf_v1 = InfinityVertex("v1")
-        self.inf_v2 = InfinityVertex("v2")
-        self.inf_v3 = InfinityVertex("v3")
-        self.inf_v4 = InfinityVertex("v4")
+        self.v1 = TaggedBlockVertex("v1")
+        self.v2 = TaggedBlockVertex("v2")
+        self.v3 = TaggedBlockVertex("v3")
+        self.v4 = TaggedBlockVertex("v4")
+        self.inf_v1 = TaggedInfinityVertex("v1")
+        self.inf_v2 = TaggedInfinityVertex("v2")
+        self.inf_v3 = TaggedInfinityVertex("v3")
+        self.inf_v4 = TaggedInfinityVertex("v4")
 
     def test_empty_initialization(self):
         # breakpoint graph can be empty and shall be initialisable as such
@@ -61,8 +61,8 @@ class BreakpointGraphTestCase(unittest.TestCase):
         self.assertIsNone(graph.get_vertex_by_name("v3"))
         # infinity vertices
         graph = BreakpointGraph()
-        v1 = InfinityVertex("v1")
-        v2 = InfinityVertex("v2")
+        v1 = TaggedInfinityVertex("v1")
+        v2 = TaggedInfinityVertex("v2")
         graph.add_edge(vertex1=v1, vertex2=v2, multicolor=multicolor)
         self.assertEqual(graph.get_vertex_by_name(v1.name), v1)
         self.assertEqual(graph.get_vertex_by_name(v2.name), v2)
@@ -2335,7 +2335,7 @@ class BreakpointGraphTestCase(unittest.TestCase):
         # case with BreakpointGraph with a single edge and only two multicolors in it
         # multiplicity of colors is set to 1 and 2
 
-        class BlockVertexJSONShcemaWithSpecialAttribute(BlockVertex.BlockVertexJSONSchema):
+        class BlockVertexJSONShcemaWithSpecialAttribute(TaggedBlockVertex.TaggedBlockVertexJSONSchema):
             def make_object(self, data):
                 new_vertex = super().make_object(data=data)
                 new_vertex.special_attribute = "special_attribute"
