@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 from bg import BreakpointGraph, Multicolor
 from bg.genome import BGGenome
-from bg.vertices import BlockVertex, InfinityVertex, TaggedVertex, TaggedBlockVertex, TaggedInfinityVertex, BGVertex
+from bg.vertices import BlockVertex, TaggedVertex, TaggedBlockVertex, TaggedInfinityVertex, BGVertex
 
 __author__ = "Sergey Aganezov"
 __email__ = "aganezov(at)gwu.edu"
@@ -224,8 +224,9 @@ class GRIMMReader(object):
                 left_iv_tags = []
                 left_iv_root_name = vertices[0].name
             if vertices[-1].is_repeat_vertex:
-                right_iv_tags = sorted([(tag, value) if tag != "repeat" else (tag, BGVertex.get_vertex_name_root(vertices[-2].name))
-                                        for tag, value in vertices[-2].tags])
+                right_iv_tags = sorted(
+                    [(tag, value) if tag != "repeat" else (tag, BGVertex.get_vertex_name_root(vertices[-2].name))
+                     for tag, value in vertices[-2].tags])
                 right_iv_root_name = BGVertex.get_vertex_name_root(vertices[-3].name)
                 vertices = vertices[:-2]
             else:
