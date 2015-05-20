@@ -3,7 +3,7 @@ import io
 from bg import BreakpointGraph, Multicolor
 from bg.bg_io import GRIMMReader
 from bg.genome import BGGenome
-from bg.vertices import BlockVertex, InfinityVertex
+from bg.vertices import TaggedBlockVertex, TaggedInfinityVertex
 
 __author__ = 'Sergey Aganezov'
 __email__ = "aganezov(at)gwu.edu"
@@ -108,35 +108,90 @@ class GRIMMReaderTestCase(unittest.TestCase):
         self.assertListEqual(result_genes, reference_genes)
         self.assertListEqual(result_signs, reference_signs)
 
-    def test_get_list_of_edges(self):
+    def test_get_list_of_edges_no_repeat_blocks(self):
         # depending on the fragment type adjacencies to be considered in BreakpointGraph are differ
         # in case of circular genome, additional adjacency is added between to outermost vertices
         # in case of linear genome, two extremity (infinity) vertices are appended to the start and end of the vertices list
         parsed_data = ("@", [("+", "a"), ("-", "b"), ("-", "a")])
         result = GRIMMReader.get_edges_from_parsed_data(parsed_data)
-        reference = [(BlockVertex("at"), BlockVertex("at")),
-                     (BlockVertex("ah"), BlockVertex("bh")),
-                     (BlockVertex("bt"), BlockVertex("ah"))]
+        reference = [(TaggedBlockVertex("at"), TaggedBlockVertex("at")),
+                     (TaggedBlockVertex("ah"), TaggedBlockVertex("bh")),
+                     (TaggedBlockVertex("bt"), TaggedBlockVertex("ah"))]
         self.assertDictEqual(Counter(result), Counter(reference))
 
         parsed_data = ("$", [("+", "a"), ("-", "b"), ("-", "a")])
         result = GRIMMReader.get_edges_from_parsed_data(parsed_data)
-        reference = [(InfinityVertex("at"), BlockVertex("at")),
-                     (BlockVertex("ah"), BlockVertex("bh")),
-                     (BlockVertex("bt"), BlockVertex("ah")),
-                     (BlockVertex("at"), InfinityVertex("at"))]
+        reference = [(TaggedInfinityVertex("at"), TaggedBlockVertex("at")),
+                     (TaggedBlockVertex("ah"), TaggedBlockVertex("bh")),
+                     (TaggedBlockVertex("bt"), TaggedBlockVertex("ah")),
+                     (TaggedBlockVertex("at"), TaggedInfinityVertex("at"))]
         self.assertDictEqual(Counter(result), Counter(reference))
 
         parsed_data = ("@", [("+", "a")])
         result = GRIMMReader.get_edges_from_parsed_data(parsed_data)
-        reference = [(BlockVertex("ah"), BlockVertex("at"))]
+        reference = [(TaggedBlockVertex("ah"), TaggedBlockVertex("at"))]
         self.assertDictEqual(Counter(result), Counter(reference))
 
         parsed_data = ("$", [("-", "a"), ("-", "a")])
         result = GRIMMReader.get_edges_from_parsed_data(parsed_data)
-        reference = [(InfinityVertex("ah"), BlockVertex("ah")),
-                     (BlockVertex("at"), BlockVertex("ah")),
-                     (BlockVertex("at"), InfinityVertex("at"))]
+        reference = [(TaggedInfinityVertex("ah"), TaggedBlockVertex("ah")),
+                     (TaggedBlockVertex("at"), TaggedBlockVertex("ah")),
+                     (TaggedBlockVertex("at"), TaggedInfinityVertex("at"))]
+        self.assertDictEqual(Counter(result), Counter(reference))
+
+    def test_get_list_of_edges_repeat_blocks_at_extremities(self):
+        # if a fragment starts and / or ends with repeat block, that is denoted in a form of
+        # repeat_block_name__repeat
+        # IF this block is preserved as a block (i.e. located inside the fragment),
+        # it will be transformed into a block "repeat_block_name" with
+        #   an empty tag -- value "repeat" -- None
+        # IF the block is not preserved (flanking repeat), it will be dismissed and its outermost extremity
+        #   will be used to make its name (i.e. "repeat_block_name"h and it will be added as a tag to the infinity vertex
+        #   created for a linear fragment
+        # such information shall be recorded in respective infinity vertex, if a fragment is linear,
+        # and in a normal tagged vertex, if fragment is circular
+
+        # single repeat on the left extremity of linear fragment
+        parsed_data = ("$", [("+", "a__repeat"), ("-", "b"), ("+", "c__tag:1")])
+        result = GRIMMReader.get_edges_from_parsed_data(parsed_data)
+        left_iv = TaggedInfinityVertex("bh")
+        left_iv.add_tag("repeat", "ah")
+        ch_vertex, ct_vertex = TaggedBlockVertex("ch"), TaggedBlockVertex("ct")
+        ch_vertex.add_tag("tag", "1")
+        ct_vertex.add_tag("tag", "1")
+        reference = [(left_iv, TaggedBlockVertex("bh")),
+                     (TaggedBlockVertex("bt"), ct_vertex),
+                     (ch_vertex, TaggedInfinityVertex("ch"))]
+        self.assertDictEqual(Counter(result), Counter(reference))
+
+        # both extremities are "flanked" by repeats
+        parsed_data = ("$", [("+", "a__repeat"), ("-", "b"), ("+", "c__tag:1:2"), ("-", "a__repeat")])
+        result = GRIMMReader.get_edges_from_parsed_data(parsed_data)
+        left_iv = TaggedInfinityVertex("bh")
+        left_iv.add_tag("repeat", "ah")
+        right_iv = TaggedInfinityVertex("ch")
+        right_iv.add_tag("repeat", "ah")
+        ch_vertex, ct_vertex = TaggedBlockVertex("ch"), TaggedBlockVertex("ct")
+        ch_vertex.add_tag("tag", "1:2")
+        ct_vertex.add_tag("tag", "1:2")
+        reference = [(left_iv, TaggedBlockVertex("bh")),
+                     (TaggedBlockVertex("bt"), ct_vertex),
+                     (ch_vertex, right_iv)]
+        self.assertDictEqual(Counter(result), Counter(reference))
+
+        # fragment is specified as circular, all repeats shall be treated as normal blocks with half empty tags
+        parsed_data = ("@", [("+", "a__repeat"), ("-", "b"), ("+", "c__tag:1"), ("-", "a__repeat")])
+        result = GRIMMReader.get_edges_from_parsed_data(parsed_data)
+        ch_vertex, ct_vertex = TaggedBlockVertex("ch"), TaggedBlockVertex("ct")
+        ct_vertex.add_tag("tag", "1")
+        ch_vertex.add_tag("tag", "1")
+        ah_vertex, at_vertex = TaggedBlockVertex("ah"), TaggedBlockVertex("at")
+        ah_vertex.add_tag("repeat", None)
+        at_vertex.add_tag("repeat", None)
+        reference = [(ah_vertex, TaggedBlockVertex("bh")),
+                     (TaggedBlockVertex("bt"), ct_vertex),
+                     (ch_vertex, ah_vertex),
+                     (at_vertex, at_vertex)]
         self.assertDictEqual(Counter(result), Counter(reference))
 
     def test_is_comment_string(self):
