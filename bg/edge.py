@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 from marshmallow import Schema, fields
-from bg.vertices import INFINITY_VERTEX_IDENTIFIER
 
 __author__ = "Sergey Aganezov"
 __email__ = "aganezov(at)gwu.edu"
@@ -110,21 +109,14 @@ class BGEdge(object):
         else:
             return self.vertex2 == other.vertex1 and multicolor_equality
 
-    @property
-    def is_infinity_edge(self):
-        """ A property check to distinguish various edges in breakpoint graph between multiple groups
-
-        An edge is called an infinity edge is at least on of its vertices is an infinity vertex
-        """
-        return self.vertex1.is_infinity_vertex or self.vertex2.is_infinity_vertex
-
-    @property
-    def is_irregular_edge(self):
-        """ A property check to distinguish various edges in breakpoint graph between multiple groups
-
-        An edge is called an irregular edge is at least on of its vertices is an irregular vertex
-        """
-        return self.vertex1.is_irregular_vertex or self.vertex2.is_irregular_vertex
+    def __getattr__(self, item):
+        if item.startswith("is_") and item.endswith("_edge"):
+            lookup = item[3:-5]
+            vertex_lookup = "is_" + lookup + "_vertex"
+            if getattr(self.vertex1, vertex_lookup) or getattr(self.vertex2, vertex_lookup):
+                return True
+            return False
+        return super().__getattribute__(item)
 
     @property
     def json_schema_name(self):
