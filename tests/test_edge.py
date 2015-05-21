@@ -7,7 +7,7 @@ from bg.vertices import BlockVertex, InfinityVertex
 
 __author__ = "Sergey Aganezov"
 __email__ = "aganezov(at)gwu.edu"
-__status__ = "production"
+__status__ = "devel"
 
 import unittest
 from bg.edge import BGEdge, BGEdge_JSON_SCHEMA_JSON_KEY
