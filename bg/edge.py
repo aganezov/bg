@@ -3,7 +3,7 @@ from marshmallow import Schema, fields
 
 __author__ = "Sergey Aganezov"
 __email__ = "aganezov(at)gwu.edu"
-__status__ = "devel"
+__status__ = "production"
 
 
 # module wide constant utilized in JSON serialization to specify key for JSON schema info, if required

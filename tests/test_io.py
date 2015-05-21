@@ -7,7 +7,7 @@ from bg.vertices import TaggedBlockVertex, TaggedInfinityVertex
 
 __author__ = 'Sergey Aganezov'
 __email__ = "aganezov(at)gwu.edu"
-__status__ = "devel"
+__status__ = "production"
 
 import unittest
 

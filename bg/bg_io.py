@@ -5,7 +5,7 @@ from bg.vertices import BlockVertex, TaggedVertex, TaggedBlockVertex, TaggedInfi
 
 __author__ = "Sergey Aganezov"
 __email__ = "aganezov(at)gwu.edu"
-__status__ = "devel"
+__status__ = "production"
 
 
 class GRIMMReader(object):
