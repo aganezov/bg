@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 from bg import BreakpointGraph, Multicolor
 from bg.genome import BGGenome
-from bg.vertices import BlockVertex, InfinityVertex
+from bg.vertices import BlockVertex, TaggedVertex, TaggedBlockVertex, TaggedInfinityVertex, BGVertex
 
 __author__ = "Sergey Aganezov"
 __email__ = "aganezov(at)gwu.edu"
@@ -160,8 +160,18 @@ class GRIMMReader(object):
         :rtype: ``(str, str)``
         """
         sign, name = block
-        tail, head = name + "t", name + "h"
-        tail, head = BlockVertex(tail), BlockVertex(head)
+        root_name, *data = name.split(BlockVertex.NAME_SEPARATOR)
+        tags = [entry.split(TaggedVertex.TAG_SEPARATOR) for entry in data]
+        for tag_entry in tags:
+            if len(tag_entry) == 1:
+                tag_entry.append(None)
+            elif len(tag_entry) > 2:
+                tag_entry[1:] = [TaggedVertex.TAG_SEPARATOR.join(tag_entry[1:])]
+        tail, head = root_name + "t", root_name + "h"
+        tail, head = TaggedBlockVertex(tail), TaggedBlockVertex(head)
+        for tag, value in tags:
+            head.add_tag(tag, value)
+            tail.add_tag(tag, value)
         return (tail, head) if sign == "+" else (head, tail)
 
     @staticmethod
@@ -195,16 +205,38 @@ class GRIMMReader(object):
             ###############################################################################################
             vertex = vertices.pop()
             vertices.insert(0, vertex)
-        else:
+        elif chr_type == "$":
             ###############################################################################################
             #
             # if we parse linear genomic fragment, we introduce two artificial (infinity) vertices
             # that correspond to fragments ends, and introduce edges between them and respective outermost block vertices
             #
+            # if outermost vertices at this moment are repeat vertices, the outermost pair shall be discarded and the innermost
+            # vertex info shall be utilized in the infinity vertex, that is introduced for the fragment extremity
+            #
             ###############################################################################################
-            infty_vertex1, infty_vertex2 = InfinityVertex(vertices[0].name), InfinityVertex(vertices[-1].name)
-            vertices.insert(0, infty_vertex1)
-            vertices.append(infty_vertex2)
+            if vertices[0].is_repeat_vertex:
+                left_iv_tags = sorted([(tag, value) if tag != "repeat" else (tag, BGVertex.get_vertex_name_root(vertices[1].name))
+                                       for tag, value in vertices[1].tags])
+                left_iv_root_name = BGVertex.get_vertex_name_root(vertices[2].name)
+                vertices = vertices[2:]
+            else:
+                left_iv_tags = []
+                left_iv_root_name = vertices[0].name
+            if vertices[-1].is_repeat_vertex:
+                right_iv_tags = sorted(
+                    [(tag, value) if tag != "repeat" else (tag, BGVertex.get_vertex_name_root(vertices[-2].name))
+                     for tag, value in vertices[-2].tags])
+                right_iv_root_name = BGVertex.get_vertex_name_root(vertices[-3].name)
+                vertices = vertices[:-2]
+            else:
+                right_iv_tags = []
+                right_iv_root_name = BGVertex.get_vertex_name_root(vertices[-1].name)
+            left_iv, right_iv = TaggedInfinityVertex(left_iv_root_name), TaggedInfinityVertex(right_iv_root_name)
+            left_iv.tags = left_iv_tags
+            right_iv.tags = right_iv_tags
+            vertices.insert(0, left_iv)
+            vertices.append(right_iv)
         return [(v1, v2) for v1, v2 in zip(vertices[::2], vertices[1::2])]
 
     @staticmethod

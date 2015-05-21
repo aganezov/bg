@@ -5,7 +5,8 @@ from bg.edge import BGEdge, BGEdge_JSON_SCHEMA_JSON_KEY
 from bg.genome import BGGenome, BGGenome_JSON_SCHEMA_JSON_KEY
 from bg.kbreak import KBreak
 from bg.multicolor import Multicolor
-from bg.vertices import BGVertex_JSON_SCHEMA_JSON_KEY, BlockVertex, BGVertex, InfinityVertex
+from bg.vertices import BGVertex_JSON_SCHEMA_JSON_KEY, BlockVertex, BGVertex, InfinityVertex, TaggedInfinityVertex, \
+    TaggedBlockVertex, TaggedVertex
 
 __author__ = "Sergey Aganezov"
 __email__ = "aganezov(at)gwu.edu"
@@ -55,7 +56,10 @@ class BreakpointGraph(object):
     edges_json_schemas = {"BGEdgeJSONSchema": BGEdge.BGEdgeJSONSchema}
     vertices_json_schemas = {"BGVertexJSONSchema": BGVertex.BGVertexJSONSchema,
                              "BlockVertexJSONSchema": BlockVertex.BlockVertexJSONSchema,
-                             "InfinityVertexJSINSchema": InfinityVertex.InfinityVertexJSONSchema}
+                             "InfinityVertexJSONSchema": InfinityVertex.InfinityVertexJSONSchema,
+                             "TaggedVertexJSONSchema": TaggedVertex.TaggedVertexJSONSchema,
+                             "TaggedBlockVertexJSONSchema": TaggedBlockVertex.TaggedBlockVertexJSONSchema,
+                             "TaggedInfinityVertexJSONSchema": TaggedInfinityVertex.TaggedInfinityVertexJSONSchema}
 
     def __init__(self, graph=None):
         """ Initialization of a :class:`BreakpointGraph` object.
@@ -867,4 +871,3 @@ class BreakpointGraph(object):
                                  "genome in its multicolor")
             result.__add_bgedge(edge, merge=merge)
         return result
-

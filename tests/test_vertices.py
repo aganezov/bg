@@ -4,7 +4,8 @@ __email__ = "aganezov(at)gwu.edu"
 __status__ = "production"
 
 import unittest
-from bg.vertices import BGVertex_JSON_SCHEMA_JSON_KEY, BGVertex, BlockVertex, InfinityVertex
+from bg.vertices import BGVertex_JSON_SCHEMA_JSON_KEY, BGVertex, BlockVertex, InfinityVertex, TaggedVertex, TaggedBlockVertex, \
+    TaggedInfinityVertex
 
 
 class BGVertexTestCase(unittest.TestCase):
@@ -102,7 +103,7 @@ class BGVertexTestCase(unittest.TestCase):
             "json_id": 1
         }
         vertex = self.vertex_class.from_json(json_object)
-        self.assertTrue(isinstance(vertex, self.vertex_class))
+        self.assertIsInstance(vertex, self.vertex_class)
         # explicitly specified json schema to work with
         # but since nothing is passed into in "schema" argument to the from_json function
         # default to the BGVertex.json_schema is performed
@@ -113,7 +114,7 @@ class BGVertexTestCase(unittest.TestCase):
             "json_id": 1
         }
         vertex = self.vertex_class.from_json(json_object)
-        self.assertTrue(isinstance(vertex, self.vertex_class))
+        self.assertIsInstance(vertex, self.vertex_class)
         self.assertEqual(vertex.name, self.str_name1)
         # there must be a "name" field in json object to be serialized
         with self.assertRaises(ValueError):
@@ -124,10 +125,10 @@ class BGVertexTestCase(unittest.TestCase):
         # correct versions
         # as different types of vertices have different repr names,
         # they shall be ambiguously identified by their string name
-        block_vertex_class = BlockVertex
-        infinity_vertex_class = InfinityVertex
-        bv = BlockVertex(self.str_name1)
-        iv = InfinityVertex(self.str_name1)
+        block_vertex_class = TaggedBlockVertex
+        infinity_vertex_class = TaggedInfinityVertex
+        bv = TaggedBlockVertex(self.str_name1)
+        iv = TaggedInfinityVertex(self.str_name1)
         self.assertEqual(BGVertex.get_vertex_class_from_vertex_name(bv.name), block_vertex_class)
         self.assertEqual(BGVertex.get_vertex_class_from_vertex_name(iv.name), infinity_vertex_class)
 
@@ -150,6 +151,7 @@ class BGVertexTestCase(unittest.TestCase):
 
 class BlockVertexTestCase(BGVertexTestCase):
     """ Update vertex_class to call BlockVertex rather than BGVertex, and update overwritten portions of the class """
+
     def setUp(self):
         super().setUp()
         self.vertex_class = BlockVertex
@@ -168,6 +170,7 @@ class BlockVertexTestCase(BGVertexTestCase):
 
 class InfinityVertexTestCase(BGVertexTestCase):
     """ Update vertex_class to call InfinityVertex rather than BGVertex, and update overwritten portions of the class """
+
     def setUp(self):
         super().setUp()
         self.vertex_class = InfinityVertex
@@ -196,7 +199,7 @@ class InfinityVertexTestCase(BGVertexTestCase):
         # json identifier shall be unique per BGVertex and be of `int` type
         # json identifier is implemented as a property on BGVertex object
         # __hash__ is used
-        v = self.vertex_class(self.block_vertex)
+        v = self.vertex_class(self.block_vertex.name)
         json_id = v.json_id
         self.assertTrue(isinstance(json_id, int))
         self.assertEqual(json_id, hash(v))
@@ -256,5 +259,164 @@ class InfinityVertexTestCase(BGVertexTestCase):
             json_object = {"json_id": 1}
             self.vertex_class.from_json(json_object)
 
+
+class TaggedVertexTestCase(BGVertexTestCase):
+    """ Update vertex_class to call InfinityVertex rather than BGVertex, and update overwritten portions of the class """
+
+    def setUp(self):
+        super().setUp()
+        self.vertex_class = TaggedVertex
+        self.tagged_vertex = TaggedVertex(self.str_name1)
+
+    def test_initialization(self):
+        #
+        # Tagged vertex overwrites access to the "name" attribute, thus keeping hte internal representation as is,
+        # while returning on call a calculated on the fly value that has pairs of "tag" -- "value" in it
+        t_v = self.vertex_class(self.str_name1)
+        self.assertTrue(t_v.is_tagged_vertex)
+        self.assertListEqual(t_v.tags, [])
+        # when the tags list is empty the "name", when accessed, will be equal to the root portion of itself
+        self.assertIn(self.str_name1, t_v.name)
+
+    def test_is_tagged_vertex(self):
+        self.assertTrue(self.tagged_vertex.is_tagged_vertex)
+
+    def test_inheritance(self):
+        self.assertIsInstance(self.vertex_class(self.str_name1), BGVertex)
+
+    def test_add_tag(self):
+        # tags in vertex are represented in pairs "tag" -- "value"
+        # and suppose to be added in a respective way
+        # order of tags is preserved throughout the adding process
+        t_v = self.vertex_class(self.str_name1)
+        t_v.add_tag("repeat", 1)
+        self.assertIn(("repeat", 1), t_v.tags)
+
+        # unique "tag" -- "value" pairs are to be present exactly once
+        t_v.add_tag("repeat", 1)
+        self.assertEqual(t_v.tags.count(("repeat", 1)), 1)
+
+        # addition of a different tag with same name, but different value shall work just fine and as expected
+        t_v.add_tag("repeat", 2)
+        self.assertIn(("repeat", 2), t_v.tags)
+
+        # added tags shall preserve the sorted order of the tags list
+        t_v.add_tag("repeat", 0)
+        self.assertLess(t_v.tags.index(("repeat", 0)), t_v.tags.index(("repeat", 1)))
+        self.assertLess(t_v.tags.index(("repeat", 0)), t_v.tags.index(("repeat", 2)))
+
+    def test_remove_tag(self):
+        #
+        # order of tags shall be preserved throughout deletion
+        t_v = self.vertex_class(self.str_name1)
+        t_v.add_tag("repeat", 2)
+        t_v.add_tag("repeat", 3)
+        t_v.add_tag("repeat", 0)
+        t_v.add_tag("repeat", 1)
+
+        length_before = len(t_v.tags)
+
+        t_v.remove_tag("repeat", 2)
+
+        length_after = len(t_v.tags)
+
+        self.assertEqual(length_before - 1, length_after)
+
+        self.assertLess(t_v.tags.index(("repeat", 0)), t_v.tags.index(("repeat", 1)))
+        self.assertLess(t_v.tags.index(("repeat", 0)), t_v.tags.index(("repeat", 3)))
+        self.assertLess(t_v.tags.index(("repeat", 1)), t_v.tags.index(("repeat", 3)))
+
+        # silent fail options can be specified to remove the non present tag without raising the exception
+        t_v.remove_tag("repeat", 2, silent_fail=True)
+
+    def test_remove_tag_incorrect(self):
+        # when attempting to remove a non existing "tag" -- "value" pair and no silent_fail option is present,
+        #   a value error is raised
+        with self.assertRaises(ValueError):
+            self.tagged_vertex.remove_tag("lalala", "lalala")
+
+    def test_tag_presence_in_name(self):
+        #
+        # for each "tag" -- "value" their str representation is used and is separated by ":" sign
+        # example:
+        #   tag   = "repeat"
+        #   value = 1
+        #   representation = "repeat:1"
+        # multiple tags a separated between each other by the NAME_SEPARATOR
+        t_v = self.vertex_class(self.str_name1)
+        t_v.add_tag("repeat", 2)
+        t_v.add_tag("repeat", 3)
+        t_v.add_tag("repeat", 0)
+        t_v.add_tag("repeat", 1)
+        tags_as_strings = [self.tagged_vertex.TAG_SEPARATOR.join([str(tag), str(value)]) for tag, value in t_v.tags]
+        ref_name = self.tagged_vertex.NAME_SEPARATOR.join([self.str_name1] + tags_as_strings)
+        self.assertIn(ref_name,t_v.name)
+
+    def test_is_something_vertex_based_on_tags_name(self):
+        # all calls "is_something_vertex" shall be aware of the tags, that are stored in the vertex.tags container
+        # if there is a tag -- key pair in the container, such, that tag equals to "something", the vertex shall be
+        # be considered as "is_something_vertex"
+        t_v = self.vertex_class(self.str_name1)
+        tag_name = "tag_name_1"
+        tag_value = 1
+        t_v.add_tag(tag_name, tag_value)
+        self.assertTrue(getattr(t_v, "is_" + tag_name + "_vertex"))
+        # if the "something" is not found in tags, than the call shall be proxied forward
+        self.assertTrue(t_v.is_tagged_vertex)
+        # if the tag is not present, than the result of proxied call shall be returned
+        t_v.remove_tag(tag_name, tag_value)
+        self.assertFalse(getattr(t_v, "is_" + tag_name + "_vertex"))
+        t_v.add_tag("tag", 1)
+        t_v.add_tag("repeat", 1)
+        self.assertTrue(t_v.is_repeat_vertex)
+        t_v.remove_tag("repeat", 1)
+        self.assertFalse(t_v.is_repeat_vertex)
+
+
+class TaggedBlockVertexTestCase(TaggedVertexTestCase, BlockVertexTestCase):
+    def setUp(self):
+        super().setUp()
+        self.vertex_class = TaggedBlockVertex
+        self.tagged_block_vertex = TaggedBlockVertex(self.str_name1)
+
+    def test_is_regular_and_is_tagged_vertex(self):
+        self.assertTrue(self.tagged_block_vertex.is_regular_vertex)
+        self.assertTrue(self.tagged_block_vertex.is_tagged_vertex)
+
+    def test_name_creation_order(self):
+        # name has to go as root + tags, just as in the tagged vertex
+        tbv = self.vertex_class(self.str_name1)
+        tbv.add_tag("tag1", 1)
+        ref_name = BGVertex.NAME_SEPARATOR.join([self.str_name1] + [TaggedVertex.TAG_SEPARATOR.join([str(tag), str(value)])
+                                                                    for tag, value in tbv.tags])
+        self.assertIn(ref_name, tbv.name)
+
+
+class TaggedInfinityVertexTestCase(TaggedVertexTestCase, InfinityVertexTestCase):
+    def setUp(self):
+        super().setUp()
+        self.vertex_class = TaggedInfinityVertex
+        self.tagged_infinity_vertex = TaggedInfinityVertex(self.str_name1)
+
+    def test_is_irregular_and_is_tagged_vertex(self):
+        self.assertTrue(self.tagged_infinity_vertex.is_irregular_vertex)
+        self.assertTrue(self.tagged_infinity_vertex.is_infinity_vertex)
+        self.assertTrue(self.tagged_infinity_vertex.is_tagged_vertex)
+
+    def test_name_creation_order(self):
+        # name has to go as root + tags + infinity suffix
+        tbv = self.vertex_class(self.str_name1)
+        tbv.add_tag("tag1", 1)
+        ref_name = BGVertex.NAME_SEPARATOR.join([self.str_name1] +
+                                                [TaggedVertex.TAG_SEPARATOR.join([str(tag), str(value)]) for tag, value in tbv.tags] +
+                                                [InfinityVertex.NAME_SUFFIX])
+        self.assertIn(ref_name, tbv.name)
+
+        # with no tag, just a single name separator is to be inserted between root, and infinity suffix
+        tbv = self.vertex_class(self.str_name1)
+        ref_name = BGVertex.NAME_SEPARATOR.join([self.str_name1] + [InfinityVertex.NAME_SUFFIX])
+        self.assertIn(ref_name, tbv.name)
+
+
 if __name__ == '__main__':  # pragma: no cover
-    unittest.main()         # pragma: no cover
+    unittest.main()  # pragma: no cover
