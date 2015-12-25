@@ -6,7 +6,7 @@ from bg import version as bg_version
 setup(
     name="bg",
     version=bg_version,
-    packages=["bg"],
+    packages=["bg", "tests"],
     install_requires=list(map(lambda entry: entry.strip(), open("requirements.txt", "rt").readlines())),
     author="Sergey Aganezov",
     author_email="aganezov@gwu.edu",
