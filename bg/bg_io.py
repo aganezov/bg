@@ -240,9 +240,11 @@ class GRIMMReader(object):
         return [(v1, v2) for v1, v2 in zip(vertices[::2], vertices[1::2])]
 
     @staticmethod
-    def get_breakpoint_graph(stream):
+    def get_breakpoint_graph(stream, merge_edges=True):
         """ Taking a file-like object transforms supplied gene order data into the language of
 
+        :param merge_edges: a flag that indicates if parallel edges in produced breakpoint graph shall be merged or not
+        :type merge_edges: ``bool``
         :param stream: any iterable object where each iteration produces a ``str`` object
         :type stream: ``iterable`` ver ``str``
         :return: an instance of a BreakpointGraph that contains information about adjacencies in genome specified in GRIMM formatted input
@@ -280,5 +282,6 @@ class GRIMMReader(object):
                 edges = GRIMMReader.get_edges_from_parsed_data(parsed_data=parsed_data)
                 for v1, v2 in edges:
                     result.add_edge(vertex1=v1, vertex2=v2,
-                                    multicolor=Multicolor(current_genome))
+                                    multicolor=Multicolor(current_genome),
+                                    merge=merge_edges)
         return result
