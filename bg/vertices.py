@@ -135,6 +135,10 @@ class BlockVertex(BGVertex):
     # a new JSON schema is initialized and set of be used for all instance of `VertexClass`
     json_schema = BlockVertexJSONSchema()
 
+    def __init__(self, name, mate_vertex=None):
+        super().__init__(name=name)
+        self.mate_vertex = mate_vertex
+
     @property
     def is_regular_vertex(self):
         """ This class implements a property check for vertex to belong to class of regular vertices """
