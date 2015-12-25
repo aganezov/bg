@@ -187,6 +187,11 @@ class BlockVertexTestCase(BGVertexTestCase):
         self.assertEqual(v.mate_vertex, v1)
         self.assertEqual(v1.mate_vertex, v)
 
+    def test_block_name(self):
+        self.assertEqual(self.vertex_class("vertexh").block_name, "vertex")
+        self.assertEqual(self.vertex_class("vertext").block_name, "vertex")
+        self.assertEqual(self.vertex_class("vertex").block_name, "vertex")
+
 
 class InfinityVertexTestCase(BGVertexTestCase):
     """ Update vertex_class to call InfinityVertex rather than BGVertex, and update overwritten portions of the class """

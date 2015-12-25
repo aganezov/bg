@@ -144,6 +144,13 @@ class BlockVertex(BGVertex):
         """ This class implements a property check for vertex to belong to class of regular vertices """
         return True
 
+    @property
+    def block_name(self):
+        if self.is_block_vertex:
+            if self.is_tail_vertex or self.is_head_vertex:
+                return self._name[:-1]
+            else:
+                return self._name
 
     @property
     def is_block_vertex(self):
