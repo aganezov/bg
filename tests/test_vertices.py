@@ -167,6 +167,14 @@ class BlockVertexTestCase(BGVertexTestCase):
         self.assertTrue(v.is_regular_vertex)
         self.assertTrue(v.is_block_vertex)
 
+    def test_is_head_vertex(self):
+        self.assertTrue(self.vertex_class("vertexh").is_head_vertex)
+        self.assertFalse(self.vertex_class("vertexl").is_head_vertex)
+
+    def test_is_tail_vertex(self):
+        self.assertFalse(self.vertex_class("vertexl").is_tail_vertex)
+        self.assertTrue(self.vertex_class("vertext").is_tail_vertex)
+
 
 class InfinityVertexTestCase(BGVertexTestCase):
     """ Update vertex_class to call InfinityVertex rather than BGVertex, and update overwritten portions of the class """
@@ -191,6 +199,12 @@ class InfinityVertexTestCase(BGVertexTestCase):
         i_v = InfinityVertex(self.block_vertex)
         self.assertTrue(i_v.is_infinity_vertex)
         self.assertTrue(i_v.is_irregular_vertex)
+
+    def test_is_head_vertex(self):
+        self.assertFalse(self.vertex_class("vertexh").is_tail_vertex)
+
+    def test_is_tail_vertex(self):
+        self.assertFalse(self.vertex_class("vertext").is_tail_vertex)
 
     def test_inheritance(self):
         self.assertIsInstance(InfinityVertex(self.block_vertex), BGVertex)
@@ -390,6 +404,16 @@ class TaggedBlockVertexTestCase(TaggedVertexTestCase, BlockVertexTestCase):
         ref_name = BGVertex.NAME_SEPARATOR.join([self.str_name1] + [TaggedVertex.TAG_SEPARATOR.join([str(tag), str(value)])
                                                                     for tag, value in tbv.tags])
         self.assertIn(ref_name, tbv.name)
+
+    def test_is_head_vertex(self):
+        tbv = self.vertex_class("vertexh")
+        tbv.add_tag("tag1", 1)
+        self.assertTrue(tbv.is_head_vertex)
+
+    def test_is_tail_vertex(self):
+        tbv = self.vertex_class("vertext")
+        tbv.add_tag("tag1", 1)
+        self.assertTrue(tbv.is_tail_vertex)
 
 
 class TaggedInfinityVertexTestCase(TaggedVertexTestCase, InfinityVertexTestCase):

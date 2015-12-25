@@ -146,6 +146,14 @@ class BlockVertex(BGVertex):
         """ This class implements a property check for vertex to belong to a class of vertices, that correspond to extremities of genomic blocks"""
         return True
 
+    @property
+    def is_head_vertex(self):
+        return self.is_block_vertex and self._name.endswith("h")
+
+    @property
+    def is_tail_vertex(self):
+        return self.is_block_vertex and self._name.endswith("t")
+
     @classmethod
     def from_json(cls, data, json_schema_class=None):
         """ This class overwrites the from_json method thus, making sure, that if `from_json` is called from this class instance, it will provide its JSON schema as a default one """
