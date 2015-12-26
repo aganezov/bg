@@ -386,6 +386,19 @@ class GRIMMWriterTestCase(unittest.TestCase):
         possibilities_8 = ["1 -4 -3 -2 $", "2 3 4 -1 $"]
         self.assertTrue(any(map(lambda entry: entry in grimm_strings, possibilities_8)))
 
+    def test_get_grimm_from_breakpoint_graph_single_chromosome(self):
+        data = [
+            ">Mouse",
+            "1 2 3 4 5 $"
+        ]
+        bg = self._populate_bg(data=data)
+        grimm_strings = GRIMMWriter.get_grimm_from_breakpoint_graph(bg=bg)
+        self.assertEqual(len(grimm_strings), 2)
+        self.assertIn(">Mouse", grimm_strings)
+        possibilities_1 = ["1 2 3 4 5 $", "-5 -4 -3 -2 -1 $"]
+        self.assertTrue(any(map(lambda entry: entry in grimm_strings, possibilities_1)))
+
+
     def test_output_genomes_as_grimm(self):
         self._populate_four_genomes_bg()
         file_name = "file_name.txt"

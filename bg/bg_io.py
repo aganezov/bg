@@ -304,7 +304,7 @@ class GRIMMWriter(object):
             genome_graph = bg.get_genome_graph(color=genome)
             genome_blocks_orders = genome_graph.get_blocks_order()
             blocks_orders = genome_blocks_orders[genome]
-            if len(blocks_orders) > 1:
+            if len(blocks_orders) > 0:
                 result.append(">{genome_name}".format(genome_name=genome.name))
             for chr_type, blocks_order in blocks_orders:
                 string = " ".join(value if sign == "+" else sign + value for sign, value in blocks_order)
