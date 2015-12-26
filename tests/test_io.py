@@ -1,7 +1,8 @@
-from collections import Counter
 import io
+from collections import Counter
+
 from bg import BreakpointGraph, Multicolor
-from bg.bg_io import GRIMMReader
+from bg.bg_io import GRIMMReader, GRIMMWriter
 from bg.genome import BGGenome
 from bg.vertices import TaggedBlockVertex, TaggedInfinityVertex
 
@@ -268,6 +269,122 @@ class GRIMMReaderTestCase(unittest.TestCase):
         infinity_multicolors = [multicolor for multicolor in multicolors if len(multicolor.multicolors) != 2]
         for bgedge in infinity_edges:
             self.assertTrue(bgedge.multicolor in infinity_multicolors)
+
+
+class GRIMMWriterTestCase(unittest.TestCase):
+    def setUp(self):
+        self.genome1 = BGGenome("red")
+        self.genome2 = BGGenome("green")
+        self.genome3 = BGGenome("blue")
+        self.single_genome_bg = BreakpointGraph()
+        self.two_genome_bg = BreakpointGraph()
+        self.four_genome_bg = BreakpointGraph()
+
+    def _populate_bg(self, data):
+        file_like = io.StringIO("\n".join(data))
+        bg = GRIMMReader.get_breakpoint_graph(file_like)
+        return bg
+
+    def _get_mouse_data(self):
+        return [
+            ">Mouse",
+            "1 2 3 4 $",
+            "5 6 7 8 $"
+        ]
+
+    def _get_human_data(self):
+        return [
+            ">Human",
+            "1 4 3 2 $",
+            "5 -7 -6 8 $"
+        ]
+
+    def _get_rat_data(self):
+        return [
+            ">Rat",
+            "0 1 4 5 $",
+            "10 12 8 7 $"
+        ]
+
+    def _get_chimp_data(self):
+        return [
+            ">Chimpanzee",
+            "5 6 7 8 $",
+            "1 -4 -3 -2 $"
+        ]
+
+    def _populate_single_genome_bg(self):
+        data = self._get_mouse_data()
+        bg = self._populate_bg(data=data)
+        self.single_genome_bg = bg
+
+    def _populate_two_genomes_bg(self):
+        data = self._get_human_data() + self._get_mouse_data()
+        bg = self._populate_bg(data=data)
+        self.two_genome_bg = bg
+
+    def _populate_four_genomes_bg(self):
+        data = self._get_human_data() + self._get_mouse_data() + self._get_chimp_data() + self._get_rat_data()
+        bg = self._populate_bg(data=data)
+        self.four_genome_bg = bg
+
+    def test_get_grimm_strings_from_breakpoint_graph_single_genome(self):
+        self._populate_single_genome_bg()
+        grimm_strings = GRIMMWriter.get_grimm_from_breakpoint_graph(bg=self.single_genome_bg)
+        self.assertEqual(len(grimm_strings), 3)
+        self.assertIn(">Mouse", grimm_strings)
+        possibilities_1 = ["1 2 3 4 $", "-4 -3 -2 -1 $"]
+        self.assertTrue(any(map(lambda entry: entry in grimm_strings, possibilities_1)))
+        possibilities_2 = ["5 6 7 8 $", "-8 -7 -6 -5 $"]
+        self.assertTrue(any(map(lambda entry: entry in grimm_strings, possibilities_2)))
+
+    def test_get_grimm_strings_from_breakpoints_graph_two_genomes(self):
+        self._populate_two_genomes_bg()
+        grimm_strings = GRIMMWriter.get_grimm_from_breakpoint_graph(bg=self.two_genome_bg)
+        self.assertEqual(len(grimm_strings), 6)
+        self.assertIn(">Mouse", grimm_strings)
+        self.assertIn(">Human", grimm_strings)
+
+        possibilities_1 = ["1 2 3 4 $", "-4 -3 -2 -1 $"]
+        self.assertTrue(any(map(lambda entry: entry in grimm_strings, possibilities_1)))
+        possibilities_2 = ["5 6 7 8 $", "-8 -7 -6 -5 $"]
+        self.assertTrue(any(map(lambda entry: entry in grimm_strings, possibilities_2)))
+
+        possibilities_3 = ["1 4 3 2 $", "-2 -3 -4 -1 $"]
+        self.assertTrue(any(map(lambda entry: entry in grimm_strings, possibilities_3)))
+        possibilities_4 = ["5 -7 -6 8 $", "-8 6 7 -5 $"]
+        self.assertTrue(any(map(lambda entry: entry in grimm_strings, possibilities_4)))
+
+    def test_get_grimm_from_breakpoint_graph_four_genomes(self):
+        self._populate_four_genomes_bg()
+        grimm_strings = GRIMMWriter.get_grimm_from_breakpoint_graph(bg=self.four_genome_bg)
+
+        self.assertEqual(len(grimm_strings), 12)
+        self.assertIn(">Mouse", grimm_strings)
+        self.assertIn(">Human", grimm_strings)
+        self.assertIn(">Rat", grimm_strings)
+        self.assertIn(">Chimpanzee", grimm_strings)
+
+        possibilities_1 = ["1 2 3 4 $", "-4 -3 -2 -1 $"]
+        self.assertTrue(any(map(lambda entry: entry in grimm_strings, possibilities_1)))
+        possibilities_2 = ["5 6 7 8 $", "-8 -7 -6 -5 $"]
+        self.assertTrue(any(map(lambda entry: entry in grimm_strings, possibilities_2)))
+
+        possibilities_3 = ["1 4 3 2 $", "-2 -3 -4 -1 $"]
+        self.assertTrue(any(map(lambda entry: entry in grimm_strings, possibilities_3)))
+        possibilities_4 = ["5 -7 -6 8 $", "-8 6 7 -5 $"]
+        self.assertTrue(any(map(lambda entry: entry in grimm_strings, possibilities_4)))
+
+        possibilities_5 = ["0 1 4 5 $", "-5 -4 -1 -0 $"]
+        self.assertTrue(any(map(lambda entry: entry in grimm_strings, possibilities_3)))
+        possibilities_6 = ["10 12 8 7 $", "-7 -8 -12 -10 $"]
+        self.assertTrue(any(map(lambda entry: entry in grimm_strings, possibilities_4)))
+
+        possibilities_7 = ["5 6 7 8 $", "-8 -7 -6 -5 $"]
+        self.assertTrue(any(map(lambda entry: entry in grimm_strings, possibilities_3)))
+        possibilities_8 = ["1 -4 -3 -2 $", "2 3 4 -1 $"]
+        self.assertTrue(any(map(lambda entry: entry in grimm_strings, possibilities_4)))
+
 
 if __name__ == '__main__':
     unittest.main()
