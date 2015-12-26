@@ -1,6 +1,9 @@
 # -*- coding: utf-8 -*-
+import io
 from unittest.mock import Mock
 from collections import Counter
+
+from bg.bg_io import GRIMMReader
 from bg.edge import BGEdge
 from bg.genome import BGGenome
 from bg.kbreak import KBreak
@@ -2445,6 +2448,22 @@ class BreakpointGraphTestCase(unittest.TestCase):
             json_object["genomes"] = json_object["genomes"][1:]
             bg.from_json(data=json_object)
 
+    def test_get_overall_set_of_colors(self):
+        data = [
+            ">genome_1",
+            "1 2 3 $",
+            ">genome_2",
+            "2 3 4 $",
+            ">genome_3",
+            "3 4 5 $"
+        ]
+        file_like = io.StringIO("\n".join(data))
+        bg = GRIMMReader.get_breakpoint_graph(file_like)
+        result = bg.get_overall_set_of_colors()
+        self.assertEqual(len(result), 3)
+        self.assertIn(BGGenome("genome_1"), result)
+        self.assertIn(BGGenome("genome_2"), result)
+        self.assertIn(BGGenome("genome_3"), result)
 
 if __name__ == '__main__':  # pragma: no cover
     unittest.main()  # pragma: no cover
