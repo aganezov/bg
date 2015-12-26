@@ -874,3 +874,12 @@ class BreakpointGraph(object):
 
     def get_overall_set_of_colors(self):
         return {color for bg_edge in self.edges() for color in bg_edge.multicolor.colors}
+
+    def get_genome_graph(self, color):
+        result = BreakpointGraph()
+        mc = Multicolor(color)
+        for edge in self.edges():
+            if mc <= edge.multicolor:
+                result.__add_bgedge(bgedge=BGEdge(vertex1=edge.vertex1, vertex2=edge.vertex2,
+                                                  multicolor=mc))
+        return result

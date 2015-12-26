@@ -2465,5 +2465,53 @@ class BreakpointGraphTestCase(unittest.TestCase):
         self.assertIn(BGGenome("genome_2"), result)
         self.assertIn(BGGenome("genome_3"), result)
 
+    def _populate_bg_in_genome_graph_test(self):
+        data = [
+            ">genome_1",
+            "1 2 3 $",
+            ">genome_2",
+            "2 3 4 $",
+            ">genome_3",
+            "3 4 5 $"
+        ]
+        file_like = io.StringIO("\n".join(data))
+        return file_like
+
+    def test_get_genome_graph_existing_color_merge_edges(self):
+        file_like = self._populate_bg_in_genome_graph_test()
+        bg = GRIMMReader.get_breakpoint_graph(file_like, merge_edges=True)
+        genome_graph = bg.get_genome_graph(color=BGGenome("genome_1"))
+        self.assertIsInstance(genome_graph, BreakpointGraph)
+        self.assertEqual(len(list(genome_graph.nodes())), 8)
+        self.assertEqual(len(list(vertex for vertex in genome_graph.nodes() if vertex.is_irregular_vertex)), 2)
+        self.assertEqual(len(list(vertex for vertex in genome_graph.nodes() if vertex.is_regular_vertex)), 6)
+        self.assertEqual(len(list(genome_graph.edges())), 4)
+        self.assertEqual(len(list(edge for edge in genome_graph.edges() if not edge.is_irregular_edge)), 2)
+        self.assertEqual(len(list(edge for edge in genome_graph.edges() if edge.is_irregular_edge)), 2)
+        self.assertSetEqual({BGGenome("genome_1")}, genome_graph.get_overall_set_of_colors())
+
+    def test_get_genome_graph_existing_color_no_merge_edges(self):
+        file_like = self._populate_bg_in_genome_graph_test()
+        bg = GRIMMReader.get_breakpoint_graph(file_like, merge_edges=False)
+        genome_graph = bg.get_genome_graph(color=BGGenome("genome_1"))
+        self.assertIsInstance(genome_graph, BreakpointGraph)
+        self.assertEqual(len(list(genome_graph.nodes())), 8)
+        self.assertEqual(len(list(vertex for vertex in genome_graph.nodes() if vertex.is_irregular_vertex)), 2)
+        self.assertEqual(len(list(vertex for vertex in genome_graph.nodes() if vertex.is_regular_vertex)), 6)
+        self.assertEqual(len(list(genome_graph.edges())), 4)
+        self.assertEqual(len(list(edge for edge in genome_graph.edges() if not edge.is_irregular_edge)), 2)
+        self.assertEqual(len(list(edge for edge in genome_graph.edges() if edge.is_irregular_edge)), 2)
+        self.assertSetEqual({BGGenome("genome_1")}, genome_graph.get_overall_set_of_colors())
+
+    def test_get_genome_graph_non_existing_color(self):
+        file_like = self._populate_bg_in_genome_graph_test()
+        bg = GRIMMReader.get_breakpoint_graph(file_like, merge_edges=False)
+        genome_graph = bg.get_genome_graph(color=BGGenome("non_existing"))
+        self.assertIsInstance(genome_graph, BreakpointGraph)
+        self.assertEqual(len(list(genome_graph.nodes())), 0)
+        self.assertEqual(len(list(genome_graph.edges())), 0)
+        self.assertSetEqual(set(), genome_graph.get_overall_set_of_colors())
+
+
 if __name__ == '__main__':  # pragma: no cover
     unittest.main()  # pragma: no cover
