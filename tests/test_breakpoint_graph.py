@@ -2512,6 +2512,54 @@ class BreakpointGraphTestCase(unittest.TestCase):
         self.assertEqual(len(list(genome_graph.edges())), 0)
         self.assertSetEqual(set(), genome_graph.get_overall_set_of_colors())
 
+    def test_get_blocks_order_for_grimm_from_genome_graph(self):
+        data = [
+            ">genome_1",
+            "1 2 3 $",
+            "4 -5 6 $"
+        ]
+        file_like = io.StringIO("\n".join(data))
+        genome_graph = GRIMMReader.get_breakpoint_graph(file_like)
+        blocks_orders = genome_graph.get_blocks_order()
+        self.assertEqual(len(blocks_orders.keys()), 1)
+        self.assertIn(BGGenome("genome_1"), blocks_orders)
+        g1_blocks_orders = blocks_orders[BGGenome("genome_1")]
+        self.assertEqual(len(g1_blocks_orders), 2)
+        fragment_1_0 = ("$", [("+", "1"), ("+", "2"), ("+", "3")])
+        fragment_1_1 = ("$", [("-", "3"), ("-", "2"), ("-", "1")])
+        fragment_2_0 = ("$", [("+", "4"), ("-", "5"), ("+", "6")])
+        fragment_2_1 = ("$", [("-", "6"), ("+", "5"), ("-", "4")])
+        possibilities = [fragment_1_0, fragment_1_1, fragment_2_0, fragment_2_1]
+        for order in g1_blocks_orders:
+            self.assertIn(order, possibilities)
+
+    def test_get_blocks_order_for_grimm_from_genome_graph_with_circular_chromosomes(self):
+        data = [
+            ">genome_1",
+            "1 2 3 $",
+            "4 -5 6 @"
+        ]
+        file_like = io.StringIO("\n".join(data))
+        genome_graph = GRIMMReader.get_breakpoint_graph(file_like)
+        blocks_orders = genome_graph.get_blocks_order()
+        self.assertEqual(len(blocks_orders.keys()), 1)
+        self.assertIn(BGGenome("genome_1"), blocks_orders)
+        g1_blocks_orders = blocks_orders[BGGenome("genome_1")]
+        self.assertEqual(len(g1_blocks_orders), 2)
+        fragment_1_0 = ("$", [("+", "1"), ("+", "2"), ("+", "3")])
+        fragment_1_1 = ("$", [("-", "3"), ("-", "2"), ("-", "1")])
+        fragment_2_0 = ("@", [("+", "4"), ("-", "5"), ("+", "6")])
+        fragment_2_1 = ("@", [("-", "5"), ("+", "6"), ("+", "4")])
+        fragment_2_2 = ("@", [("+", "6"), ("+", "4"), ("-", "5")])
+        fragment_2_3 = ("@", [("-", "6"), ("+", "5"), ("-", "4")])
+        fragment_2_4 = ("@", [("+", "5"), ("-", "4"), ("-", "6")])
+        fragment_2_5 = ("@", [("-", "4"), ("-", "6"), ("+", "5")])
+        possibilities = [fragment_1_0, fragment_1_1,
+                         fragment_2_0, fragment_2_1, fragment_2_2,
+                         fragment_2_3, fragment_2_4, fragment_2_5]
+        for order in g1_blocks_orders:
+            self.assertIn(order, possibilities)
+
 
 if __name__ == '__main__':  # pragma: no cover
     unittest.main()  # pragma: no cover

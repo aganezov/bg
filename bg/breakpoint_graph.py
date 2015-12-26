@@ -883,3 +883,64 @@ class BreakpointGraph(object):
                 result.__add_bgedge(bgedge=BGEdge(vertex1=edge.vertex1, vertex2=edge.vertex2,
                                                   multicolor=mc))
         return result
+
+    def get_blocks_order(self):
+        genome = self.get_overall_set_of_colors().pop()
+        result = {genome: []}
+        visited_vertices = set()
+        for vertex in self.nodes():
+            if vertex in visited_vertices:
+                continue
+            visited_vertices.add(vertex)
+            chr_type_f, fragment_part_forward = self._traverse_forward_from_vertex(vertex=vertex, visited_vertices=visited_vertices)
+            chr_type_r, fragment_part_reverse = self._traverse_reverse_from_vertex(vertex=vertex, visited_vertices=visited_vertices)
+            if chr_type_f != chr_type_r:
+                raise Exception()
+            if chr_type_f == "$":
+                fragment = fragment_part_reverse + fragment_part_forward
+            else:
+                fragment = fragment_part_forward if len(fragment_part_forward) > len(fragment_part_reverse) else fragment_part_reverse
+            result[genome].append((chr_type_f, fragment))
+        return result
+
+    def _traverse_from_vertex(self, vertex, visited_vertices, direction):
+        result = []
+        current_vertex = vertex
+        visited_vertices.add(current_vertex)
+        if current_vertex.is_irregular_vertex:
+            edge = list(self.get_edges_by_vertex(vertex=current_vertex))[0]
+            current_vertex = edge.vertex1 if edge.vertex1 != current_vertex else edge.vertex2
+            visited_vertices.add(current_vertex)
+        if current_vertex.is_tail_vertex and direction == "forward" or current_vertex.is_head_vertex and direction == "reverse":
+            result.append(("+", current_vertex.block_name))
+            current_vertex = current_vertex.mate_vertex
+            visited_vertices.add(current_vertex)
+        edge = list(self.get_edges_by_vertex(vertex=current_vertex))[0]
+        current_vertex = edge.vertex1 if edge.vertex1 != current_vertex else edge.vertex2
+        while current_vertex not in visited_vertices and current_vertex.is_regular_vertex:
+            visited_vertices.add(current_vertex)
+            if direction == "forward":
+                sign = "+" if current_vertex.is_tail_vertex else "-"
+            elif direction == "reverse":
+                sign = "-" if current_vertex.is_tail_vertex else "+"
+            else:
+                sign = "*"
+            result.append((sign, current_vertex.block_name))
+            current_vertex = current_vertex.mate_vertex
+            visited_vertices.add(current_vertex)
+            edge = list(self.get_edges_by_vertex(vertex=current_vertex))[0]
+            current_vertex = edge.vertex1 if edge.vertex1 != current_vertex else edge.vertex2
+        visited_vertices.add(current_vertex)
+        if current_vertex.is_irregular_vertex:
+            chr_type = "$"
+        else:
+            chr_type = "@"
+        if direction == "reverse":
+            result = result[::-1]
+        return chr_type, result
+
+    def _traverse_forward_from_vertex(self, vertex, visited_vertices):
+        return self._traverse_from_vertex(vertex=vertex, visited_vertices=visited_vertices, direction="forward")
+
+    def _traverse_reverse_from_vertex(self, vertex, visited_vertices):
+        return self._traverse_from_vertex(vertex=vertex, visited_vertices=visited_vertices, direction="reverse")
