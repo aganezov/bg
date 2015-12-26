@@ -311,3 +311,9 @@ class GRIMMWriter(object):
                 string += " {chr_type}".format(chr_type=chr_type)
                 result.append(string)
         return result
+
+    @classmethod
+    def print_genomes_as_grimm_blocks_orders(cls, bg, file_name):
+        with open(file_name, "wt") as destination:
+            for grimm_string in cls.get_grimm_from_breakpoint_graph(bg=bg):
+                print(grimm_string, file=destination)

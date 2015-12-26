@@ -1,4 +1,5 @@
 import io
+import os
 from collections import Counter
 
 from bg import BreakpointGraph, Multicolor
@@ -376,15 +377,34 @@ class GRIMMWriterTestCase(unittest.TestCase):
         self.assertTrue(any(map(lambda entry: entry in grimm_strings, possibilities_4)))
 
         possibilities_5 = ["0 1 4 5 $", "-5 -4 -1 -0 $"]
-        self.assertTrue(any(map(lambda entry: entry in grimm_strings, possibilities_3)))
+        self.assertTrue(any(map(lambda entry: entry in grimm_strings, possibilities_5)))
         possibilities_6 = ["10 12 8 7 $", "-7 -8 -12 -10 $"]
-        self.assertTrue(any(map(lambda entry: entry in grimm_strings, possibilities_4)))
+        self.assertTrue(any(map(lambda entry: entry in grimm_strings, possibilities_6)))
 
         possibilities_7 = ["5 6 7 8 $", "-8 -7 -6 -5 $"]
-        self.assertTrue(any(map(lambda entry: entry in grimm_strings, possibilities_3)))
+        self.assertTrue(any(map(lambda entry: entry in grimm_strings, possibilities_7)))
         possibilities_8 = ["1 -4 -3 -2 $", "2 3 4 -1 $"]
-        self.assertTrue(any(map(lambda entry: entry in grimm_strings, possibilities_4)))
+        self.assertTrue(any(map(lambda entry: entry in grimm_strings, possibilities_8)))
 
+    def test_output_genomes_as_grimm(self):
+        self._populate_four_genomes_bg()
+        file_name = "file_name.txt"
+        GRIMMWriter.print_genomes_as_grimm_blocks_orders(bg=self.four_genome_bg,
+                                                         file_name=file_name)
+        try:
+            with open(file_name, "rt") as source:
+                new_bg = GRIMMReader.get_breakpoint_graph(stream=source,
+                                                          merge_edges=True)
+                self.assertEqual(len(list(new_bg.nodes())), len(list(self.four_genome_bg.nodes())))
+                self.assertEqual(len(list(new_bg.edges())), len(list(self.four_genome_bg.edges())))
+
+                self.assertSetEqual(set(new_bg.nodes()), set(self.four_genome_bg.nodes()))
+                self.assertSetEqual(new_bg.get_overall_set_of_colors(),
+                                    self.four_genome_bg.get_overall_set_of_colors())
+
+        finally:
+            if os.path.exists(file_name):
+                os.remove(file_name)
 
 if __name__ == '__main__':
     unittest.main()
