@@ -169,6 +169,8 @@ class GRIMMReader(object):
                 tag_entry[1:] = [TaggedVertex.TAG_SEPARATOR.join(tag_entry[1:])]
         tail, head = root_name + "t", root_name + "h"
         tail, head = TaggedBlockVertex(tail), TaggedBlockVertex(head)
+        tail.mate_vertex = head
+        head.mate_vertex = tail
         for tag, value in tags:
             head.add_tag(tag, value)
             tail.add_tag(tag, value)
