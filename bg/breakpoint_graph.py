@@ -944,3 +944,6 @@ class BreakpointGraph(object):
 
     def _traverse_reverse_from_vertex(self, vertex, visited_vertices):
         return self._traverse_from_vertex(vertex=vertex, visited_vertices=visited_vertices, direction="reverse")
+
+    def has_edge(self, vertex1, vertex2):
+        return self.bg.has_edge(u=vertex1, v=vertex2)

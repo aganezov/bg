@@ -1,21 +1,20 @@
 # -*- coding: utf-8 -*-
 import io
-from unittest.mock import Mock
+import unittest
 from collections import Counter
+from unittest.mock import Mock
 
 from bg.bg_io import GRIMMReader
+from bg.breakpoint_graph import BreakpointGraph
 from bg.edge import BGEdge
 from bg.genome import BGGenome
 from bg.kbreak import KBreak
 from bg.multicolor import Multicolor
-from bg.vertices import BlockVertex, InfinityVertex, TaggedBlockVertex, TaggedInfinityVertex
+from bg.vertices import BlockVertex, TaggedBlockVertex, TaggedInfinityVertex, BGVertex
 
 __author__ = "Sergey Aganezov"
 __email__ = "aganezov(at)gwu.edu"
 __status__ = "production"
-
-import unittest
-from bg.breakpoint_graph import BreakpointGraph
 
 
 class BreakpointGraphTestCase(unittest.TestCase):
@@ -2559,6 +2558,25 @@ class BreakpointGraphTestCase(unittest.TestCase):
                          fragment_2_3, fragment_2_4, fragment_2_5]
         for order in g1_blocks_orders:
             self.assertIn(order, possibilities)
+
+    def test_has_edge(self):
+        data = [
+            ">genome_1",
+            "1 2 3 $",
+            "4 -5 6 @"
+        ]
+        file_like = io.StringIO("\n".join(data))
+        bg = GRIMMReader.get_breakpoint_graph(file_like)
+        self.assertTrue(bg.has_edge(vertex1=TaggedBlockVertex("1h"), vertex2=TaggedBlockVertex("2t")))
+        self.assertTrue(bg.has_edge(vertex1=TaggedBlockVertex("2h"), vertex2=TaggedBlockVertex("3t")))
+        self.assertTrue(bg.has_edge(vertex1=TaggedBlockVertex("5h"), vertex2=TaggedBlockVertex("4h")))
+        self.assertTrue(bg.has_edge(vertex1=TaggedBlockVertex("5t"), vertex2=TaggedBlockVertex("6t")))
+
+        self.assertFalse(bg.has_edge(vertex1=TaggedBlockVertex("5h"), vertex2=TaggedBlockVertex("6t")))
+        self.assertFalse(bg.has_edge(vertex1=TaggedBlockVertex("2h"), vertex2=TaggedBlockVertex("6t")))
+        self.assertFalse(bg.has_edge(vertex1=TaggedBlockVertex("kavabanga"), vertex2=TaggedBlockVertex("6t")))
+        self.assertFalse(bg.has_edge(vertex1=TaggedBlockVertex("kavabanga"), vertex2=TaggedBlockVertex("lemur")))
+
 
 
 if __name__ == '__main__':  # pragma: no cover
