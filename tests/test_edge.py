@@ -1,9 +1,10 @@
 # -*- coding: utf-8 -*-
 from collections import Counter
 from unittest.mock import Mock
+
 from bg.genome import BGGenome
 from bg.multicolor import Multicolor
-from bg.vertices import BlockVertex, InfinityVertex
+from bg.vertices import BlockVertex, InfinityVertex, TaggedBlockVertex
 
 __author__ = "Sergey Aganezov"
 __email__ = "aganezov(at)gwu.edu"
@@ -14,7 +15,6 @@ from bg.edge import BGEdge, BGEdge_JSON_SCHEMA_JSON_KEY
 
 
 class BGEdgeTestCase(unittest.TestCase):
-
     def setUp(self):
         # heavily utilized variables
         self.genome1 = BGGenome("red")
@@ -108,6 +108,13 @@ class BGEdgeTestCase(unittest.TestCase):
         self.assertNotEqual(edge1, 5)
         edge6 = BGEdge(vertex1=v3, vertex2=v1, multicolor=multicolor)
         self.assertNotEqual(edge1, edge6)
+
+        self.assertEqual(edge1, edge4)
+        edge4.data = {"fragment": {"name": 1}}
+        edge1.data = {"fragment": {"name": 2}}
+        self.assertNotEqual(edge1, edge4)
+        edge1.data = {"fragment": {"name": 1}}
+        self.assertEqual(edge1, edge4)
 
     def test_is_infinity_edge(self):
         # and edge is called an infinity edge if at least one of its vertices is an infinity vertex
@@ -331,5 +338,24 @@ class BGEdgeTestCase(unittest.TestCase):
         with self.assertRaises(ValueError):
             BGEdge.from_json(data=json_object)
 
+    def test_initialization_empty_data_attribute(self):
+        v1 = TaggedBlockVertex("v1")
+        v2 = TaggedBlockVertex("v2")
+        multicolor = Multicolor(self.genome1)
+        edge = BGEdge(vertex1=v1, vertex2=v2, multicolor=multicolor)
+        self.assertDictEqual(edge.data, {})
+
+    def test_initialization_non_empty_data_attribute(self):
+        v1 = TaggedBlockVertex("v1")
+        v2 = TaggedBlockVertex("v2")
+        multicolor = Multicolor(self.genome1)
+        data = {
+            "fragment": {"name": "scaffold1"}
+
+        }
+        edge = BGEdge(vertex1=v1, vertex2=v2, multicolor=multicolor, data=data)
+        self.assertDictEqual(edge.data, data)
+
+
 if __name__ == '__main__':  # pragma: no cover
-    unittest.main()         # pragma: no cover
+    unittest.main()  # pragma: no cover

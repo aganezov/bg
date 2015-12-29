@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 from marshmallow import Schema, fields
 
+from bg.utils import dicts_are_equal
+
 __author__ = "Sergey Aganezov"
 __email__ = "aganezov(at)gwu.edu"
 __status__ = "production"
@@ -50,7 +52,7 @@ class BGEdge(object):
     # undergo serialization / deserialization, and schema instantiation in each case would require additional resources
     json_schema = BGEdgeJSONSchema()
 
-    def __init__(self, vertex1, vertex2, multicolor):
+    def __init__(self, vertex1, vertex2, multicolor, data=None):
         """ Initialization of :class:`BGEdge` object.
 
         :param vertex1: vertex the edges is outgoing from
@@ -65,6 +67,9 @@ class BGEdge(object):
         self.vertex1 = vertex1
         self.vertex2 = vertex2
         self.multicolor = multicolor
+        if data is None:
+            data = {}
+        self.data = data
 
     @classmethod
     def merge(cls, edge1, edge2):
@@ -104,10 +109,11 @@ class BGEdge(object):
         if self.vertex1 != other.vertex1 and self.vertex1 != other.vertex2:
             return False
         multicolor_equality = self.multicolor == other.multicolor
+        data_equality = dicts_are_equal(dict1=self.data, dict2=other.data)
         if self.vertex1 == other.vertex1:
-            return self.vertex2 == other.vertex2 and multicolor_equality
+            return self.vertex2 == other.vertex2 and multicolor_equality and data_equality
         else:
-            return self.vertex2 == other.vertex1 and multicolor_equality
+            return self.vertex2 == other.vertex1 and multicolor_equality and data_equality
 
     def __getattr__(self, item):
         if item.startswith("is_") and item.endswith("_edge"):
