@@ -343,7 +343,7 @@ class BGEdgeTestCase(unittest.TestCase):
         v2 = TaggedBlockVertex("v2")
         multicolor = Multicolor(self.genome1)
         edge = BGEdge(vertex1=v1, vertex2=v2, multicolor=multicolor)
-        self.assertDictEqual(edge.data, {})
+        self.assertDictEqual(edge.data, BGEdge.create_default_data_dict())
 
     def test_initialization_non_empty_data_attribute(self):
         v1 = TaggedBlockVertex("v1")

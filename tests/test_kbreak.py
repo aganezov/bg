@@ -31,16 +31,16 @@ class KBreakTestCase(unittest.TestCase):
         mock_vertex = Mock(spec=BlockVertex)
         mock_multicolor = Mock(spec=Multicolor)
         with self.assertRaises(ValueError):
-            KBreak(start_edges=[(mock_vertex, ), (mock_vertex, mock_vertex)],
+            KBreak(start_edges=[(mock_vertex,), (mock_vertex, mock_vertex)],
                    result_edges=[(mock_vertex, mock_vertex), (mock_vertex, mock_vertex)],
                    multicolor=mock_multicolor)
         with self.assertRaises(ValueError):
             KBreak(start_edges=[(mock_vertex, mock_vertex), (mock_vertex, mock_vertex)],
-                   result_edges=[(mock_vertex, ), (mock_vertex, mock_vertex)],
+                   result_edges=[(mock_vertex,), (mock_vertex, mock_vertex)],
                    multicolor=mock_multicolor)
         with self.assertRaises(ValueError):
-            KBreak(start_edges=[(mock_vertex, mock_vertex), (mock_vertex, )],
-                   result_edges=[(mock_vertex, ), (mock_vertex, mock_vertex)],
+            KBreak(start_edges=[(mock_vertex, mock_vertex), (mock_vertex,)],
+                   result_edges=[(mock_vertex,), (mock_vertex, mock_vertex)],
                    multicolor=mock_multicolor)
 
     def test_valid_kbreak_matching(self):
@@ -107,6 +107,23 @@ class KBreakTestCase(unittest.TestCase):
         self.assertListEqual(kbreak.start_edges, start_edges)
         self.assertListEqual(kbreak.result_edges, end_edges)
         self.assertEqual(kbreak.multicolor, mock_multicolor)
+        self.assertDictEqual(kbreak.data, KBreak.create_default_data_dict())
+
+    def test_initialization_with_additional_data(self):
+        v1, v2, v3, v4 = self.v1, self.v2, self.v3, self.v4
+        mock_multicolor = Mock(spec=Multicolor)
+        start_edges = [(v1, v2), (v3, v4)]
+        end_edges = [(v1, v3), (v2, v4)]
+        data = {"origin": None}
+        kbreak = KBreak(start_edges=start_edges,
+                        result_edges=end_edges,
+                        multicolor=mock_multicolor,
+                        data=data)
+        self.assertListEqual(kbreak.start_edges, start_edges)
+        self.assertListEqual(kbreak.result_edges, end_edges)
+        self.assertEqual(kbreak.multicolor, mock_multicolor)
+        self.assertDictEqual(kbreak.data, data)
+
 
 if __name__ == '__main__':
     unittest.main()

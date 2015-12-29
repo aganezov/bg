@@ -85,7 +85,7 @@ class BreakpointGraph(object):
         :rtype: ``generator``
         """
         for v1, v2, key, data in self.bg.edges_iter(nbunch=nbunch, data=True, keys=True):
-            bgedge = BGEdge(vertex1=v1, vertex2=v2, multicolor=data["multicolor"])
+            bgedge = BGEdge(vertex1=v1, vertex2=v2, multicolor=data["multicolor"], data=data["data"])
             if not keys:
                 yield bgedge
             else:
@@ -113,7 +113,7 @@ class BreakpointGraph(object):
         """
         yield from self.bg.nodes_iter()
 
-    def add_edge(self, vertex1, vertex2, multicolor, merge=True):
+    def add_edge(self, vertex1, vertex2, multicolor, merge=True, data=None):
         """ Creates a new :class:`bg.edge.BGEdge` object from supplied information and adds it to current instance of :class:`BreakpointGraph`.
 
         Proxies a call to :meth:`BreakpointGraph._BreakpointGraph__add_bgedge` method.
@@ -128,7 +128,7 @@ class BreakpointGraph(object):
         :type merge: ``Boolean``
         :return: ``None``, performs inplace changes
         """
-        self.__add_bgedge(BGEdge(vertex1=vertex1, vertex2=vertex2, multicolor=multicolor), merge=merge)
+        self.__add_bgedge(BGEdge(vertex1=vertex1, vertex2=vertex2, multicolor=multicolor, data=data), merge=merge)
 
     def __add_bgedge(self, bgedge, merge=True):
         """ Adds supplied :class:`bg.edge.BGEdge` object to current instance of :class:`BreakpointGraph`.
@@ -144,8 +144,10 @@ class BreakpointGraph(object):
         if bgedge.vertex1 in self.bg and bgedge.vertex2 in self.bg[bgedge.vertex1] and merge:
             key = min(self.bg[bgedge.vertex1][bgedge.vertex2].keys())
             self.bg[bgedge.vertex1][bgedge.vertex2][key]["multicolor"] += bgedge.multicolor
+            self.bg[bgedge.vertex1][bgedge.vertex2][key]["data"] = {}
         else:
-            self.bg.add_edge(u=bgedge.vertex1, v=bgedge.vertex2, attr_dict={"multicolor": deepcopy(bgedge.multicolor)})
+            self.bg.add_edge(u=bgedge.vertex1, v=bgedge.vertex2, attr_dict={"multicolor": deepcopy(bgedge.multicolor),
+                                                                            "data": bgedge.data})
 
     def add_bgedge(self, bgedge, merge=True):
         """ Adds supplied :class:`bg.edge.BGEdge` object to current instance of :class:`BreakpointGraph`.
@@ -206,7 +208,8 @@ class BreakpointGraph(object):
         if vertex1 in self.bg and vertex2 in self.bg[vertex1]:
             if key is None:
                 key = min(self.bg[vertex1][vertex2])
-            return BGEdge(vertex1=vertex1, vertex2=vertex2, multicolor=self.bg[vertex1][vertex2][key]["multicolor"])
+            return BGEdge(vertex1=vertex1, vertex2=vertex2, multicolor=self.bg[vertex1][vertex2][key]["multicolor"],
+                          data=self.bg[vertex1][vertex2][key]["data"])
         return None
 
     def get_edge_by_two_vertices(self, vertex1, vertex2, key=None):
@@ -240,10 +243,11 @@ class BreakpointGraph(object):
         if vertex in self.bg:
             for vertex2, edges in self.bg[vertex].items():
                 for key, data in self.bg[vertex][vertex2].items():
+                    bg_edge = BGEdge(vertex1=vertex, vertex2=vertex2, multicolor=data["multicolor"], data=data["data"])
                     if keys:
-                        yield BGEdge(vertex1=vertex, vertex2=vertex2, multicolor=data["multicolor"]), key
+                        yield bg_edge, key
                     else:
-                        yield BGEdge(vertex1=vertex, vertex2=vertex2, multicolor=data["multicolor"])
+                        yield bg_edge
         return None
 
     def get_edges_by_vertex(self, vertex, keys=False):
@@ -542,7 +546,8 @@ class BreakpointGraph(object):
         :type guidance: iterable where each entry is iterable with colors entries
         :return: ``None``, performs inplace changes
         """
-        for v1, v2 in itertools.combinations(self.bg.nodes_iter(), 2):
+        vertex_pairs = [(edge.vertex1, edge.vertex2) for edge in self.edges()]
+        for v1, v2 in vertex_pairs:
             self.__split_all_edges_between_two_vertices(vertex1=v1, vertex2=v2, guidance=guidance,
                                                         sorted_guidance=sorted_guidance,
                                                         account_for_colors_multiplicity_in_guidance=account_for_colors_multiplicity_in_guidance)
@@ -615,7 +620,8 @@ class BreakpointGraph(object):
 
         :return: ``None``, performs inplace changes
         """
-        for v1, v2 in itertools.combinations(self.bg.nodes_iter(), 2):
+        pairs_of_vetices = [(edge.vertex1, edge.vertex2) for edge in self.edges()]
+        for v1, v2 in pairs_of_vetices:
             ############################################################################################################
             #
             # we iterate over all pairs of vertices in the given graph and merge edges between them
@@ -757,7 +763,11 @@ class BreakpointGraph(object):
                 #
                 ############################################################################################################
                 continue
-            self.__add_bgedge(BGEdge(vertex1=vertex1, vertex2=vertex2, multicolor=kbreak.multicolor), merge=merge)
+            origin = kbreak.data.get("origin", None)
+            bg_edge = BGEdge(vertex1=vertex1, vertex2=vertex2, multicolor=kbreak.multicolor)
+            if "origin" in bg_edge.data:
+                bg_edge.data["origin"] = origin
+            self.__add_bgedge(bg_edge, merge=merge)
 
     def to_json(self, schema_info=True):
         """ JSON serialization method that account for all information-wise important part of breakpoint graph
@@ -881,7 +891,7 @@ class BreakpointGraph(object):
         for edge in self.edges():
             if mc <= edge.multicolor:
                 result.__add_bgedge(bgedge=BGEdge(vertex1=edge.vertex1, vertex2=edge.vertex2,
-                                                  multicolor=mc))
+                                                  multicolor=mc, data=edge.data))
         return result
 
     def get_blocks_order(self):

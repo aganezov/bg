@@ -52,6 +52,13 @@ class BGEdge(object):
     # undergo serialization / deserialization, and schema instantiation in each case would require additional resources
     json_schema = BGEdgeJSONSchema()
 
+    @classmethod
+    def create_default_data_dict(cls):
+        return {
+            "fragment": None,
+            "origin": None
+        }
+
     def __init__(self, vertex1, vertex2, multicolor, data=None):
         """ Initialization of :class:`BGEdge` object.
 
@@ -68,7 +75,7 @@ class BGEdge(object):
         self.vertex2 = vertex2
         self.multicolor = multicolor
         if data is None:
-            data = {}
+            data = self.create_default_data_dict()
         self.data = data
 
     @classmethod

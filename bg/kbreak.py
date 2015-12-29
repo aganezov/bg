@@ -25,7 +25,7 @@ class KBreak(object):
 
     * :meth:`KBreak.valid_kbreak_matchings`: a method that checks if provided sets of started / resulted edges comply with the notions ob k-break definition
     """
-    def __init__(self, start_edges, result_edges, multicolor):
+    def __init__(self, start_edges, result_edges, multicolor, data=None):
         """ Initialization of :class:`KBreak` object.
 
         The initialization process consists of multiple checks, before any assignment and initialization itself is performed.
@@ -46,6 +46,9 @@ class KBreak(object):
         self.start_edges = start_edges
         self.result_edges = result_edges
         self.multicolor = multicolor
+        if data is None:
+            data = self.create_default_data_dict()
+        self.data = data
         for vertex_pair in self.start_edges:
             if len(vertex_pair) != 2:
                 raise ValueError("Expected edges in a form of pairs of vertices.\n "
@@ -61,6 +64,12 @@ class KBreak(object):
             raise ValueError("Supplied sets of start and result edges do not correspond to "
                              "correct k-break operation (either the set of vertices is not consistent, or "
                              "the degrees of vertices change)")
+
+    @classmethod
+    def create_default_data_dict(cls):
+        return {
+            "origin": None
+        }
 
     @staticmethod
     def valid_kbreak_matchings(start_edges, result_edges):
