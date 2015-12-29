@@ -2577,6 +2577,41 @@ class BreakpointGraphTestCase(unittest.TestCase):
         self.assertFalse(bg.has_edge(vertex1=TaggedBlockVertex("kavabanga"), vertex2=TaggedBlockVertex("6t")))
         self.assertFalse(bg.has_edge(vertex1=TaggedBlockVertex("kavabanga"), vertex2=TaggedBlockVertex("lemur")))
 
+    def test_get_condensed_edge_single_edge_single_color_case(self):
+        bg = BreakpointGraph()
+        v1 = TaggedBlockVertex("v1")
+        v2 = TaggedBlockVertex("v2")
+        mc = Multicolor(self.genome1)
+        bg.add_edge(vertex1=v1, vertex2=v2, multicolor=mc)
+        reference = BGEdge(vertex1=v1, vertex2=v2, multicolor=mc)
+        self.assertEqual(bg.get_condensed_edge(vertex1=v1, vertex2=v2), reference)
+
+    def test_get_condensed_edge_single_edge_multicolor_case(self):
+        bg = BreakpointGraph()
+        v1 = TaggedBlockVertex("v1")
+        v2 = TaggedBlockVertex("v2")
+        mc = Multicolor(self.genome1, self.genome2)
+        bg.add_edge(vertex1=v1, vertex2=v2, multicolor=mc)
+        reference = BGEdge(vertex1=v1, vertex2=v2, multicolor=mc)
+        self.assertEqual(bg.get_condensed_edge(vertex1=v1, vertex2=v2), reference)
+
+    def test_get_condensed_edge_edge_is_not_present(self):
+        bg = BreakpointGraph()
+        self.assertIsNone(bg.get_condensed_edge(vertex1=TaggedBlockVertex("v1"), vertex2=TaggedBlockVertex("v2")))
+
+    def test_get_condensed_edge_multiple_edges_multicolors(self):
+        bg = BreakpointGraph()
+        v1 = TaggedBlockVertex("v1")
+        v2 = TaggedBlockVertex("v2")
+        mc1 = Multicolor(self.genome1, self.genome2)
+        mc2 = Multicolor(self.genome3, self.genome4)
+        mc3 = Multicolor(self.genome2, self.genome4)
+        bg.add_edge(vertex1=v1, vertex2=v2, multicolor=mc1)
+        bg.add_edge(vertex1=v1, vertex2=v2, multicolor=mc2, merge=False)
+        bg.add_edge(vertex1=v1, vertex2=v2, multicolor=mc3, merge=False)
+        reference = BGEdge(vertex1=v1, vertex2=v2, multicolor=mc1 + mc2 + mc3)
+        self.assertEqual(bg.get_condensed_edge(vertex1=v1, vertex2=v2), reference)
+
 
 
 if __name__ == '__main__':  # pragma: no cover

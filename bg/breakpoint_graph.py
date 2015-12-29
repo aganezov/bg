@@ -947,3 +947,11 @@ class BreakpointGraph(object):
 
     def has_edge(self, vertex1, vertex2):
         return self.bg.has_edge(u=vertex1, v=vertex2)
+
+    def get_condensed_edge(self, vertex1, vertex2):
+        if not self.has_edge(vertex1=vertex1, vertex2=vertex2):
+            return None
+        result = BGEdge(vertex1=vertex1, vertex2=vertex2, multicolor=Multicolor())
+        for edge in self.__edges_between_two_vertices(vertex1=vertex1, vertex2=vertex2):
+            result.multicolor += edge.multicolor
+        return result
