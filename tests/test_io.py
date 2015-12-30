@@ -206,6 +206,20 @@ class GRIMMReaderTestCase(unittest.TestCase):
         self.assertFalse(GRIMMReader.is_comment_string("a# "))
         self.assertTrue(GRIMMReader.is_comment_string("    ##  "))
 
+    def test_is_comment_data_string(self):
+        self.assertTrue(GRIMMReader.is_comment_data_string("# data :: "))
+        self.assertTrue(GRIMMReader.is_comment_data_string("#data:: "))
+        self.assertTrue(GRIMMReader.is_comment_data_string("   #data:: "))
+        self.assertTrue(GRIMMReader.is_comment_data_string("   #data  :: "))
+        self.assertTrue(GRIMMReader.is_comment_data_string("   #data  :: LALA"))
+        self.assertTrue(GRIMMReader.is_comment_data_string("   #data  :: LALA : LULU"))
+        self.assertTrue(GRIMMReader.is_comment_data_string("   #data  :: LALA : LULU=LILI"))
+
+        self.assertFalse(GRIMMReader.is_comment_data_string("# data"))
+        self.assertFalse(GRIMMReader.is_comment_data_string("# data:"))
+        self.assertFalse(GRIMMReader.is_comment_data_string("# ldata:"))
+        self.assertFalse(GRIMMReader.is_comment_data_string("# datal:"))
+
     def test_get_breakpoint_from_file(self):
         # full workflow testing with dummy data
         # correct cases are assumed with all kind of crazy indentation and rubbish data mixed in, but still correct

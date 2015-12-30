@@ -288,6 +288,17 @@ class GRIMMReader(object):
                                     merge=merge_edges)
         return result
 
+    @classmethod
+    def is_comment_data_string(cls, string):
+        s = string.strip()
+        comment_string = cls.is_comment_string(data_string=s)
+        s = s[1:]               # removing # from beginning
+        split_result = s.split("::")
+        if len(split_result) < 2:
+            return False
+        specification, *_ = split_result
+        return comment_string & ("data" == specification.strip())
+
 
 class GRIMMWriter(object):
 
