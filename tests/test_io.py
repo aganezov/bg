@@ -220,6 +220,71 @@ class GRIMMReaderTestCase(unittest.TestCase):
         self.assertFalse(GRIMMReader.is_comment_data_string("# ldata:"))
         self.assertFalse(GRIMMReader.is_comment_data_string("# datal:"))
 
+    def test_parse_comment_data_string_top_level(self):
+        comment_data_string = "# data :: key=value"
+        path, (key, value) = GRIMMReader.parse_comment_data_string(comment_data_string=comment_data_string)
+        self.assertListEqual(path, [])
+        self.assertEqual(key, "key")
+        self.assertEqual(value, "value")
+        comment_data_string = "#data::key = value"
+        path, (key, value) = GRIMMReader.parse_comment_data_string(comment_data_string=comment_data_string)
+        self.assertListEqual(path, [])
+        self.assertEqual(key, "key")
+        self.assertEqual(value, "value")
+
+    def test_parse_comment_data_string_no_key(self):
+        comment_data_string = "#data:: entry1 : entry2: = value"
+        path, (key, value) = GRIMMReader.parse_comment_data_string(comment_data_string=comment_data_string)
+        self.assertListEqual(path, ["entry1", "entry2"])
+        self.assertEqual(key, "")
+        self.assertEqual(value, "value")
+        comment_data_string = "#data:: = value"
+        path, (key, value) = GRIMMReader.parse_comment_data_string(comment_data_string=comment_data_string)
+        self.assertListEqual(path, [])
+        self.assertEqual(key, "")
+        self.assertEqual(value, "value")
+
+    def test_parse_comment_data_string_no_value(self):
+        comment_data_string = "#data:: entry1 : entry2: key = "
+        path, (key, value) = GRIMMReader.parse_comment_data_string(comment_data_string=comment_data_string)
+        self.assertListEqual(path, ["entry1", "entry2"])
+        self.assertEqual(key, "key")
+        self.assertEqual(value, "")
+        comment_data_string = "#data:: key = "
+        path, (key, value) = GRIMMReader.parse_comment_data_string(comment_data_string=comment_data_string)
+        self.assertListEqual(path, [])
+        self.assertEqual(key, "key")
+        self.assertEqual(value, "")
+
+    def test_parse_comment_data_string_no_key_value(self):
+        comment_data_string = "#data:: "
+        path, (key, value) = GRIMMReader.parse_comment_data_string(comment_data_string=comment_data_string)
+        self.assertListEqual(path, [])
+        self.assertEqual(key, "")
+        self.assertEqual(value, "")
+        comment_data_string = "#data:: = "
+        path, (key, value) = GRIMMReader.parse_comment_data_string(comment_data_string=comment_data_string)
+        self.assertListEqual(path, [])
+        self.assertEqual(key, "")
+        self.assertEqual(value, "")
+
+    def test_parse_comment_data_string(self):
+        data_string = "# data :: fragment : name = scaffold1"
+        path, (key, value) = GRIMMReader.parse_comment_data_string(comment_data_string=data_string)
+        self.assertEqual(path, ["fragment"])
+        self.assertEqual(key, "name")
+        self.assertEqual(value, "scaffold1")
+        data_string = "# data :: fragment : origin: name = ALLPATHS-LG"
+        path, (key, value) = GRIMMReader.parse_comment_data_string(comment_data_string=data_string)
+        self.assertEqual(path, ["fragment", "origin"])
+        self.assertEqual(key, "name")
+        self.assertEqual(value, "ALLPATHS-LG")
+        data_string = "# data :: genome : origin: name = ALLPATHS-LG"
+        path, (key, value) = GRIMMReader.parse_comment_data_string(comment_data_string=data_string)
+        self.assertEqual(path, ["genome", "origin"])
+        self.assertEqual(key, "name")
+        self.assertEqual(value, "ALLPATHS-LG")
+
     def test_get_breakpoint_from_file(self):
         # full workflow testing with dummy data
         # correct cases are assumed with all kind of crazy indentation and rubbish data mixed in, but still correct

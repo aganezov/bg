@@ -3,6 +3,8 @@ from bg import BreakpointGraph, Multicolor
 from bg.genome import BGGenome
 from bg.vertices import BlockVertex, TaggedVertex, TaggedBlockVertex, TaggedInfinityVertex, BGVertex
 
+
+
 __author__ = "Sergey Aganezov"
 __email__ = "aganezov(at)gwu.edu"
 __status__ = "production"
@@ -45,6 +47,9 @@ class GRIMMReader(object):
     *   :meth:`GRIMMReader.get_edges_from_parsed_data`: taking into account fragment type (circular|linear) and retrieved gene order information translates adjacencies between blocks into edges for addition to the :class:`bg.breakpoint_graph.BreakpointGraph`
     *   :meth:`GRIMMReader.get_breakpoint_graph`: taking a file-like object transforms supplied gene order data into the language of BreakpointGraph
     """
+
+    COMMENT_DATA_STRING_SEPARATOR = "::"
+    PATH_SEPARATOR_STRING = ":"
 
     @staticmethod
     def is_genome_declaration_string(data_string):
@@ -293,11 +298,23 @@ class GRIMMReader(object):
         s = string.strip()
         comment_string = cls.is_comment_string(data_string=s)
         s = s[1:]               # removing # from beginning
-        split_result = s.split("::")
+        split_result = s.split(cls.COMMENT_DATA_STRING_SEPARATOR)
         if len(split_result) < 2:
             return False
         specification, *_ = split_result
         return comment_string & ("data" == specification.strip())
+
+    @classmethod
+    def parse_comment_data_string(cls, comment_data_string):
+        _, *entries = map(lambda string: string.strip(), comment_data_string.split(cls.COMMENT_DATA_STRING_SEPARATOR))
+        *path, key_value_entry = map(lambda string: string.strip(), entries[0].split(cls.PATH_SEPARATOR_STRING))
+        key_value_entry_split = list(map(lambda string: string.strip(), key_value_entry.split("=")))
+        if len(key_value_entry_split) < 2:
+            key = ""
+            value = ""
+        else:
+            key, value = key_value_entry_split
+        return path, (key, value)
 
 
 class GRIMMWriter(object):
