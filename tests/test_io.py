@@ -350,6 +350,52 @@ class GRIMMReaderTestCase(unittest.TestCase):
         for bgedge in infinity_edges:
             self.assertTrue(bgedge.multicolor in infinity_multicolors)
 
+    def test_get_breakpoint_from_file_with_comment_data_string(self):
+        data = ["",
+                "\t",
+                "#comment1",
+                ">genome_name_1",
+                "      #comment1",
+                "# data :: fragment : name = chromosome_X",
+                "a b $",
+                "   #comment1   ",
+                "\t>genome_name_2",
+                "#data::fragment:name=scaffold111",
+                "a $",
+                "",
+                "\n\t"]
+        file_like = io.StringIO("\n".join(data))
+        result_bg = GRIMMReader.get_breakpoint_graph(file_like, merge_edges=False)
+        self.assertTrue(isinstance(result_bg, BreakpointGraph))
+        self.assertEqual(len(list(result_bg.connected_components_subgraphs())), 3)
+        self.assertEqual(len(list(result_bg.edges())), 5)
+        self.assertEqual(len(list(result_bg.nodes())), 7)
+        multicolors = [Multicolor(BGGenome("genome_name_1")),
+                       Multicolor(BGGenome("genome_name_2"))]
+        condensed_multicolors = [Multicolor(BGGenome("genome_name_1")),
+                                 Multicolor(BGGenome("genome_name_2")),
+                                 Multicolor(BGGenome("genome_name_1"), BGGenome("genome_name_2"))]
+        for bgedge in result_bg.edges():
+            self.assertTrue(bgedge.multicolor in multicolors)
+        for bgedge in result_bg.edges():
+            condensed_edge = result_bg.get_condensed_edge(vertex1=bgedge.vertex1, vertex2=bgedge.vertex2)
+            self.assertTrue(condensed_edge.multicolor in condensed_multicolors)
+        infinity_edges = [bgedge for bgedge in result_bg.edges() if bgedge.is_infinity_edge]
+        self.assertEqual(len(infinity_edges), 4)
+        for bgedge in result_bg.edges():
+            data = bgedge.data
+            self.assertIn("fragment", data)
+            self.assertIsInstance(data["fragment"], dict)
+            self.assertIn("name", data["fragment"])
+            self.assertIn(data["fragment"]["name"], {"chromosome_X", "scaffold111"})
+        ah = result_bg.get_vertex_by_name("ah")
+        bt = result_bg.get_vertex_by_name("bt")
+        ahi = result_bg.get_vertex_by_name("ah__infinity")
+        edge = result_bg.get_edge_by_two_vertices(vertex1=ah, vertex2=bt)
+        self.assertTupleEqual(edge.data["fragment"]["forward_orientation"], (ah, bt))
+        iedge = result_bg.get_edge_by_two_vertices(vertex1=ah, vertex2=ahi)
+        self.assertTupleEqual(iedge.data["fragment"]["forward_orientation"], (ah, ahi))
+
 
 class GRIMMWriterTestCase(unittest.TestCase):
     def setUp(self):
@@ -477,7 +523,6 @@ class GRIMMWriterTestCase(unittest.TestCase):
         possibilities_1 = ["1 2 3 4 5 $", "-5 -4 -3 -2 -1 $"]
         self.assertTrue(any(map(lambda entry: entry in grimm_strings, possibilities_1)))
 
-
     def test_output_genomes_as_grimm(self):
         self._populate_four_genomes_bg()
         file_name = "file_name.txt"
@@ -497,6 +542,7 @@ class GRIMMWriterTestCase(unittest.TestCase):
         finally:
             if os.path.exists(file_name):
                 os.remove(file_name)
+
 
 if __name__ == '__main__':
     unittest.main()

@@ -1,9 +1,10 @@
 # -*- coding: utf-8 -*-
-from bg import BreakpointGraph, Multicolor
+from copy import deepcopy
+
+from bg import BreakpointGraph, Multicolor, BGEdge
 from bg.genome import BGGenome
+from bg.utils import add_to_dict_with_path
 from bg.vertices import BlockVertex, TaggedVertex, TaggedBlockVertex, TaggedInfinityVertex, BGVertex
-
-
 
 __author__ = "Sergey Aganezov"
 __email__ = "aganezov(at)gwu.edu"
@@ -232,8 +233,8 @@ class GRIMMReader(object):
                 left_iv_root_name = vertices[0].name
             if vertices[-1].is_repeat_vertex:
                 right_iv_tags = sorted(
-                    [(tag, value) if tag != "repeat" else (tag, BGVertex.get_vertex_name_root(vertices[-2].name))
-                     for tag, value in vertices[-2].tags])
+                        [(tag, value) if tag != "repeat" else (tag, BGVertex.get_vertex_name_root(vertices[-2].name))
+                         for tag, value in vertices[-2].tags])
                 right_iv_root_name = BGVertex.get_vertex_name_root(vertices[-3].name)
                 vertices = vertices[:-2]
             else:
@@ -259,6 +260,7 @@ class GRIMMReader(object):
         """
         result = BreakpointGraph()
         current_genome = None
+        fragment_data = {}
         for line in stream:
             line = line.strip()
             if len(line) == 0:
@@ -276,8 +278,14 @@ class GRIMMReader(object):
                 #
                 ###############################################################################################
                 current_genome = GRIMMReader.parse_genome_declaration_string(data_string=line)
+                fragment_data = {}
             elif GRIMMReader.is_comment_string(data_string=line):
-                continue
+                if GRIMMReader.is_comment_data_string(string=line):
+                    path, (key, value) = GRIMMReader.parse_comment_data_string(comment_data_string=line)
+                    if len(path) > 0 and path[0] == "fragment":
+                        add_to_dict_with_path(destination_dict=fragment_data, key=key, value=value, path=path)
+                else:
+                    continue
             elif current_genome is not None:
                 ###############################################################################################
                 #
@@ -288,16 +296,22 @@ class GRIMMReader(object):
                 parsed_data = GRIMMReader.parse_data_string(data_string=line)
                 edges = GRIMMReader.get_edges_from_parsed_data(parsed_data=parsed_data)
                 for v1, v2 in edges:
-                    result.add_edge(vertex1=v1, vertex2=v2,
-                                    multicolor=Multicolor(current_genome),
-                                    merge=merge_edges)
+                    edge_specific_data = {
+                        "fragment": {
+                            "forward_orientation": (v1, v2)
+                        }
+                    }
+                    edge = BGEdge(vertex1=v1, vertex2=v2, multicolor=Multicolor(current_genome), data=deepcopy(fragment_data))
+                    edge.update_data(source=edge_specific_data)
+                    result.add_bgedge(bgedge=edge,
+                                      merge=merge_edges)
         return result
 
     @classmethod
     def is_comment_data_string(cls, string):
         s = string.strip()
         comment_string = cls.is_comment_string(data_string=s)
-        s = s[1:]               # removing # from beginning
+        s = s[1:]  # removing # from beginning
         split_result = s.split(cls.COMMENT_DATA_STRING_SEPARATOR)
         if len(split_result) < 2:
             return False
@@ -318,7 +332,6 @@ class GRIMMReader(object):
 
 
 class GRIMMWriter(object):
-
     @staticmethod
     def get_grimm_from_breakpoint_graph(bg):
         """

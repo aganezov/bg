@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 from marshmallow import Schema, fields
 
-from bg.utils import dicts_are_equal
+from bg.utils import dicts_are_equal, recursive_dict_update
 
 __author__ = "Sergey Aganezov"
 __email__ = "aganezov(at)gwu.edu"
@@ -189,3 +189,8 @@ class BGEdge(object):
         """
         schema = cls.json_schema if json_schema_class is None else json_schema_class()
         return schema.load(data).data
+
+    def update_data(self, source):
+        if not isinstance(source, dict):
+            raise ValueError()
+        recursive_dict_update(self.data, source)

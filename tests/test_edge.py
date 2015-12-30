@@ -4,6 +4,7 @@ from unittest.mock import Mock
 
 from bg.genome import BGGenome
 from bg.multicolor import Multicolor
+from bg.utils import dicts_are_equal
 from bg.vertices import BlockVertex, InfinityVertex, TaggedBlockVertex
 
 __author__ = "Sergey Aganezov"
@@ -355,6 +356,36 @@ class BGEdgeTestCase(unittest.TestCase):
         }
         edge = BGEdge(vertex1=v1, vertex2=v2, multicolor=multicolor, data=data)
         self.assertDictEqual(edge.data, data)
+
+    def test_data_update(self):
+        update_source = {"fragment": {"name": "scaffold11"}}
+        edge = BGEdge(vertex1=TaggedBlockVertex("v1"), vertex2=TaggedBlockVertex("v2"),
+                      multicolor=Multicolor(self.genome1, self.genome2),
+                      data={"fragment": {"name": "scaffold2", "origin": "test"}})
+        edge.update_data(source=update_source)
+        self.assertIsInstance(edge.data, dict)
+        self.assertIn("fragment", edge.data)
+        self.assertIsInstance(edge.data["fragment"], dict)
+        self.assertIn("name", edge.data["fragment"])
+        self.assertIn("origin", edge.data["fragment"])
+        self.assertEqual(edge.data["fragment"]["name"], "scaffold11")
+        self.assertEqual(edge.data["fragment"]["origin"], "test")
+
+    def test_data_update_empty_source(self):
+        edge = BGEdge(vertex1=TaggedBlockVertex("v1"), vertex2=TaggedBlockVertex("v2"),
+                      multicolor=Multicolor(self.genome1, self.genome2),
+                      data={"fragment": {"name": "scaffold2", "origin": "test"}})
+        update_source = {}
+        edge.update_data(source=update_source)
+        self.assertTrue(dicts_are_equal(edge.data, {"fragment": {"name": "scaffold2", "origin": "test"}}))
+
+    def test_data_update_non_dict_source(self):
+        edge = BGEdge(vertex1=TaggedBlockVertex("v1"), vertex2=TaggedBlockVertex("v2"),
+                      multicolor=Multicolor(self.genome1, self.genome2),
+                      data={"fragment": {"name": "scaffold2", "origin": "test"}})
+        for source in [1, "2", Multicolor(), (1, ), [2, ]]:
+            with self.assertRaises(ValueError):
+                edge.update_data(source=source)
 
 
 if __name__ == '__main__':  # pragma: no cover
