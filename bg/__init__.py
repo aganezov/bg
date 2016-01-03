@@ -13,7 +13,8 @@ __all__ = ["bg_io",
            "multicolor",
            "tree",
            "vertices",
-           "utils"]
+           "utils",
+           "distances"]
 
 from bg.breakpoint_graph import BreakpointGraph
 from bg.vertices import BGVertex, BlockVertex, InfinityVertex

@@ -34,3 +34,15 @@ def add_to_dict_with_path(destination_dict, key, value, path=None):
             current_level = current_level[entry]
     if key != "" and value != "":
         current_level[key] = value
+
+
+def get_from_dict_with_path(source_dict, key, path=None, default=None):
+    current_level = source_dict
+    if path is not None and len(path) > 0:
+        for entry in path:
+            if not isinstance(current_level, collections.Mapping) or entry not in current_level:
+                return default
+            current_level = current_level[entry]
+    if not isinstance(current_level, collections.Mapping):
+        return default
+    return current_level.get(key, default)

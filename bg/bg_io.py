@@ -333,7 +333,7 @@ class GRIMMReader(object):
 
 class GRIMMWriter(object):
     @staticmethod
-    def get_grimm_from_breakpoint_graph(bg):
+    def get_blocks_in_grimm_from_breakpoint_graph(bg):
         """
         :param bg: a breakpoint graph, that contians all the information
         :type bg: ``bg.breakpoint_graph.BreakpointGraph``
@@ -356,5 +356,21 @@ class GRIMMWriter(object):
     @classmethod
     def print_genomes_as_grimm_blocks_orders(cls, bg, file_name):
         with open(file_name, "wt") as destination:
-            for grimm_string in cls.get_grimm_from_breakpoint_graph(bg=bg):
+            for grimm_string in cls.get_blocks_in_grimm_from_breakpoint_graph(bg=bg):
                 print(grimm_string, file=destination)
+
+    @staticmethod
+    def get_fragments_in_grimm_from_breakpoint_graph(bg):
+        result = []
+        genomes = bg.get_overall_set_of_colors()
+        for genome in genomes:
+            genome_graph = bg.get_genome_graph(color=genome)
+            fragments_orders = genome_graph.get_fragments_orders()
+            fragments_orders = fragments_orders[genome]
+            if len(fragments_orders) > 0 and any(map(lambda entry: len(entry[1]) > 0, fragments_orders)):
+                result.append(">{genome_name}".format(genome_name=genome.name))
+            for chr_type, fragments_order in fragments_orders:
+                string = " ".join(value if sign == "+" else (sign + value) for sign, value in fragments_order)
+                string += " {chr_type}".format(chr_type=chr_type)
+                result.append(string)
+        return result

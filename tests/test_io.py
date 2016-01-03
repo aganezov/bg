@@ -2,7 +2,7 @@ import io
 import os
 from collections import Counter
 
-from bg import BreakpointGraph, Multicolor
+from bg import BreakpointGraph, Multicolor, KBreak
 from bg.bg_io import GRIMMReader, GRIMMWriter
 from bg.genome import BGGenome
 from bg.vertices import TaggedBlockVertex, TaggedInfinityVertex
@@ -406,9 +406,10 @@ class GRIMMWriterTestCase(unittest.TestCase):
         self.two_genome_bg = BreakpointGraph()
         self.four_genome_bg = BreakpointGraph()
 
-    def _populate_bg(self, data):
+    @staticmethod
+    def _populate_bg(data, merge_edges=False):
         file_like = io.StringIO("\n".join(data))
-        bg = GRIMMReader.get_breakpoint_graph(file_like)
+        bg = GRIMMReader.get_breakpoint_graph(file_like, merge_edges=merge_edges)
         return bg
 
     def _get_mouse_data(self):
@@ -439,24 +440,24 @@ class GRIMMWriterTestCase(unittest.TestCase):
             "1 -4 -3 -2 $"
         ]
 
-    def _populate_single_genome_bg(self):
+    def _populate_single_genome_bg(self, merge_edges=False):
         data = self._get_mouse_data()
-        bg = self._populate_bg(data=data)
+        bg = self._populate_bg(data=data, merge_edges=merge_edges)
         self.single_genome_bg = bg
 
-    def _populate_two_genomes_bg(self):
+    def _populate_two_genomes_bg(self, merge_edges=False):
         data = self._get_human_data() + self._get_mouse_data()
-        bg = self._populate_bg(data=data)
+        bg = self._populate_bg(data=data, merge_edges=merge_edges)
         self.two_genome_bg = bg
 
-    def _populate_four_genomes_bg(self):
+    def _populate_four_genomes_bg(self, merge_edges=False):
         data = self._get_human_data() + self._get_mouse_data() + self._get_chimp_data() + self._get_rat_data()
-        bg = self._populate_bg(data=data)
+        bg = self._populate_bg(data=data, merge_edges=merge_edges)
         self.four_genome_bg = bg
 
     def test_get_grimm_strings_from_breakpoint_graph_single_genome(self):
         self._populate_single_genome_bg()
-        grimm_strings = GRIMMWriter.get_grimm_from_breakpoint_graph(bg=self.single_genome_bg)
+        grimm_strings = GRIMMWriter.get_blocks_in_grimm_from_breakpoint_graph(bg=self.single_genome_bg)
         self.assertEqual(len(grimm_strings), 3)
         self.assertIn(">Mouse", grimm_strings)
         possibilities_1 = ["1 2 3 4 $", "-4 -3 -2 -1 $"]
@@ -466,7 +467,7 @@ class GRIMMWriterTestCase(unittest.TestCase):
 
     def test_get_grimm_strings_from_breakpoints_graph_two_genomes(self):
         self._populate_two_genomes_bg()
-        grimm_strings = GRIMMWriter.get_grimm_from_breakpoint_graph(bg=self.two_genome_bg)
+        grimm_strings = GRIMMWriter.get_blocks_in_grimm_from_breakpoint_graph(bg=self.two_genome_bg)
         self.assertEqual(len(grimm_strings), 6)
         self.assertIn(">Mouse", grimm_strings)
         self.assertIn(">Human", grimm_strings)
@@ -483,7 +484,7 @@ class GRIMMWriterTestCase(unittest.TestCase):
 
     def test_get_grimm_from_breakpoint_graph_four_genomes(self):
         self._populate_four_genomes_bg()
-        grimm_strings = GRIMMWriter.get_grimm_from_breakpoint_graph(bg=self.four_genome_bg)
+        grimm_strings = GRIMMWriter.get_blocks_in_grimm_from_breakpoint_graph(bg=self.four_genome_bg)
 
         self.assertEqual(len(grimm_strings), 12)
         self.assertIn(">Mouse", grimm_strings)
@@ -517,14 +518,14 @@ class GRIMMWriterTestCase(unittest.TestCase):
             "1 2 3 4 5 $"
         ]
         bg = self._populate_bg(data=data)
-        grimm_strings = GRIMMWriter.get_grimm_from_breakpoint_graph(bg=bg)
+        grimm_strings = GRIMMWriter.get_blocks_in_grimm_from_breakpoint_graph(bg=bg)
         self.assertEqual(len(grimm_strings), 2)
         self.assertIn(">Mouse", grimm_strings)
         possibilities_1 = ["1 2 3 4 5 $", "-5 -4 -3 -2 -1 $"]
         self.assertTrue(any(map(lambda entry: entry in grimm_strings, possibilities_1)))
 
     def test_output_genomes_as_grimm(self):
-        self._populate_four_genomes_bg()
+        self._populate_four_genomes_bg(merge_edges=True)
         file_name = "file_name.txt"
         GRIMMWriter.print_genomes_as_grimm_blocks_orders(bg=self.four_genome_bg,
                                                          file_name=file_name)
@@ -542,6 +543,75 @@ class GRIMMWriterTestCase(unittest.TestCase):
         finally:
             if os.path.exists(file_name):
                 os.remove(file_name)
+
+    def test_get_fragments_grimm_from_breakpoint_graph_single_genome(self):
+        data = [
+            ">Mouse",
+            "# data :: fragment : name = scaffold1",
+            "1 repeat__LC-1 $",
+            "# data :: fragment : name = scaffold2",
+            "2 $",
+            "# data :: fragment : name = scaffold3",
+            "repeat__ALC 3 $"
+        ]
+        bg = self._populate_bg(data=data)
+        grimm_strings = GRIMMWriter.get_fragments_in_grimm_from_breakpoint_graph(bg=bg)
+        possibilities_1 = ["scaffold1 $", "-scaffold1 $"]
+        possibilities_2 = ["scaffold2 $", "-scaffold2 $"]
+        possibilities_3 = ["scaffold3 $", "-scaffold3 $"]
+        self.assertTrue(any(map(lambda entry: entry in grimm_strings, possibilities_1)))
+        self.assertTrue(any(map(lambda entry: entry in grimm_strings, possibilities_2)))
+        self.assertTrue(any(map(lambda entry: entry in grimm_strings, possibilities_3)))
+
+    def test_get_fragments_grimm_from_breakpoint_graph_single_genome_with_merges(self):
+        data = [
+            ">Mouse",
+            "# data :: fragment : name = scaffold1",
+            "1 $",
+            "# data :: fragment : name = scaffold2",
+            "2 $",
+            "# data :: fragment : name = scaffold3",
+            "repeat__ALC 3 $"
+        ]
+        bg = self._populate_bg(data=data)
+        iv1 = bg.get_vertex_by_name("1h__infinity")
+        iv2 = bg.get_vertex_by_name("2h__infinity")
+        v1 = bg.get_vertex_by_name("1h")
+        v2 = bg.get_vertex_by_name("2h")
+        kbreak = KBreak(start_edges=[(v1, iv1), (v2, iv2)],
+                        result_edges=[(v1, v2), (iv1, iv2)],
+                        multicolor=Multicolor(BGGenome("Mouse")))
+        bg.apply_kbreak(kbreak=kbreak)
+        grimm_strings = GRIMMWriter.get_fragments_in_grimm_from_breakpoint_graph(bg=bg)
+        possibilities_1 = ["scaffold1 -scaffold2 $", "scaffold2 -scaffold1 $"]
+        possibilities_3 = ["scaffold3 $", "-scaffold3 $"]
+        self.assertTrue(any(map(lambda entry: entry in grimm_strings, possibilities_1)))
+        self.assertTrue(any(map(lambda entry: entry in grimm_strings, possibilities_3)))
+
+    def test_get_fragments_grimm_from_breakpoint_graph_single_genome_with_repeat_based_merges(self):
+        data = [
+            ">Mouse",
+            "# data :: fragment : name = scaffold1",
+            "1 ALC__repeat $",
+            "# data :: fragment : name = scaffold2",
+            "ALC__repeat 2 $",
+            "# data :: fragment : name = scaffold3",
+            "ALC__repeat 3 $"
+        ]
+        bg = self._populate_bg(data=data)
+        iv1 = bg.get_vertex_by_name("1h__repeat:ALCt__infinity")
+        iv2 = bg.get_vertex_by_name("2t__repeat:ALCh__infinity")
+        v1 = bg.get_vertex_by_name("1h")
+        v2 = bg.get_vertex_by_name("2t")
+        kbreak = KBreak(start_edges=[(v1, iv1), (v2, iv2)],
+                        result_edges=[(v1, v2), (iv1, iv2)],
+                        multicolor=Multicolor(BGGenome("Mouse")))
+        bg.apply_kbreak(kbreak=kbreak)
+        grimm_strings = GRIMMWriter.get_fragments_in_grimm_from_breakpoint_graph(bg=bg)
+        possibilities_1 = ["scaffold1 scaffold2 $", "-scaffold2 -scaffold1 $"]
+        possibilities_3 = ["scaffold3 $", "-scaffold3 $"]
+        self.assertTrue(any(map(lambda entry: entry in grimm_strings, possibilities_1)))
+        self.assertTrue(any(map(lambda entry: entry in grimm_strings, possibilities_3)))
 
 
 if __name__ == '__main__':

@@ -1,12 +1,11 @@
 # -*- coding: utf-8 -*-
 from marshmallow import Schema, fields
 
-from bg.utils import dicts_are_equal, recursive_dict_update
+from bg.utils import dicts_are_equal, recursive_dict_update, get_from_dict_with_path
 
 __author__ = "Sergey Aganezov"
 __email__ = "aganezov(at)gwu.edu"
 __status__ = "production"
-
 
 # module wide constant utilized in JSON serialization to specify key for JSON schema info, if required
 BGEdge_JSON_SCHEMA_JSON_KEY = "_py__bg_edge_json_schema"

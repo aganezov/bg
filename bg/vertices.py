@@ -59,7 +59,7 @@ class BGVertex(object):
     def __eq__(self, other):
         # vertices are equal only if their class is equal as well as their names
         # in 99% of a time name is class specific and one can distinguish between vetices classes by only their names
-        if not isinstance(other, self.__class__):
+        if not isinstance(other, BGVertex):
             return False
         return hash(self) == hash(other)
 
@@ -70,6 +70,9 @@ class BGVertex(object):
         if item.startswith("is_") and item.endswith("_vertex"):
             return False
         return super().__getattribute__(item)
+
+    def __str__(self):
+        return self.name
 
     @property
     def json_id(self):

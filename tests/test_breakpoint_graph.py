@@ -74,6 +74,15 @@ class BreakpointGraphTestCase(unittest.TestCase):
         self.assertEqual(graph.get_vertex_by_name(v1.name), v1)
         self.assertEqual(graph.get_vertex_by_name(v2.name), v2)
 
+    def test_get_repeat_infinity_vertex_by_name(self):
+        graph = BreakpointGraph()
+        v1 = TaggedInfinityVertex("1h__repeat:ALCt")
+        v2 = TaggedInfinityVertex("1h__repeat:ALCh")
+        multicolor = Multicolor(self.genome4)
+        graph.add_edge(vertex1=v1, vertex2=v2, multicolor=multicolor)
+        self.assertEqual(graph.get_vertex_by_name("1h__repeat:ALCt__infinity"), v1)
+        self.assertEqual(graph.get_vertex_by_name("1h__repeat:ALCh__infinity"), v2)
+
     def test_add_edge(self):
         # breakpoint graph support addition of an edge without BGEdge wrapper
         graph = BreakpointGraph()
@@ -2584,6 +2593,73 @@ class BreakpointGraphTestCase(unittest.TestCase):
                          fragment_2_0, fragment_2_1, fragment_2_2,
                          fragment_2_3, fragment_2_4, fragment_2_5]
         for order in g1_blocks_orders:
+            self.assertIn(order, possibilities)
+
+    def test_get_fragments_order_from_genome_graph_linear_fragment(self):
+        data = [
+            ">genome_1",
+            "# data :: fragment : name= fragment1",
+            "1 2 3 $",
+        ]
+        file_like = io.StringIO("\n".join(data))
+        genome_graph = GRIMMReader.get_breakpoint_graph(file_like)
+        fragments_orders = genome_graph.get_fragments_orders()
+        self.assertEqual(len(fragments_orders.keys()), 1)
+        self.assertIn(BGGenome("genome_1"), fragments_orders)
+        g1_fragments_orders = fragments_orders[BGGenome("genome_1")]
+        fragment_1_0 = ("$", [("+", "fragment1")])
+        fragment_1_1 = ("$", [("-", "fragment1")])
+        possibilities = [fragment_1_0, fragment_1_1]
+        for order in g1_fragments_orders:
+            self.assertIn(order, possibilities)
+
+    def test_get_fragments_order_from_genome_graph_circular_fragment(self):
+        data = [
+            ">genome_1",
+            "# data :: fragment : name=fragment1",
+            "1 2 3 @"
+        ]
+        file_like = io.StringIO("\n".join(data))
+        genome_graph = GRIMMReader.get_breakpoint_graph(file_like)
+        fragments_orders = genome_graph.get_fragments_orders()
+        self.assertEqual(len(fragments_orders.keys()), 1)
+        self.assertIn(BGGenome("genome_1"), fragments_orders)
+        g1_fragments_orders = fragments_orders[BGGenome("genome_1")]
+        fragment_1_0 = ("@", [("+", "fragment1")])
+        fragment_1_1 = ("@", [("-", "fragment1")])
+        possibilities = [fragment_1_0, fragment_1_1]
+        for order in g1_fragments_orders:
+            self.assertIn(order, possibilities)
+
+    def test_get_fragments_order(self):
+        data = [
+            ">genome_1",
+            "# data :: fragment : name=fragment1",
+            "7 8 9 @",
+            "# data :: fragment : name=fragment2",
+            "4 5 6 $",
+            "#data :: fragment : name=fragment3",
+            "1 2 3 $"
+        ]
+        file_like = io.StringIO("\n".join(data))
+        genome_graph = GRIMMReader.get_breakpoint_graph(file_like)
+        v1 = TaggedBlockVertex("3h")
+        v2 = TaggedBlockVertex("4t")
+        iv1 = TaggedInfinityVertex("3h")
+        iv2 = TaggedInfinityVertex("4t")
+        kbreak = KBreak(start_edges=[(v1, iv1), (v2, iv2)], result_edges=[(v1, v2), (iv1, iv2)],
+                        multicolor=Multicolor(BGGenome("genome_1")))
+        genome_graph.apply_kbreak(kbreak=kbreak, merge=False)
+        fragments_orders = genome_graph.get_fragments_orders()
+        self.assertEqual(len(fragments_orders.keys()), 1)
+        self.assertIn(BGGenome("genome_1"), fragments_orders)
+        g1_fragments_orders = fragments_orders[BGGenome("genome_1")]
+        fragment_1_0 = ("$", [("+", "fragment3"), ("+", "fragment2")])
+        fragment_1_1 = ("$", [("-", "fragment2"), ("-", "fragment3")])
+        fragment_2_0 = ("@", [("+", "fragment1")])
+        fragment_2_1 = ("@", [("-", "fragment1")])
+        possibilities = [fragment_1_0, fragment_1_1, fragment_2_0, fragment_2_1]
+        for order in g1_fragments_orders:
             self.assertIn(order, possibilities)
 
     def test_has_edge(self):
