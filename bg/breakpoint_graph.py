@@ -5,7 +5,7 @@ from bg.edge import BGEdge, BGEdge_JSON_SCHEMA_JSON_KEY
 from bg.genome import BGGenome, BGGenome_JSON_SCHEMA_JSON_KEY
 from bg.kbreak import KBreak
 from bg.multicolor import Multicolor
-from bg.utils import get_from_dict_with_path
+from bg.utils import get_from_dict_with_path, merge_fragment_edge_data, recursive_dict_update
 from bg.vertices import BGVertex_JSON_SCHEMA_JSON_KEY, BlockVertex, BGVertex, InfinityVertex, TaggedInfinityVertex, \
     TaggedBlockVertex, TaggedVertex
 
@@ -355,9 +355,7 @@ class BreakpointGraph(object):
         # candidate edges setup
         #
         ############################################################################################################
-        candidate_id = None
-        candidate_score = -1
-        candidate_data = None
+
         if key is not None:
             ############################################################################################################
             #
@@ -378,18 +376,7 @@ class BreakpointGraph(object):
                     self.bg.add_node(bgedge.vertex1)
                     self.bg.add_node(bgedge.vertex2)
         else:
-            for v1, v2, key, data in self.bg.edges_iter(nbunch=bgedge.vertex1, data=True, keys=True):
-                ############################################################################################################
-                #
-                # iterate over all edges and determine which edge has a multicolor most related to the provided for deletion edge
-                #
-                ############################################################################################################
-                if v2 == bgedge.vertex2:
-                    score = Multicolor.similarity_score(bgedge.multicolor, data["multicolor"])
-                    if score > candidate_score:
-                        candidate_id = key
-                        candidate_data = data
-                        candidate_score = score
+            candidate_data, candidate_id, candidate_score = self.__determine_most_suitable_edge_for_deletion(bgedge)
             if candidate_data is not None:
                 candidate_data["multicolor"] -= bgedge.multicolor
                 if len(self.bg[bgedge.vertex1][bgedge.vertex2][candidate_id]["multicolor"].multicolors) == 0:
@@ -397,6 +384,24 @@ class BreakpointGraph(object):
                     if keep_vertices:
                         self.bg.add_node(bgedge.vertex1)
                         self.bg.add_node(bgedge.vertex2)
+
+    def __determine_most_suitable_edge_for_deletion(self, bgedge):
+        candidate_id = None
+        candidate_score = -1
+        candidate_data = None
+        for v1, v2, key, data in self.bg.edges_iter(nbunch=bgedge.vertex1, data=True, keys=True):
+            ############################################################################################################
+            #
+            # iterate over all edges and determine which edge has a multicolor most related to the provided for deletion edge
+            #
+            ############################################################################################################
+            if v2 == bgedge.vertex2:
+                score = Multicolor.similarity_score(bgedge.multicolor, data["multicolor"])
+                if score > candidate_score:
+                    candidate_id = key
+                    candidate_data = data
+                    candidate_score = score
+        return candidate_data, candidate_id, candidate_score
 
     def delete_edge(self, vertex1, vertex2, multicolor, key=None):
         """ Creates a new :class:`bg.edge.BGEdge` instance from supplied information and deletes it from a perspective of multi-color substitution. If unique identifier ``key`` is not provided, most similar (from perspective of :meth:`bg.multicolor.Multicolor.similarity_score` result) edge between respective vertices is chosen for change.
@@ -732,6 +737,7 @@ class BreakpointGraph(object):
         #
         ############################################################################################################
         vertices = {}
+        edge_data = {}
         if not isinstance(kbreak, KBreak):
             raise TypeError("Only KBreak and derivatives are allowed as kbreak argument")
         if not KBreak.valid_kbreak_matchings(kbreak.start_edges, kbreak.result_edges):
@@ -770,7 +776,12 @@ class BreakpointGraph(object):
             vertices[v1] = v1
             v2 = self.__get_vertex_by_name(vertex_name=vertex2.name)
             vertices[v2] = v2
-            self.__delete_bgedge(BGEdge(vertex1=v1, vertex2=v2, multicolor=kbreak.multicolor), keep_vertices=True)
+            bgedge = BGEdge(vertex1=v1, vertex2=v2, multicolor=kbreak.multicolor)
+            candidate_data, candidate_id, candidate_score = self.__determine_most_suitable_edge_for_deletion(bgedge=bgedge)
+            data = candidate_data["data"]
+            edge_data[v1] = data
+            edge_data[v2] = data
+            self.__delete_bgedge(bgedge=bgedge, keep_vertices=True)
         for vertex_set in kbreak.start_edges:
             for vertex in vertex_set:
                 if vertex.is_infinity_vertex and vertex in self.bg:
@@ -799,6 +810,15 @@ class BreakpointGraph(object):
             bg_edge = BGEdge(vertex1=v1, vertex2=v2, multicolor=kbreak.multicolor)
             if "origin" in bg_edge.data:
                 bg_edge.data["origin"] = origin
+            if kbreak.is_a_fusion:
+                edge1_data = edge_data[v1]
+                edge2_data = edge_data[v2]
+                merged_edge_data = merge_fragment_edge_data(edge1_data["fragment"], edge2_data["fragment"])
+                result_edge_data = {}
+                recursive_dict_update(result_edge_data, edge1_data)
+                recursive_dict_update(result_edge_data, edge2_data)
+                recursive_dict_update(result_edge_data, merged_edge_data)
+                recursive_dict_update(bg_edge.data, result_edge_data)
             self.__add_bgedge(bg_edge, merge=merge)
 
     def to_json(self, schema_info=True):
@@ -937,7 +957,8 @@ class BreakpointGraph(object):
             chr_type_f, fragment_part_forward = self._traverse_blocks_forward_from_vertex(vertex=vertex, visited_vertices=visited_vertices)
             chr_type_r, fragment_part_reverse = self._traverse_blocks_reverse_from_vertex(vertex=vertex, visited_vertices=visited_vertices)
             if chr_type_f != chr_type_r:
-                raise Exception()
+                raise Exception("During the gene order sequence traversal we got a conflicted situation. "
+                                "Most probably case for this to happen is to have a genome with non-unique gene content")
             if chr_type_f == "$":
                 fragment = fragment_part_reverse + fragment_part_forward
             else:
@@ -1008,7 +1029,9 @@ class BreakpointGraph(object):
         genome = self.get_overall_set_of_colors().pop()
         result = {genome: []}
         visited_vertices = set()
-        for vertex in self.nodes():
+        ivs = (v for v in self.nodes() if v.is_irregular_vertex)
+        rvs = (v for v in self.nodes() if v.is_regular_vertex)
+        for vertex in itertools.chain(ivs, rvs):
             if vertex in visited_vertices:
                 continue
             chr_type_f, fragments_order_part_forward = self._traverse_fragments_forward_from_vertex(vertex=vertex,
@@ -1016,8 +1039,8 @@ class BreakpointGraph(object):
             chr_type_r, fragments_order_part_reverse = self._traverse_fragments_reverse_from_vertex(vertex=vertex,
                                                                                                     visited_vertices=visited_vertices)
             if chr_type_f != chr_type_r:
-                print(vertex)
-                raise Exception()
+                raise Exception("During the fragment order sequence traversal we got a conflicted situation. "
+                                "Most probably case for this to happen is to have a genome with non-unique gene content")
             if chr_type_f == "$":
                 if len(fragments_order_part_forward) == 0:
                     fragment = fragments_order_part_reverse
@@ -1032,7 +1055,7 @@ class BreakpointGraph(object):
                         fragment = fragments_order_part_reverse + fragments_order_part_forward
             else:
                 fragment = fragments_order_part_forward if len(fragments_order_part_forward) > len(
-                    fragments_order_part_reverse) else fragments_order_part_reverse
+                        fragments_order_part_reverse) else fragments_order_part_reverse
             result[genome].append((chr_type_f, fragment))
         return result
 
@@ -1041,33 +1064,23 @@ class BreakpointGraph(object):
         current_vertex = vertex
         current_fragment_name = None
         current_fragment_orientation = None
-        # if current_vertex.is_irregular_vertex:
-        #     visited_vertices.add(current_vertex)
-        #     edge = list(self.get_edges_by_vertex(vertex=current_vertex))[0]
-        #     fragment_name = get_from_dict_with_path(source_dict=edge.data, key="name", path=["fragment"])
-        #     fragment_orientation = self._get_fragment_to_edge_orientation(current_vertex=current_vertex, edge=edge)
-        #     current_fragment_name = fragment_name
-        #     current_fragment_orientation = self.update_orientation_with_direction(orientation=fragment_orientation,
-        #                                                                           direction=direction)
-        #     result.append((current_fragment_orientation, current_fragment_name))
-        #     current_vertex = edge.vertex1 if edge.vertex1 != current_vertex else edge.vertex2
-        #     visited_vertices.add(current_vertex)
-        #     current_vertex = current_vertex.mate_vertex
-        #     # visited_vertices.add(current_vertex)
         if current_vertex.is_tail_vertex and direction == "forward" or current_vertex.is_head_vertex and direction == "reverse":
-            # visited_vertices.add(current_vertex)
             current_vertex = current_vertex.mate_vertex
         elif not (current_vertex.is_irregular_vertex and current_vertex in visited_vertices):
             visited_vertices.add(current_vertex)
             edge = list(self.get_edges_by_vertex(vertex=current_vertex))[0]
-            fragment_name = get_from_dict_with_path(source_dict=edge.data, key="name", path=["fragment"])
-            fragment_orientation = self._get_fragment_to_edge_orientation(current_vertex=current_vertex, edge=edge)
-            fragment_orientation = self.update_orientation_with_direction(orientation=fragment_orientation,
-                                                                          direction=direction)
-            if fragment_name not in [None, ""] and fragment_orientation not in [None, ""]:
-                current_fragment_name = fragment_name
-                current_fragment_orientation = fragment_orientation
-                result.append((current_fragment_orientation, current_fragment_name))
+            fragment_names = get_from_dict_with_path(source_dict=edge.data, key="name", path=["fragment"])
+            if not isinstance(fragment_names, list):
+                fragment_names = [fragment_names]
+            fragment_orientations = self._get_fragment_to_edge_orientation(current_vertex=current_vertex, edge=edge)
+            fragment_orientations = self.update_orientation_with_direction(orientation=fragment_orientations,
+                                                                           direction=direction)
+            for name, orientation in zip(fragment_names, fragment_orientations):
+                new_encounter = current_fragment_name != name or current_fragment_orientation != name
+                if name not in [None, ""] and orientation not in [None, ""] and new_encounter:
+                    current_fragment_name = name
+                    current_fragment_orientation = orientation
+                    result.append((current_fragment_orientation, current_fragment_name))
             current_vertex = edge.vertex1 if edge.vertex1 != current_vertex else edge.vertex2
             visited_vertices.add(current_vertex)
             if not current_vertex.is_irregular_vertex:
@@ -1075,27 +1088,29 @@ class BreakpointGraph(object):
         while current_vertex not in visited_vertices and not current_vertex.is_irregular_vertex:
             visited_vertices.add(current_vertex)
             edge = list(self.get_edges_by_vertex(vertex=current_vertex))[0]
-            fragment_name = get_from_dict_with_path(source_dict=edge.data, key="name", path=["fragment"])
-            fragment_orientation = self._get_fragment_to_edge_orientation(current_vertex=current_vertex, edge=edge)
-            fragment_orientation = self.update_orientation_with_direction(orientation=fragment_orientation,
-                                                                          direction=direction)
-            initial_state = current_fragment_name is None or current_fragment_orientation is None
-            new_encounter = current_fragment_name != fragment_name or current_fragment_orientation != fragment_orientation
-            new_encounter &= fragment_name not in [None, ""] and fragment_orientation not in [None, ""]
-            if initial_state or new_encounter:
-                current_fragment_name = fragment_name
-                current_fragment_orientation = fragment_orientation
-                if current_fragment_name not in [None, ""] and current_fragment_orientation not in [None, ""]:
-                    result.append((current_fragment_orientation, current_fragment_name))
-            # result.append((sign, current_vertex.block_name))
+            fragment_names = get_from_dict_with_path(source_dict=edge.data, key="name", path=["fragment"])
+            if not isinstance(fragment_names, list):
+                fragment_names = [fragment_names]
+            fragment_orientations = self._get_fragment_to_edge_orientation(current_vertex=current_vertex, edge=edge)
+            fragment_orientations = self.update_orientation_with_direction(orientation=fragment_orientations,
+                                                                           direction=direction)
+            if current_fragment_name == fragment_names[-1]:
+                fragment_names = fragment_names[::-1]
+                fragment_orientations = fragment_orientations[::-1]
+            for name, orientation in zip(fragment_names, fragment_orientations):
+                initial_state = current_fragment_name is None or current_fragment_orientation is None
+                new_encounter = current_fragment_name != name or current_fragment_orientation != orientation
+                new_encounter &= name not in [None, ""] and orientation not in [None, ""]
+                if initial_state or new_encounter:
+                    current_fragment_name = name
+                    current_fragment_orientation = orientation
+                    if current_fragment_name not in [None, ""] and current_fragment_orientation not in [None, ""]:
+                        result.append((current_fragment_orientation, current_fragment_name))
             current_vertex = edge.vertex1 if edge.vertex1 != current_vertex else edge.vertex2
             if current_vertex.is_irregular_vertex:
                 break
             visited_vertices.add(current_vertex)
             current_vertex = current_vertex.mate_vertex
-            # visited_vertices.add(current_vertex)
-            # edge = list(self.get_edges_by_vertex(vertex=current_vertex))[0]
-            # current_vertex = edge.vertex1 if edge.vertex1 != current_vertex else edge.vertex2
 
         visited_vertices.add(current_vertex)
         if current_vertex.is_irregular_vertex:
@@ -1110,12 +1125,25 @@ class BreakpointGraph(object):
     def _get_fragment_to_edge_orientation(current_vertex, edge):
         v1, v2 = (edge.vertex1, edge.vertex2) if edge.vertex1 == current_vertex else (edge.vertex2, edge.vertex1)
         forward_orientation = get_from_dict_with_path(source_dict=edge.data, key="forward_orientation", path=["fragment"])
-        orientation = "+" if forward_orientation == (v1, v2) else "-"
-        return orientation
+        if isinstance(forward_orientation, list):
+            return ["+" if BreakpointGraph._forward_orientation(v1, v2, orientation) else "-" for orientation in forward_orientation]
+        else:
+            return ["+" if BreakpointGraph._forward_orientation(v1, v2, forward_orientation) else "-"]
+
+    @staticmethod
+    def _forward_orientation(v1, v2, forward_orientation):
+        if forward_orientation is None:
+            return True
+        left_v = v1 not in forward_orientation or forward_orientation[0] == v1
+        right_v = v2 not in forward_orientation or forward_orientation[1] == v2
+        return left_v and right_v
 
     @staticmethod
     def update_orientation_with_direction(orientation, direction):
-        if direction == "forward":
-            return orientation
-        else:
-            return "-" if orientation == "+" else "+"
+        result = []
+        for entry in orientation:
+            if direction == "forward":
+                result.append(entry)
+            else:
+                result.append("-" if entry == "+" else "+")
+        return result

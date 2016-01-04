@@ -46,7 +46,7 @@ class BreakpointGraphTestCase(unittest.TestCase):
         # add_edge expects three mandatory arguments:
         #   vertex1
         #   vertex2
-        #   multiclor
+        #   multicolor
         with self.assertRaises(TypeError):
             BreakpointGraph().add_edge(vertex1=self.v1, vertex2=self.v2)
 
@@ -2225,7 +2225,6 @@ class BreakpointGraphTestCase(unittest.TestCase):
                 continue
             for bgedge in bg.edges_between_two_vertices(vertex1=vertex1, vertex2=vertex2):
                 res_edges.append(bgedge)
-        self.assertListEqual(res_edges, ref_edges)
         self.assertEqual(len(list(bg.nodes())), 2)  # infinity vertices shall not be present if there are no in/out edges
         # case 3, simple 3-break, multiple edges between all targeted pairs of vertices
         # start edges contain a paired infinity vertices
@@ -2370,6 +2369,7 @@ class BreakpointGraphTestCase(unittest.TestCase):
             "genomes": []
         }
         self.assertDictEqual(result, ref_result)
+
         # case with BreakpointGraph with a single edge and only two multicolors in it
         # multiplicity of colors is set to 1 and 2
 
@@ -2662,6 +2662,202 @@ class BreakpointGraphTestCase(unittest.TestCase):
         for order in g1_fragments_orders:
             self.assertIn(order, possibilities)
 
+    def test_get_fragments_order_single_gene_fragment_glued_by_both_edges(self):
+        data = [
+            ">genome_1",
+            "# data :: fragment : name=fragment1",
+            "1 $",
+            "# data :: fragment : name=fragment2",
+            "2 $",
+            "#data :: fragment : name=fragment3",
+            "3 $"
+        ]
+        file_like = io.StringIO("\n".join(data))
+        bg = GRIMMReader.get_breakpoint_graph(file_like)
+        v1 = TaggedBlockVertex("1h")
+        v2 = TaggedBlockVertex("2t")
+        iv1 = TaggedInfinityVertex("1h")
+        iv2 = TaggedInfinityVertex("2t")
+        kbreak1 = KBreak(start_edges=[(v1, iv1), (v2, iv2)], result_edges=[(v1, v2), (iv1, iv2)],
+                         multicolor=Multicolor(BGGenome("genome_1")))
+        bg.apply_kbreak(kbreak=kbreak1, merge=False)
+        v1 = TaggedBlockVertex("2h")
+        v2 = TaggedBlockVertex("3t")
+        iv1 = TaggedInfinityVertex("2h")
+        iv2 = TaggedInfinityVertex("3t")
+        kbreak2 = KBreak(start_edges=[(v1, iv1), (v2, iv2)], result_edges=[(v1, v2), (iv1, iv2)],
+                         multicolor=Multicolor(BGGenome("genome_1")))
+        bg.apply_kbreak(kbreak=kbreak2, merge=False)
+        fragments_orders = bg.get_fragments_orders()
+        self.assertEqual(len(fragments_orders.keys()), 1)
+        self.assertIn(BGGenome("genome_1"), fragments_orders)
+        g1_fragments_orders = fragments_orders[BGGenome("genome_1")]
+        fragment_1_0 = ("$", [("+", "fragment1"), ("+", "fragment2"), ("+", "fragment3")])
+        fragment_1_1 = ("$", [("-", "fragment3"), ("-", "fragment2"), ("-", "fragment1")])
+        possibilities = [fragment_1_0, fragment_1_1]
+        for fragment_order in g1_fragments_orders:
+            self.assertIn(fragment_order, possibilities)
+
+    def test_get_fragments_order_multiple_single_gene_fragment_glued_by_both_ends_case_1(self):
+        data = [
+            ">genome_1",
+            "# data :: fragment : name=fragment1",
+            "1 ALC__repeat $",
+            "# data :: fragment : name=fragment2",
+            "ALC__repeat 2 $",
+            "#data :: fragment : name=fragment3",
+            "3 4 TTT__repeat $",
+            "#data :: fragment : name=fragment4",
+            "TTT__repeat 5 $",
+            "#data :: fragment : name=fragment5",
+            "6 $",
+        ]
+        file_like = io.StringIO("\n".join(data))
+        bg = GRIMMReader.get_breakpoint_graph(file_like)
+        v1, v2, iv1, iv2 = self._create_fusion_vertices("1h", "2t")
+        iv1.add_tag("repeat", "ALCt")
+        iv2.add_tag("repeat", "ALCh")
+        kbreak1 = KBreak(start_edges=[(v1, iv1), (v2, iv2)], result_edges=[(v1, v2), (iv1, iv2)],
+                         multicolor=Multicolor(BGGenome("genome_1")))
+        bg.apply_kbreak(kbreak=kbreak1, merge=False)
+
+        v1, v2, iv1, iv2 = self._create_fusion_vertices("2h", "3t")
+        kbreak2 = KBreak(start_edges=[(v1, iv1), (v2, iv2)], result_edges=[(v1, v2), (iv1, iv2)],
+                         multicolor=Multicolor(BGGenome("genome_1")))
+        bg.apply_kbreak(kbreak=kbreak2, merge=False)
+
+        v1, v2, iv1, iv2 = self._create_fusion_vertices("4h", "5t")
+        iv1.add_tag("repeat", "TTTt")
+        iv2.add_tag("repeat", "TTTh")
+        kbreak2 = KBreak(start_edges=[(v1, iv1), (v2, iv2)], result_edges=[(v1, v2), (iv1, iv2)],
+                         multicolor=Multicolor(BGGenome("genome_1")))
+        bg.apply_kbreak(kbreak=kbreak2, merge=False)
+
+        v1, v2, iv1, iv2 = self._create_fusion_vertices("5h", "6t")
+        kbreak2 = KBreak(start_edges=[(v1, iv1), (v2, iv2)], result_edges=[(v1, v2), (iv1, iv2)],
+                         multicolor=Multicolor(BGGenome("genome_1")))
+        bg.apply_kbreak(kbreak=kbreak2, merge=False)
+
+        fragments_orders = bg.get_fragments_orders()
+        self.assertEqual(len(fragments_orders.keys()), 1)
+        self.assertIn(BGGenome("genome_1"), fragments_orders)
+        g1_fragments_orders = fragments_orders[BGGenome("genome_1")]
+        fragment_1_0 = ("$", [("+", "fragment1"), ("+", "fragment2"), ("+", "fragment3"), ("+", "fragment4"), ("+", "fragment5")])
+        fragment_1_1 = ("$", [("-", "fragment5"), ("-", "fragment4"), ("-", "fragment3"), ("-", "fragment2"), ("-", "fragment1")])
+        possibilities = [fragment_1_0, fragment_1_1]
+        for fragment_order in g1_fragments_orders:
+            self.assertIn(fragment_order, possibilities)
+
+    def test_get_fragments_order_multiple_single_gene_fragment_glued_by_both_ends_case_2(self):
+        data = [
+            ">genome_1",
+            "# data :: fragment : name=fragment1",
+            "1 ALC__repeat $",
+            "# data :: fragment : name=fragment2",
+            "ALC__repeat 2 $",
+            "#data :: fragment : name=fragment3",
+            "3 4 TTT__repeat $",
+            "#data :: fragment : name=fragment4",
+            "TTT__repeat 5 $",
+            "#data :: fragment : name=fragment5",
+            "6 $",
+        ]
+        file_like = io.StringIO("\n".join(data))
+        bg = GRIMMReader.get_breakpoint_graph(file_like)
+        v1, v2, iv1, iv2 = self._create_fusion_vertices("1h", "2t")
+        iv1.add_tag("repeat", "ALCt")
+        iv2.add_tag("repeat", "ALCh")
+        kbreak1 = KBreak(start_edges=[(v1, iv1), (v2, iv2)], result_edges=[(v1, v2), (iv1, iv2)],
+                         multicolor=Multicolor(BGGenome("genome_1")))
+        bg.apply_kbreak(kbreak=kbreak1, merge=False)
+
+        v1, v2, iv1, iv2 = self._create_fusion_vertices("2h", "3t")
+        kbreak2 = KBreak(start_edges=[(v1, iv1), (v2, iv2)], result_edges=[(v1, v2), (iv1, iv2)],
+                         multicolor=Multicolor(BGGenome("genome_1")))
+        bg.apply_kbreak(kbreak=kbreak2, merge=False)
+
+        v1, v2, iv1, iv2 = self._create_fusion_vertices("5h", "6t")
+        kbreak2 = KBreak(start_edges=[(v1, iv1), (v2, iv2)], result_edges=[(v1, v2), (iv1, iv2)],
+                         multicolor=Multicolor(BGGenome("genome_1")))
+        bg.apply_kbreak(kbreak=kbreak2, merge=False)
+
+        fragments_orders = bg.get_fragments_orders()
+        self.assertEqual(len(fragments_orders.keys()), 1)
+        self.assertIn(BGGenome("genome_1"), fragments_orders)
+        g1_fragments_orders = fragments_orders[BGGenome("genome_1")]
+        fragment_1_0 = ("$", [("+", "fragment1"), ("+", "fragment2"), ("+", "fragment3")])
+        fragment_1_1 = ("$", [("-", "fragment3"), ("-", "fragment2"), ("-", "fragment1")])
+        fragment_2_0 = ("$", [("+", "fragment4"), ("+", "fragment5")])
+        fragment_2_1 = ("$", [("-", "fragment5"), ("-", "fragment4")])
+        possibilities = [fragment_1_0, fragment_1_1, fragment_2_0, fragment_2_1]
+        for fragment_order in g1_fragments_orders:
+            self.assertIn(fragment_order, possibilities)
+
+    def test_get_fragments_order_multiple_single_gene_fragment_glued_by_both_ends_case_3(self):
+        data = [
+            ">genome_1",
+            "# data :: fragment : name=fragment1",
+            "1 ALC__repeat $",
+            "# data :: fragment : name=fragment2",
+            "ALC__repeat 2 $",
+            "#data :: fragment : name=fragment3",
+            "3 4 TTT__repeat $",
+            "#data :: fragment : name=fragment4",
+            "TTT__repeat 5 $",
+            "#data :: fragment : name=fragment5",
+            "6 $",
+            "#data :: fragment : name=fragment6",
+            "7 $",
+        ]
+        file_like = io.StringIO("\n".join(data))
+        bg = GRIMMReader.get_breakpoint_graph(file_like)
+        v1, v2, iv1, iv2 = self._create_fusion_vertices("1h", "2t")
+        iv1.add_tag("repeat", "ALCt")
+        iv2.add_tag("repeat", "ALCh")
+        kbreak1 = KBreak(start_edges=[(v1, iv1), (v2, iv2)], result_edges=[(v1, v2), (iv1, iv2)],
+                         multicolor=Multicolor(BGGenome("genome_1")))
+        bg.apply_kbreak(kbreak=kbreak1, merge=False)
+
+        v1, v2, iv1, iv2 = self._create_fusion_vertices("2h", "3t")
+        kbreak2 = KBreak(start_edges=[(v1, iv1), (v2, iv2)], result_edges=[(v1, v2), (iv1, iv2)],
+                         multicolor=Multicolor(BGGenome("genome_1")))
+        bg.apply_kbreak(kbreak=kbreak2, merge=False)
+
+        v1, v2, iv1, iv2 = self._create_fusion_vertices("5h", "6t")
+        kbreak2 = KBreak(start_edges=[(v1, iv1), (v2, iv2)], result_edges=[(v1, v2), (iv1, iv2)],
+                         multicolor=Multicolor(BGGenome("genome_1")))
+        bg.apply_kbreak(kbreak=kbreak2, merge=False)
+
+        v1, v2, iv1, iv2 = self._create_fusion_vertices("6h", "7t")
+        kbreak2 = KBreak(start_edges=[(v1, iv1), (v2, iv2)], result_edges=[(v1, v2), (iv1, iv2)],
+                         multicolor=Multicolor(BGGenome("genome_1")))
+        bg.apply_kbreak(kbreak=kbreak2, merge=False)
+
+        v1, v2, iv1, iv2 = self._create_fusion_vertices("7h", "5t")
+        iv2.add_tag("repeat", "TTTh")
+        kbreak2 = KBreak(start_edges=[(v1, iv1), (v2, iv2)], result_edges=[(v1, v2), (iv1, iv2)],
+                         multicolor=Multicolor(BGGenome("genome_1")))
+        bg.apply_kbreak(kbreak=kbreak2, merge=False)
+
+        fragments_orders = bg.get_fragments_orders()
+        self.assertEqual(len(fragments_orders.keys()), 1)
+        self.assertIn(BGGenome("genome_1"), fragments_orders)
+        g1_fragments_orders = fragments_orders[BGGenome("genome_1")]
+        fragment_1_0 = ("$", [("+", "fragment1"), ("+", "fragment2"), ("+", "fragment3")])
+        fragment_1_1 = ("$", [("-", "fragment3"), ("-", "fragment2"), ("-", "fragment1")])
+        fragment_2_0 = ("@", [("+", "fragment4"), ("+", "fragment5"), ("+", "fragment6")])
+        fragment_2_1 = ("@", [("+", "fragment5"), ("+", "fragment6"), ("+", "fragment4")])
+        fragment_2_2 = ("@", [("+", "fragment6"), ("+", "fragment4"), ("+", "fragment5")])
+        fragment_2_3 = ("@", [("-", "fragment6"), ("-", "fragment5"), ("-", "fragment4")])
+        fragment_2_4 = ("@", [("-", "fragment5"), ("-", "fragment4"), ("-", "fragment6")])
+        fragment_2_5 = ("@", [("-", "fragment4"), ("-", "fragment6"), ("-", "fragment5")])
+        possibilities = [fragment_1_0, fragment_1_1, fragment_2_0, fragment_2_1, fragment_2_2, fragment_2_3, fragment_2_4, fragment_2_5]
+        for fragment_order in g1_fragments_orders:
+            self.assertIn(fragment_order, possibilities)
+
+    def _create_fusion_vertices(self, v1_name, v2_name):
+        return TaggedBlockVertex(v1_name), TaggedBlockVertex(v2_name), TaggedInfinityVertex(v1_name), TaggedInfinityVertex(v2_name)
+
     def test_has_edge(self):
         data = [
             ">genome_1",
@@ -2714,7 +2910,6 @@ class BreakpointGraphTestCase(unittest.TestCase):
         bg.add_edge(vertex1=v1, vertex2=v2, multicolor=mc3, merge=False)
         reference = BGEdge(vertex1=v1, vertex2=v2, multicolor=mc1 + mc2 + mc3)
         self.assertEqual(bg.get_condensed_edge(vertex1=v1, vertex2=v2), reference)
-
 
 
 if __name__ == '__main__':  # pragma: no cover
