@@ -46,3 +46,11 @@ def get_from_dict_with_path(source_dict, key, path=None, default=None):
     if not isinstance(current_level, collections.Mapping):
         return default
     return current_level.get(key, default)
+
+
+def merge_fragment_edge_data(fragment_data_1, fragment_data_2):
+    result = {"name": [fragment_data_1["name"] if fragment_data_1 is not None else None,
+                       fragment_data_2["name"] if fragment_data_2 is not None else None],
+              "forward_orientation": [fragment_data_1["forward_orientation"] if fragment_data_1 is not None else None,
+                                      fragment_data_2["forward_orientation"] if fragment_data_2 is not None else None]}
+    return result
