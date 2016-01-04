@@ -65,6 +65,14 @@ class KBreak(object):
                              "correct k-break operation (either the set of vertices is not consistent, or "
                              "the degrees of vertices change)")
 
+    @property
+    def is_a_two_break(self):
+        return len(self.start_edges) == 2
+
+    @property
+    def is_a_fusion(self):
+        return self.is_a_two_break and any(map(lambda vertex_set: all(map(lambda vertex: vertex.is_irregular_vertex, vertex_set)), self.result_edges))
+
     @classmethod
     def create_default_data_dict(cls):
         return {
