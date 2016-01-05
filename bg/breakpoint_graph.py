@@ -813,11 +813,11 @@ class BreakpointGraph(object):
             if kbreak.is_a_fusion:
                 edge1_data = edge_data[v1]
                 edge2_data = edge_data[v2]
-                merged_edge_data = merge_fragment_edge_data(edge1_data["fragment"], edge2_data["fragment"])
+                merged_edge_fragment_data = merge_fragment_edge_data(edge1_data["fragment"], edge2_data["fragment"])
                 result_edge_data = {}
                 recursive_dict_update(result_edge_data, edge1_data)
                 recursive_dict_update(result_edge_data, edge2_data)
-                recursive_dict_update(result_edge_data, merged_edge_data)
+                recursive_dict_update(result_edge_data, {"fragment": merged_edge_fragment_data})
                 recursive_dict_update(bg_edge.data, result_edge_data)
             self.__add_bgedge(bg_edge, merge=merge)
 
@@ -1056,6 +1056,8 @@ class BreakpointGraph(object):
             else:
                 fragment = fragments_order_part_forward if len(fragments_order_part_forward) > len(
                         fragments_order_part_reverse) else fragments_order_part_reverse
+                if len(fragment) > 1 and fragment[-1][0] == fragment[0][0] and fragment[-1][1] == fragment[0][1]:
+                    fragment = fragment[:-1]
             result[genome].append((chr_type_f, fragment))
         return result
 
