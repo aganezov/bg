@@ -9,6 +9,9 @@ class NodeShapeProcessor(object):
         self.irregular_vertex_shape = irregular_vertex_shape
         self.non_bg_vertex_shape = non_bg_vertex_shape
 
+        self.pen_width_label = "penwidth"
+        self.shape_label = "shape"
+
     def get_shape(self, vertex=None):
         if isinstance(vertex, BGVertex):
             return self.regular_vertex_shape if vertex.is_regular_vertex else self.irregular_vertex_shape

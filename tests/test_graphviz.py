@@ -27,6 +27,12 @@ class NodeShapeProcessorTestCase(unittest.TestCase):
     def test_default_pen_width(self):
         self.assertEqual(1, self.defaultNodeShapeProcessor.get_pen_width())
 
+    def test_pen_width_label(self):
+        self.assertEqual("penwidth", self.defaultNodeShapeProcessor.pen_width_label)
+
+    def test_shape_label(self):
+        self.assertEqual("shape", self.defaultNodeShapeProcessor.shape_label)
+
 
 class NodeTextProcessingTestCase(unittest.TestCase):
     def setUp(self):
