@@ -3,11 +3,11 @@ from bg import BGVertex
 
 
 class NodeShapeProcessor(object):
-    def __init__(self):
-        self.pen_width = 1
-        self.regular_vertex_shape = "oval"
-        self.irregular_vertex_shape = "point"
-        self.non_bg_vertex_shape = "oval"
+    def __init__(self, pen_width=1, regular_vertex_shape="oval", irregular_vertex_shape="point", non_bg_vertex_shape="oval"):
+        self.pen_width = pen_width
+        self.regular_vertex_shape = regular_vertex_shape
+        self.irregular_vertex_shape = irregular_vertex_shape
+        self.non_bg_vertex_shape = non_bg_vertex_shape
 
     def get_shape(self, vertex=None):
         if isinstance(vertex, BGVertex):
