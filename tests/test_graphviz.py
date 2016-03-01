@@ -4,7 +4,7 @@ from unittest.mock import *
 import collections
 
 from bg import BlockVertex, InfinityVertex
-from bg.graphviz import NodeShapeProcessor, NodeTextProcessor
+from bg.graphviz import NodeShapeProcessor, NodeTextProcessor, NodeProcessor
 
 
 class NodeShapeProcessorTestCase(unittest.TestCase):
@@ -37,6 +37,18 @@ class NodeTextProcessingTestCase(unittest.TestCase):
 
     def test_default_text_color(self):
         self.assertEqual("black", self.defaultNodeTextProcessor.get_text_color())
+
+
+class NodeProcessorTestCase(unittest.TestCase):
+    def setUp(self):
+        self.defaultNodeProcessor = NodeProcessor()
+
+    def test_default_node_shape_processor_field(self):
+        self.assertIsInstance(self.defaultNodeProcessor.shape_processor, NodeShapeProcessor)
+
+    def test_default_node_text_processor(self):
+        self.assertIsInstance(self.defaultNodeProcessor.text_processor, NodeTextProcessor)
+
 
 if __name__ == '__main__':
     unittest.main()

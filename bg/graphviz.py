@@ -30,3 +30,9 @@ class NodeTextProcessor(object):
     def get_text_color(self):
         return self.text_color
 
+
+class NodeProcessor(object):
+    def __init__(self, shape_processor=None, text_processor=None):
+        self.shape_processor = shape_processor if shape_processor is not None else NodeShapeProcessor()
+        self.text_processor = text_processor if text_processor is not None else NodeTextProcessor()
+
