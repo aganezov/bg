@@ -4,6 +4,7 @@ from bg import BGVertex
 
 class NodeShapeProcessor(object):
     def __init__(self):
+        self.pen_width = 1
         self.regular_vertex_shape = "oval"
         self.irregular_vertex_shape = "point"
         self.non_bg_vertex_shape = "oval"
@@ -13,6 +14,9 @@ class NodeShapeProcessor(object):
             return self.regular_vertex_shape if vertex.is_regular_vertex else self.irregular_vertex_shape
         else:
             return self.non_bg_vertex_shape
+
+    def get_pen_width(self):
+        return self.pen_width
 
 
 class NodeTextProcessor(object):

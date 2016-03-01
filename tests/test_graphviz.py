@@ -24,6 +24,9 @@ class NodeShapeProcessorTestCase(unittest.TestCase):
     def test_default_shape_for_irregular_bg_vertex(self):
         self.assertEqual("point", self.defaultNodeShapeProcessor.get_shape(vertex=InfinityVertex(name="test")))
 
+    def test_default_pen_width(self):
+        self.assertEqual(1, self.defaultNodeShapeProcessor.get_pen_width())
+
 
 class NodeTextProcessingTestCase(unittest.TestCase):
     def setUp(self):
