@@ -4,9 +4,9 @@ from bg import BGVertex
 
 class NodeShapeProcessor(object):
     def __init__(self):
-        self.regular_vertex_shape = "circle"
+        self.regular_vertex_shape = "oval"
         self.irregular_vertex_shape = "point"
-        self.non_bg_vertex_shape = "circle"
+        self.non_bg_vertex_shape = "oval"
 
     def get_shape(self, vertex=None):
         if isinstance(vertex, BGVertex):
