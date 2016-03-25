@@ -129,6 +129,7 @@ class BlockVertex(BGVertex):
 
     class BlockVertexJSONSchema(BGVertex.BGVertexJSONSchema):
         """ JSON schema for this class is redefined to tune the `make_object` method, that shall return `BlockVertex` instance, rather than `BGVertex` one """
+
         def make_object(self, data):
             try:
                 return BlockVertex(name=data["name"])
@@ -180,6 +181,7 @@ class InfinityVertex(BGVertex):
 
     class InfinityVertexJSONSchema(BGVertex.BGVertexJSONSchema):
         """ JSON Schema for this class is redefined to tune the `make_object` method, that shall return `InfinityVertex` instance, rather than a `BGVertex` one """
+
         def make_object(self, data):
             try:
                 json_name = data["name"]
@@ -227,7 +229,6 @@ class InfinityVertex(BGVertex):
 
 
 class TaggedVertex(BGVertex):
-
     class TaggedVertexJSONSchema(BGVertex.BGVertexJSONSchema):
 
         def make_object(self, data):
@@ -302,6 +303,7 @@ class TaggedVertex(BGVertex):
         schema = cls.json_schema if json_schema_class is None else json_schema_class()
         return super().from_json(data=data, json_schema_class=schema.__class__)
 
+
 class TaggedBlockVertex(BlockVertex, TaggedVertex):
     class TaggedBlockVertexJSONSchema(TaggedVertex.TaggedVertexJSONSchema, BlockVertex.BlockVertexJSONSchema):
         def make_object(self, data):
@@ -310,6 +312,7 @@ class TaggedBlockVertex(BlockVertex, TaggedVertex):
 
     json_schema = TaggedBlockVertexJSONSchema()
 
+
 class TaggedInfinityVertex(InfinityVertex, TaggedVertex):
     class TaggedInfinityVertexJSONSchema(TaggedVertex.TaggedVertexJSONSchema, InfinityVertex.InfinityVertexJSONSchema):
         def make_object(self, data):
@@ -317,4 +320,3 @@ class TaggedInfinityVertex(InfinityVertex, TaggedVertex):
             return super().make_object(data)
 
     json_schema = TaggedInfinityVertexJSONSchema()
-
