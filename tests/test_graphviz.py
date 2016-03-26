@@ -5,7 +5,7 @@ import collections
 
 from bg.edge import BGEdge
 from bg.multicolor import Multicolor
-from bg.graphviz import NodeShapeProcessor, NodeTextProcessor, NodeProcessor, EdgeShapeProcessor
+from bg.graphviz import NodeShapeProcessor, NodeTextProcessor, NodeProcessor, EdgeShapeProcessor, EdgeProcessor
 from bg.vertices import TaggedBlockVertex, TaggedInfinityVertex, BlockVertex, InfinityVertex
 
 
@@ -109,6 +109,21 @@ class EdgeShapeProcessorTestCase(unittest.TestCase):
     def test_default_repeat_edge_direction(self):
         self.assertEqual("none", self.defaultEdgeShapeProcessor.get_dir_type(self.r_edge))
 
+
+class EdgeProcessorTestCase(unittest.TestCase):
+    def setUp(self):
+        self.defaultEdgeProcessor = EdgeProcessor()
+        self.regular_vertex = TaggedBlockVertex(1)
+        self.regular_vertex2 = TaggedBlockVertex(2)
+        self.edge = BGEdge(vertex1=self.regular_vertex, vertex2=self.regular_vertex2, multicolor=Multicolor())
+        self.irregular_vertex = InfinityVertex("v1")
+        self.ir_edge = BGEdge(vertex1=self.regular_vertex, vertex2=self.irregular_vertex, multicolor=Multicolor())
+        self.repeat_vertex = TaggedInfinityVertex("v1")
+        self.repeat_vertex.add_tag("repeat", "rrr1")
+        self.r_edge = BGEdge(vertex1=self.regular_vertex, vertex2=self.repeat_vertex, multicolor=Multicolor())
+
+    def test_edge_shape_processor_field(self):
+        self.assertIsInstance(self.defaultEdgeProcessor.edge_shape_processor, EdgeShapeProcessor)
 
 if __name__ == '__main__':
     unittest.main()

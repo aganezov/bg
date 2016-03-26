@@ -78,3 +78,8 @@ class EdgeShapeProcessor(object):
     def get_dir_type(self, edge=None):
         return self.dir_type
 
+
+class EdgeProcessor(object):
+    def __init__(self, edge_shape_processor=None):
+        self.edge_shape_processor = edge_shape_processor if edge_shape_processor is not None else EdgeShapeProcessor()
+
