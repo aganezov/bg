@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 from marshmallow import Schema, fields
 
-from bg.utils import dicts_are_equal, recursive_dict_update, get_from_dict_with_path
+from bg.utils import dicts_are_equal, recursive_dict_update
 
 __author__ = "Sergey Aganezov"
 __email__ = "aganezov(at)gwu.edu"

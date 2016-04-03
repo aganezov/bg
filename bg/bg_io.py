@@ -1,7 +1,9 @@
 # -*- coding: utf-8 -*-
 from copy import deepcopy
 
-from bg import BreakpointGraph, Multicolor, BGEdge
+from bg.breakpoint_graph import BreakpointGraph
+from bg.multicolor import Multicolor
+from bg.edge import BGEdge
 from bg.genome import BGGenome
 from bg.utils import add_to_dict_with_path
 from bg.vertices import BlockVertex, TaggedVertex, TaggedBlockVertex, TaggedInfinityVertex, BGVertex
