@@ -8,12 +8,12 @@ from bg.multicolor import Multicolor
 from bg.utils import get_from_dict_with_path, merge_fragment_edge_data, recursive_dict_update
 from bg.vertices import BGVertex_JSON_SCHEMA_JSON_KEY, BlockVertex, BGVertex, InfinityVertex, TaggedInfinityVertex, \
     TaggedBlockVertex, TaggedVertex
+from networkx import MultiGraph
+import networkx as nx
 
 __author__ = "Sergey Aganezov"
 __email__ = "aganezov(at)gwu.edu"
 __status__ = "production"
-from networkx import MultiGraph
-import networkx as nx
 
 
 class BreakpointGraph(object):
