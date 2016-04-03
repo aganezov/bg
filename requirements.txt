@@ -4,4 +4,5 @@ networkx
 nose
 marshmallow==1.2.4
 teamcity-messages
-ete3
+ete3==3.0.0b35
+six
