@@ -3,7 +3,7 @@ import os
 from collections import Counter
 
 from bg import BreakpointGraph, Multicolor, KBreak
-from bg.bg_io import GRIMMReader, GRIMMWriter
+from bg.grimm import GRIMMReader, GRIMMWriter
 from bg.genome import BGGenome
 from bg.vertices import TaggedBlockVertex, TaggedInfinityVertex
 

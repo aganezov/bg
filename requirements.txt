@@ -1,6 +1,6 @@
 coverage
 decorator
-networkx
+networkx>=1.10
 nose
 marshmallow==1.2.4
 teamcity-messages

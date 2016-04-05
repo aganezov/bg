@@ -4,7 +4,7 @@ import unittest
 from collections import Counter
 from unittest.mock import Mock
 
-from bg.bg_io import GRIMMReader
+from bg.grimm import GRIMMReader
 from bg.breakpoint_graph import BreakpointGraph
 from bg.edge import BGEdge
 from bg.genome import BGGenome
