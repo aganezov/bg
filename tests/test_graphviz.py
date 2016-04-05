@@ -5,60 +5,60 @@ import collections
 
 from bg.edge import BGEdge
 from bg.multicolor import Multicolor
-from bg.graphviz import NodeShapeProcessor, NodeTextProcessor, NodeProcessor, EdgeShapeProcessor, EdgeProcessor
+from bg.graphviz import VertexShapeProcessor, VertexTextProcessor, VertexProcessor, EdgeShapeProcessor, EdgeProcessor
 from bg.vertices import TaggedBlockVertex, TaggedInfinityVertex, BlockVertex, InfinityVertex
 
 
-class NodeShapeProcessorTestCase(unittest.TestCase):
+class VertexShapeProcessorTestCase(unittest.TestCase):
     def setUp(self):
-        self.defaultNodeShapeProcessor = NodeShapeProcessor()
+        self.defaultVertexShapeProcessor = VertexShapeProcessor()
 
     def test_default_shape(self):
-        self.assertEqual("oval", self.defaultNodeShapeProcessor.get_shape())
+        self.assertEqual("oval", self.defaultVertexShapeProcessor.get_shape())
 
     def test_default_shape_for_regular_non_bg_vertex(self):
         for vertex in [1, "1", (1,), Mock(spec=collections.Hashable), Mock(spec=TaggedBlockVertex)]:
-            self.assertEqual("oval", self.defaultNodeShapeProcessor.get_shape(vertex))
+            self.assertEqual("oval", self.defaultVertexShapeProcessor.get_shape(vertex))
 
     def test_default_shape_for_regular_bg_vertex(self):
-        self.assertEqual("oval", self.defaultNodeShapeProcessor.get_shape(vertex=BlockVertex(name="test")))
+        self.assertEqual("oval", self.defaultVertexShapeProcessor.get_shape(vertex=BlockVertex(name="test")))
 
     def test_default_shape_for_irregular_bg_vertex(self):
-        self.assertEqual("point", self.defaultNodeShapeProcessor.get_shape(vertex=InfinityVertex(name="test")))
+        self.assertEqual("point", self.defaultVertexShapeProcessor.get_shape(vertex=InfinityVertex(name="test")))
 
     def test_default_pen_width(self):
-        self.assertEqual(1, self.defaultNodeShapeProcessor.get_pen_width())
+        self.assertEqual(1, self.defaultVertexShapeProcessor.get_pen_width())
 
     def test_pen_width_label(self):
-        self.assertEqual("penwidth", self.defaultNodeShapeProcessor.pen_width_label)
+        self.assertEqual("penwidth", self.defaultVertexShapeProcessor.pen_width_label)
 
     def test_shape_label(self):
-        self.assertEqual("shape", self.defaultNodeShapeProcessor.shape_label)
+        self.assertEqual("shape", self.defaultVertexShapeProcessor.shape_label)
 
 
-class NodeTextProcessingTestCase(unittest.TestCase):
+class VertexTextProcessingTestCase(unittest.TestCase):
     def setUp(self):
-        self.defaultNodeTextProcessor = NodeTextProcessor()
+        self.defaultVertexTextProcessor = VertexTextProcessor()
 
     def test_default_text_font(self):
-        self.assertEqual("Arial", self.defaultNodeTextProcessor.get_text_font())
+        self.assertEqual("Arial", self.defaultVertexTextProcessor.get_text_font())
 
     def test_default_text_size(self):
-        self.assertEqual(12, self.defaultNodeTextProcessor.get_text_size())
+        self.assertEqual(12, self.defaultVertexTextProcessor.get_text_size())
 
     def test_default_text_color(self):
-        self.assertEqual("black", self.defaultNodeTextProcessor.get_text_color())
+        self.assertEqual("black", self.defaultVertexTextProcessor.get_text_color())
 
 
-class NodeProcessorTestCase(unittest.TestCase):
+class VertexProcessorTestCase(unittest.TestCase):
     def setUp(self):
-        self.defaultNodeProcessor = NodeProcessor()
+        self.defaultVertexProcessor = VertexProcessor()
 
-    def test_default_node_shape_processor_field(self):
-        self.assertIsInstance(self.defaultNodeProcessor.shape_processor, NodeShapeProcessor)
+    def test_default_vertex_shape_processor_field(self):
+        self.assertIsInstance(self.defaultVertexProcessor.shape_processor, VertexShapeProcessor)
 
-    def test_default_node_text_processor(self):
-        self.assertIsInstance(self.defaultNodeProcessor.text_processor, NodeTextProcessor)
+    def test_default_vertex_text_processor(self):
+        self.assertIsInstance(self.defaultVertexProcessor.text_processor, VertexTextProcessor)
 
 
 class EdgeShapeProcessorTestCase(unittest.TestCase):
@@ -124,6 +124,7 @@ class EdgeProcessorTestCase(unittest.TestCase):
 
     def test_edge_shape_processor_field(self):
         self.assertIsInstance(self.defaultEdgeProcessor.edge_shape_processor, EdgeShapeProcessor)
+
 
 if __name__ == '__main__':
     unittest.main()

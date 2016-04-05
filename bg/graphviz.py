@@ -2,7 +2,7 @@
 from bg import BGVertex, BGEdge
 
 
-class NodeShapeProcessor(object):
+class VertexShapeProcessor(object):
     def __init__(self, pen_width=1, regular_vertex_shape="oval", irregular_vertex_shape="point", non_bg_vertex_shape="oval"):
         self.pen_width = pen_width
         self.regular_vertex_shape = regular_vertex_shape
@@ -22,7 +22,7 @@ class NodeShapeProcessor(object):
         return self.pen_width
 
 
-class NodeTextProcessor(object):
+class VertexTextProcessor(object):
     def __init__(self):
         self.text_color = "black"
         self.text_size = 12
@@ -38,10 +38,10 @@ class NodeTextProcessor(object):
         return self.text_color
 
 
-class NodeProcessor(object):
+class VertexProcessor(object):
     def __init__(self, shape_processor=None, text_processor=None):
-        self.shape_processor = shape_processor if shape_processor is not None else NodeShapeProcessor()
-        self.text_processor = text_processor if text_processor is not None else NodeTextProcessor()
+        self.shape_processor = shape_processor if shape_processor is not None else VertexShapeProcessor()
+        self.text_processor = text_processor if text_processor is not None else VertexTextProcessor()
 
 
 class EdgeShapeProcessor(object):
