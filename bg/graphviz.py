@@ -1,5 +1,8 @@
 # -*- coding: utf-8 -*-
-from bg import BGVertex, BGEdge
+from enum import Enum
+
+from bg.edge import BGEdge
+from bg.vertices import BGVertex, vertex_as_a_sting, vertex_as_html
 
 
 class VertexShapeProcessor(object):
@@ -23,10 +26,19 @@ class VertexShapeProcessor(object):
 
 
 class VertexTextProcessor(object):
+    class VertexTextType(Enum):
+        plain = "plain"
+        html = "html"
+
     def __init__(self):
         self.text_color = "black"
         self.text_size = 12
         self.text_font_name = "Arial"
+
+        self.color_attrib_template = "color=\"{color}\""
+        self.size_attrib_template = "size=\"{size}\""
+        self.font_attrib_template = "font=\"{font}\""
+        self.label_attrib_template = "label={label}"
 
     def get_text_font(self):
         return self.text_font_name
@@ -36,6 +48,13 @@ class VertexTextProcessor(object):
 
     def get_text_color(self):
         return self.text_color
+
+    def get_text(self, vertex, text_format=VertexTextType.plain):
+        if text_format == self.VertexTextType.plain.value or text_format == self.VertexTextType.plain:
+            return "\"" + vertex_as_a_sting(vertex=vertex) + "\""
+        elif text_format == self.VertexTextType.html.value or text_format == self.VertexTextType.html:
+            return vertex_as_html(vertex=vertex)
+        return ""
 
 
 class VertexProcessor(object):
@@ -82,4 +101,3 @@ class EdgeShapeProcessor(object):
 class EdgeProcessor(object):
     def __init__(self, edge_shape_processor=None):
         self.edge_shape_processor = edge_shape_processor if edge_shape_processor is not None else EdgeShapeProcessor()
-

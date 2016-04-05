@@ -320,3 +320,17 @@ class TaggedInfinityVertex(InfinityVertex, TaggedVertex):
             return super().make_object(data)
 
     json_schema = TaggedInfinityVertexJSONSchema()
+
+
+def vertex_as_a_sting(vertex):
+    if isinstance(vertex, BGVertex):
+        return vertex.name
+    else:
+        return str(vertex)
+
+
+def vertex_as_html(vertex):
+    if isinstance(vertex, BGVertex):
+        return "<" + vertex.name[:-1] + "<SUP>" + vertex.name[-1] + "</SUP>>"
+    else:
+        return "<" + str(vertex) + ">"

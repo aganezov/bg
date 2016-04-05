@@ -49,6 +49,31 @@ class VertexTextProcessingTestCase(unittest.TestCase):
     def test_default_text_color(self):
         self.assertEqual("black", self.defaultVertexTextProcessor.get_text_color())
 
+    def test_label_attrib_template(self):
+        self.assertEqual("label={label}", self.defaultVertexTextProcessor.label_attrib_template)
+
+    def text_color_attrib_template(self):
+        self.assertEqual("color=\"{color}\"", self.defaultVertexTextProcessor.color_attrib_template)
+
+    def test_font_attrib_template(self):
+        self.assertEqual("font=\"{font}\"", self.defaultVertexTextProcessor.font_attrib_template)
+
+    def text_size_attrib_template(self):
+        self.assertEqual("size=\"{size}\"", self.defaultVertexTextProcessor.size_attrib_template)
+
+    def test_vertex_name_plain_text(self):
+        regular_vertex = TaggedBlockVertex(name="namet")
+        self.assertEqual("\"namet\"", self.defaultVertexTextProcessor.get_text(vertex=regular_vertex))
+        self.assertEqual("\"namet\"", self.defaultVertexTextProcessor.get_text(vertex=regular_vertex, text_format="plain"))
+        self.assertEqual("\"namet\"",
+                         self.defaultVertexTextProcessor.get_text(vertex=regular_vertex, text_format=VertexTextProcessor.VertexTextType.plain))
+
+    def test_vertex_name_html_text(self):
+        regular_vertex = TaggedBlockVertex(name="namet")
+        self.assertEqual("<name<SUP>t</SUP>>", self.defaultVertexTextProcessor.get_text(vertex=regular_vertex, text_format="html"))
+        self.assertEqual("<name<SUP>t</SUP>>", self.defaultVertexTextProcessor.get_text(vertex=regular_vertex, text_format=VertexTextProcessor.VertexTextType.html))
+        self.assertEqual("<namet>", self.defaultVertexTextProcessor.get_text(vertex="namet", text_format=VertexTextProcessor.VertexTextType.html))
+
 
 class VertexProcessorTestCase(unittest.TestCase):
     def setUp(self):
