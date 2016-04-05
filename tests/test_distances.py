@@ -1,7 +1,7 @@
 import unittest
 
 from bg.distances import scj
-from tests.test_io import GRIMMWriterTestCase
+from tests.test_grimm import GRIMMWriterTestCase
 
 
 class SCJTestCase(unittest.TestCase):
