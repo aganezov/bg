@@ -5,6 +5,12 @@ from bg.edge import BGEdge
 from bg.vertices import BGVertex, vertex_as_a_sting, vertex_as_html
 
 
+def ids_generator(start=1, step=1):
+    while True:
+        yield start
+        start += step
+
+
 class VertexShapeProcessor(object):
     def __init__(self, pen_width=1, regular_vertex_shape="oval", irregular_vertex_shape="point", non_bg_vertex_shape="oval"):
         self.pen_width = pen_width
@@ -59,9 +65,16 @@ class VertexTextProcessor(object):
 
 class VertexProcessor(object):
     def __init__(self, shape_processor=None, text_processor=None):
+        self.vertices_id_generator = ids_generator()
+        self.vertices_ids_storage = {}
         self.shape_processor = shape_processor if shape_processor is not None else VertexShapeProcessor()
         self.text_processor = text_processor if text_processor is not None else VertexTextProcessor()
         self.template = "{v_id} [{attributes}];"
+
+    def get_vertex_id(self, vertex):
+        if vertex not in self.vertices_ids_storage:
+            self.vertices_ids_storage[vertex] = next(self.vertices_id_generator)
+        return self.vertices_ids_storage[vertex]
 
 
 class EdgeShapeProcessor(object):

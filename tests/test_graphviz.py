@@ -101,6 +101,43 @@ class VertexProcessorTestCase(unittest.TestCase):
     def test_overall_template(self):
         self.assertEqual("{v_id} [{attributes}];", self.defaultVertexProcessor.template)
 
+    def test_getting_non_bg_vertex_id(self):
+        vertex = "1"
+        self.assertEqual(1, self.defaultVertexProcessor.get_vertex_id(vertex=vertex))
+        self.assertEqual(1, self.defaultVertexProcessor.get_vertex_id(vertex=vertex))  # consecutive access shall return previously assigned id
+        self.assertEqual(1, self.defaultVertexProcessor.get_vertex_id(vertex=vertex))  # consecutive access shall return previously assigned id
+
+        vertex = "3"
+        self.assertEqual(2, self.defaultVertexProcessor.get_vertex_id(vertex=vertex))
+        self.assertEqual(2, self.defaultVertexProcessor.get_vertex_id(vertex=vertex))
+        self.assertEqual(2, self.defaultVertexProcessor.get_vertex_id(vertex=vertex))
+
+        vertex = "1"
+        self.assertEqual(1, self.defaultVertexProcessor.get_vertex_id(vertex=vertex))
+
+    def test_getting_bg_vertex_id(self):
+        vertex1 = TaggedBlockVertex(name="test")
+        self.assertEqual(1, self.defaultVertexProcessor.get_vertex_id(vertex=vertex1))
+        self.assertEqual(1, self.defaultVertexProcessor.get_vertex_id(vertex=vertex1))
+        self.assertEqual(1, self.defaultVertexProcessor.get_vertex_id(vertex=vertex1))
+
+        vertex2 = TaggedBlockVertex(name="test")
+        self.assertFalse(vertex1 is vertex2)
+        self.assertFalse(vertex2 is vertex1)
+        self.assertEqual(1, self.defaultVertexProcessor.get_vertex_id(vertex=vertex2))
+        self.assertEqual(1, self.defaultVertexProcessor.get_vertex_id(vertex=vertex1))
+
+        vertex3 = TaggedBlockVertex(name="test")
+        vertex3.add_tag("tag", 1)
+        self.assertNotEqual(self.defaultVertexProcessor.get_vertex_id(vertex=vertex1),
+                            self.defaultVertexProcessor.get_vertex_id(vertex=vertex3))
+        self.assertEqual(2, self.defaultVertexProcessor.get_vertex_id(vertex=vertex3))
+
+    def test_getting_bg_vertex_id_large_number(self):
+        indexed_vertices = [(number, TaggedBlockVertex(number)) for number in range(1, 100000)]
+        for index, vertex in indexed_vertices:
+            self.assertEqual(index, self.defaultVertexProcessor.get_vertex_id(vertex=vertex))
+
 
 class EdgeShapeProcessorTestCase(unittest.TestCase):
     def setUp(self):
