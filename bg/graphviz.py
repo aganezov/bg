@@ -12,8 +12,8 @@ class VertexShapeProcessor(object):
         self.irregular_vertex_shape = irregular_vertex_shape
         self.non_bg_vertex_shape = non_bg_vertex_shape
 
-        self.pen_width_label = "penwidth"
-        self.shape_label = "shape"
+        self.pen_width_attrib_template = "penwidth=\"{pen_width}\""
+        self.shape_attrib_template = "shape=\"{shape}\""
 
     def get_shape(self, vertex=None):
         if isinstance(vertex, BGVertex):
@@ -35,7 +35,7 @@ class VertexTextProcessor(object):
         self.text_size = 12
         self.text_font_name = "Arial"
 
-        self.color_attrib_template = "color=\"{color}\""
+        self.color_attrib_template = "fontcolor=\"{color}\""
         self.size_attrib_template = "size=\"{size}\""
         self.font_attrib_template = "font=\"{font}\""
         self.label_attrib_template = "label={label}"
@@ -61,6 +61,7 @@ class VertexProcessor(object):
     def __init__(self, shape_processor=None, text_processor=None):
         self.shape_processor = shape_processor if shape_processor is not None else VertexShapeProcessor()
         self.text_processor = text_processor if text_processor is not None else VertexTextProcessor()
+        self.template = "{v_id} [{attributes}];"
 
 
 class EdgeShapeProcessor(object):

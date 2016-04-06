@@ -26,14 +26,14 @@ class VertexShapeProcessorTestCase(unittest.TestCase):
     def test_default_shape_for_irregular_bg_vertex(self):
         self.assertEqual("point", self.defaultVertexShapeProcessor.get_shape(vertex=InfinityVertex(name="test")))
 
+    def test_shape_attrib_template(self):
+        self.assertEqual("shape=\"{shape}\"", self.defaultVertexShapeProcessor.shape_attrib_template)
+
     def test_default_pen_width(self):
         self.assertEqual(1, self.defaultVertexShapeProcessor.get_pen_width())
 
-    def test_pen_width_label(self):
-        self.assertEqual("penwidth", self.defaultVertexShapeProcessor.pen_width_label)
-
-    def test_shape_label(self):
-        self.assertEqual("shape", self.defaultVertexShapeProcessor.shape_label)
+    def test_pen_width_attrib_template(self):
+        self.assertEqual("penwidth=\"{pen_width}\"", self.defaultVertexShapeProcessor.pen_width_attrib_template)
 
 
 class VertexTextProcessingTestCase(unittest.TestCase):
@@ -53,7 +53,7 @@ class VertexTextProcessingTestCase(unittest.TestCase):
         self.assertEqual("label={label}", self.defaultVertexTextProcessor.label_attrib_template)
 
     def text_color_attrib_template(self):
-        self.assertEqual("color=\"{color}\"", self.defaultVertexTextProcessor.color_attrib_template)
+        self.assertEqual("fontcolor=\"{color}\"", self.defaultVertexTextProcessor.color_attrib_template)
 
     def test_font_attrib_template(self):
         self.assertEqual("font=\"{font}\"", self.defaultVertexTextProcessor.font_attrib_template)
@@ -74,6 +74,19 @@ class VertexTextProcessingTestCase(unittest.TestCase):
         self.assertEqual("<name<SUP>t</SUP>>", self.defaultVertexTextProcessor.get_text(vertex=regular_vertex, text_format=VertexTextProcessor.VertexTextType.html))
         self.assertEqual("<namet>", self.defaultVertexTextProcessor.get_text(vertex="namet", text_format=VertexTextProcessor.VertexTextType.html))
 
+    def test_tagged_vertex_name_plain(self):
+        tagged_vertex = TaggedBlockVertex(name="namet")
+        tagged_vertex.add_tag("tag1", 10)
+        tagged_vertex.add_tag("tag2", 20)
+        self.assertEqual("\"namet (tag1:10) (tag2:20)\"", self.defaultVertexTextProcessor.get_text(vertex=tagged_vertex))
+        self.assertEqual("\"namet (tag1:10) (tag2:20)\"", self.defaultVertexTextProcessor.get_text(vertex=tagged_vertex, text_format="plain"))
+
+    def test_tagged_vertex_name_html(self):
+        tagged_vertex = TaggedBlockVertex(name="namet")
+        tagged_vertex.add_tag("tag1", 10)
+        tagged_vertex.add_tag("tag2", 20)
+        self.assertEqual("<name<SUP>t</SUP> (tag1:10) (tag2:20)>", self.defaultVertexTextProcessor.get_text(vertex=tagged_vertex, text_format="html"))
+
 
 class VertexProcessorTestCase(unittest.TestCase):
     def setUp(self):
@@ -84,6 +97,9 @@ class VertexProcessorTestCase(unittest.TestCase):
 
     def test_default_vertex_text_processor(self):
         self.assertIsInstance(self.defaultVertexProcessor.text_processor, VertexTextProcessor)
+
+    def test_overall_template(self):
+        self.assertEqual("{v_id} [{attributes}];", self.defaultVertexProcessor.template)
 
 
 class EdgeShapeProcessorTestCase(unittest.TestCase):

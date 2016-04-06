@@ -261,8 +261,10 @@ class TaggedVertex(BGVertex):
     @property
     def name(self):
         """ access to classic name attribute is hidden by this property """
-        return self.NAME_SEPARATOR.join([super().name] +
-                                        [self.TAG_SEPARATOR.join([str(tag), str(value)]) for tag, value in self.tags])
+        return self.NAME_SEPARATOR.join([super().name] + self.get_tags_as_list_of_strings())
+
+    def get_tags_as_list_of_strings(self):
+        return [self.TAG_SEPARATOR.join([str(tag), str(value)]) for tag, value in self.tags]
 
     @name.setter
     def name(self, value):
@@ -323,14 +325,25 @@ class TaggedInfinityVertex(InfinityVertex, TaggedVertex):
 
 
 def vertex_as_a_sting(vertex):
+    result = ""
     if isinstance(vertex, BGVertex):
-        return vertex.name
+        orientation = "t" if vertex.is_tail_vertex else "h"
+        result += vertex.block_name + orientation
+        if vertex.is_tagged_vertex and len(vertex.tags) > 0:
+            result += " " + " ".join(map(lambda entry: "(" + entry + ")", vertex.get_tags_as_list_of_strings()))
     else:
-        return str(vertex)
+        result = str(vertex)
+    return "{string}".format(string=result)
 
 
 def vertex_as_html(vertex):
+    result = ""
     if isinstance(vertex, BGVertex):
-        return "<" + vertex.name[:-1] + "<SUP>" + vertex.name[-1] + "</SUP>>"
+        if vertex.is_block_vertex:
+            orientation = "t" if vertex.is_tail_vertex else "h"
+            result += vertex.block_name + "<SUP>" + orientation + "</SUP>"
+        if vertex.is_tagged_vertex and len(vertex.tags) > 0:
+            result += " " + " ".join(map(lambda entry: "(" + entry + ")", vertex.get_tags_as_list_of_strings()))
     else:
-        return "<" + str(vertex) + ">"
+        result = str(vertex)
+    return "<" + result + ">"
