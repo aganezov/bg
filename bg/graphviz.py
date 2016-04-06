@@ -2,7 +2,7 @@
 from enum import Enum
 
 from bg.edge import BGEdge
-from bg.vertices import BGVertex, vertex_as_a_sting, vertex_as_html
+from bg.vertices import BGVertex, vertex_as_a_sting, vertex_as_html, InfinityVertex
 
 
 def ids_generator(start=1, step=1):
@@ -30,6 +30,10 @@ class VertexShapeProcessor(object):
     def get_pen_width(self):
         return self.pen_width
 
+    def get_attributes_string_list(self, vertex):
+        return [self.shape_attrib_template.format(shape=self.get_shape(vertex=vertex)),
+                self.pen_width_attrib_template.format(pen_width=self.get_pen_width())]
+
 
 class VertexTextProcessor(object):
     class VertexTextType(Enum):
@@ -42,8 +46,8 @@ class VertexTextProcessor(object):
         self.text_font_name = "Arial"
 
         self.color_attrib_template = "fontcolor=\"{color}\""
-        self.size_attrib_template = "size=\"{size}\""
-        self.font_attrib_template = "font=\"{font}\""
+        self.size_attrib_template = "fontsize=\"{size}\""
+        self.font_attrib_template = "fontname=\"{font}\""
         self.label_attrib_template = "label={label}"
 
     def get_text_font(self):
@@ -55,12 +59,18 @@ class VertexTextProcessor(object):
     def get_text_color(self):
         return self.text_color
 
-    def get_text(self, vertex, text_format=VertexTextType.plain):
-        if text_format == self.VertexTextType.plain.value or text_format == self.VertexTextType.plain:
+    def get_text(self, vertex, label_format=VertexTextType.plain):
+        if label_format == self.VertexTextType.plain.value or label_format == self.VertexTextType.plain:
             return "\"" + vertex_as_a_sting(vertex=vertex) + "\""
-        elif text_format == self.VertexTextType.html.value or text_format == self.VertexTextType.html:
+        elif label_format == self.VertexTextType.html.value or label_format == self.VertexTextType.html:
             return vertex_as_html(vertex=vertex)
         return ""
+
+    def get_attributes_string_list(self, vertex, label_format=VertexTextType.plain):
+        return [self.label_attrib_template.format(label=self.get_text(vertex=vertex, label_format=label_format)),
+                self.font_attrib_template.format(font=self.text_font_name),
+                self.size_attrib_template.format(size=self.text_size),
+                self.color_attrib_template.format(color=self.text_color)]
 
 
 class VertexProcessor(object):
@@ -75,6 +85,14 @@ class VertexProcessor(object):
         if vertex not in self.vertices_ids_storage:
             self.vertices_ids_storage[vertex] = next(self.vertices_id_generator)
         return self.vertices_ids_storage[vertex]
+
+    def export_vertex_as_dot(self, vertex, label_format=VertexTextProcessor.VertexTextType.plain):
+        vertex_id = self.get_vertex_id(vertex=vertex)
+        attributes = []
+        if not isinstance(vertex, InfinityVertex):
+            attributes.extend(self.text_processor.get_attributes_string_list(vertex=vertex, label_format=label_format))
+        attributes.extend(self.shape_processor.get_attributes_string_list(vertex=vertex))
+        return self.template.format(v_id=vertex_id, attributes=", ".join(attributes))
 
 
 class EdgeShapeProcessor(object):

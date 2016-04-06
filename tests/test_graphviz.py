@@ -35,6 +35,14 @@ class VertexShapeProcessorTestCase(unittest.TestCase):
     def test_pen_width_attrib_template(self):
         self.assertEqual("penwidth=\"{pen_width}\"", self.defaultVertexShapeProcessor.pen_width_attrib_template)
 
+    def test_get_all_attributes_as_list_of_strings_regular_vertex(self):
+        vertex = TaggedBlockVertex("10t")
+        self.assertSetEqual({"shape=\"oval\"", "penwidth=\"1\""}, set(self.defaultVertexShapeProcessor.get_attributes_string_list(vertex=vertex)))
+
+    def test_get_all_attributes_as_list_of_strings_irregular_vertex(self):
+        vertex = TaggedInfinityVertex("10t")
+        self.assertSetEqual({"shape=\"point\"", "penwidth=\"1\""}, set(self.defaultVertexShapeProcessor.get_attributes_string_list(vertex=vertex)))
+
 
 class VertexTextProcessingTestCase(unittest.TestCase):
     def setUp(self):
@@ -56,36 +64,44 @@ class VertexTextProcessingTestCase(unittest.TestCase):
         self.assertEqual("fontcolor=\"{color}\"", self.defaultVertexTextProcessor.color_attrib_template)
 
     def test_font_attrib_template(self):
-        self.assertEqual("font=\"{font}\"", self.defaultVertexTextProcessor.font_attrib_template)
+        self.assertEqual("fontname=\"{font}\"", self.defaultVertexTextProcessor.font_attrib_template)
 
     def text_size_attrib_template(self):
-        self.assertEqual("size=\"{size}\"", self.defaultVertexTextProcessor.size_attrib_template)
+        self.assertEqual("fontsize=\"{size}\"", self.defaultVertexTextProcessor.size_attrib_template)
 
     def test_vertex_name_plain_text(self):
         regular_vertex = TaggedBlockVertex(name="namet")
         self.assertEqual("\"namet\"", self.defaultVertexTextProcessor.get_text(vertex=regular_vertex))
-        self.assertEqual("\"namet\"", self.defaultVertexTextProcessor.get_text(vertex=regular_vertex, text_format="plain"))
+        self.assertEqual("\"namet\"", self.defaultVertexTextProcessor.get_text(vertex=regular_vertex, label_format="plain"))
         self.assertEqual("\"namet\"",
-                         self.defaultVertexTextProcessor.get_text(vertex=regular_vertex, text_format=VertexTextProcessor.VertexTextType.plain))
+                         self.defaultVertexTextProcessor.get_text(vertex=regular_vertex, label_format=VertexTextProcessor.VertexTextType.plain))
 
     def test_vertex_name_html_text(self):
         regular_vertex = TaggedBlockVertex(name="namet")
-        self.assertEqual("<name<SUP>t</SUP>>", self.defaultVertexTextProcessor.get_text(vertex=regular_vertex, text_format="html"))
-        self.assertEqual("<name<SUP>t</SUP>>", self.defaultVertexTextProcessor.get_text(vertex=regular_vertex, text_format=VertexTextProcessor.VertexTextType.html))
-        self.assertEqual("<namet>", self.defaultVertexTextProcessor.get_text(vertex="namet", text_format=VertexTextProcessor.VertexTextType.html))
+        self.assertEqual("<name<SUP>t</SUP>>", self.defaultVertexTextProcessor.get_text(vertex=regular_vertex, label_format="html"))
+        self.assertEqual("<name<SUP>t</SUP>>",
+                         self.defaultVertexTextProcessor.get_text(vertex=regular_vertex, label_format=VertexTextProcessor.VertexTextType.html))
+        self.assertEqual("<namet>", self.defaultVertexTextProcessor.get_text(vertex="namet", label_format=VertexTextProcessor.VertexTextType.html))
 
     def test_tagged_vertex_name_plain(self):
         tagged_vertex = TaggedBlockVertex(name="namet")
         tagged_vertex.add_tag("tag1", 10)
         tagged_vertex.add_tag("tag2", 20)
         self.assertEqual("\"namet (tag1:10) (tag2:20)\"", self.defaultVertexTextProcessor.get_text(vertex=tagged_vertex))
-        self.assertEqual("\"namet (tag1:10) (tag2:20)\"", self.defaultVertexTextProcessor.get_text(vertex=tagged_vertex, text_format="plain"))
+        self.assertEqual("\"namet (tag1:10) (tag2:20)\"", self.defaultVertexTextProcessor.get_text(vertex=tagged_vertex, label_format="plain"))
 
     def test_tagged_vertex_name_html(self):
         tagged_vertex = TaggedBlockVertex(name="namet")
         tagged_vertex.add_tag("tag1", 10)
         tagged_vertex.add_tag("tag2", 20)
-        self.assertEqual("<name<SUP>t</SUP> (tag1:10) (tag2:20)>", self.defaultVertexTextProcessor.get_text(vertex=tagged_vertex, text_format="html"))
+        self.assertEqual("<name<SUP>t</SUP> (tag1:10) (tag2:20)>", self.defaultVertexTextProcessor.get_text(vertex=tagged_vertex, label_format="html"))
+
+    def test_get_all_attributes_as_list_of_strings_regular_vertex(self):
+        vertex = TaggedBlockVertex("10t")
+        self.assertSetEqual({"label=\"10t\"", "fontname=\"Arial\"", "fontsize=\"12\"", "fontcolor=\"black\""},
+                            set(self.defaultVertexTextProcessor.get_attributes_string_list(vertex=vertex)))
+        self.assertSetEqual({"label=\"10t\"", "fontname=\"Arial\"", "fontsize=\"12\"", "fontcolor=\"black\""},
+                            set(self.defaultVertexTextProcessor.get_attributes_string_list(vertex=vertex, label_format="plain")))
 
 
 class VertexProcessorTestCase(unittest.TestCase):
@@ -137,6 +153,28 @@ class VertexProcessorTestCase(unittest.TestCase):
         indexed_vertices = [(number, TaggedBlockVertex(number)) for number in range(1, 100000)]
         for index, vertex in indexed_vertices:
             self.assertEqual(index, self.defaultVertexProcessor.get_vertex_id(vertex=vertex))
+
+    def test_full_regular_vertex_graphviz_export_all_default(self):
+        vertex = TaggedBlockVertex("10t")
+        self.assertEqual("1 [label=\"10t\", fontname=\"Arial\", fontsize=\"12\", fontcolor=\"black\", shape=\"oval\", penwidth=\"1\"];",
+                         self.defaultVertexProcessor.export_vertex_as_dot(vertex=vertex))
+        self.assertEqual("1 [label=<10<SUP>t</SUP>>, fontname=\"Arial\", fontsize=\"12\", fontcolor=\"black\", shape=\"oval\", penwidth=\"1\"];",
+                         self.defaultVertexProcessor.export_vertex_as_dot(vertex=vertex, label_format="html"))
+
+    def test_full_regular_vertex_with_tags_export_all_default(self):
+        vertex = TaggedBlockVertex("10t")
+        vertex.add_tag("tag1", 1)
+        vertex.add_tag("tag2", 2)
+        self.assertEqual("1 [label=\"10t (tag1:1) (tag2:2)\", fontname=\"Arial\", fontsize=\"12\", fontcolor=\"black\", shape=\"oval\", penwidth=\"1\"];",
+                                                                                         self.defaultVertexProcessor.export_vertex_as_dot(vertex=vertex))
+        self.assertEqual(
+            "1 [label=<10<SUP>t</SUP> (tag1:1) (tag2:2)>, fontname=\"Arial\", fontsize=\"12\", fontcolor=\"black\", shape=\"oval\", penwidth=\"1\"];",
+            self.defaultVertexProcessor.export_vertex_as_dot(vertex=vertex, label_format="html"))
+
+    def test_full_irregular_vertex_graphviz_entry_all_default(self):
+        vertex = TaggedInfinityVertex("10t")
+        self.assertEqual("1 [shape=\"point\", penwidth=\"1\"];", self.defaultVertexProcessor.export_vertex_as_dot(vertex=vertex))
+        self.assertEqual("1 [shape=\"point\", penwidth=\"1\"];", self.defaultVertexProcessor.export_vertex_as_dot(vertex=vertex, label_format="html"))
 
 
 class EdgeShapeProcessorTestCase(unittest.TestCase):
