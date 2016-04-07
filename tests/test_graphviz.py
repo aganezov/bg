@@ -44,7 +44,7 @@ class VertexShapeProcessorTestCase(unittest.TestCase):
         self.assertSetEqual({"shape=\"point\"", "penwidth=\"1\""}, set(self.defaultVertexShapeProcessor.get_attributes_string_list(vertex=vertex)))
 
 
-class VertexTextProcessingTestCase(unittest.TestCase):
+class VertexTextProcessorTestCase(unittest.TestCase):
     def setUp(self):
         self.defaultVertexTextProcessor = VertexTextProcessor()
 
