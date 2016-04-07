@@ -201,8 +201,14 @@ class EdgeShapeProcessorTestCase(unittest.TestCase):
     def test_default_repeat_edge_style(self):
         self.assertEqual("dashed", self.defaultEdgeShapeProcessor.get_style(self.r_edge))
 
+    def test_style_attribute_template(self):
+        self.assertEqual("style=\"{style}\"", self.defaultEdgeShapeProcessor.style_attribute_template)
+
     def test_default_pen_width(self):
         self.assertEqual(1, self.defaultEdgeShapeProcessor.get_pen_width())
+
+    def test_pen_width_attribute_template(self):
+        self.assertEqual("penwidth=\"{pen_width}\"", self.defaultEdgeShapeProcessor.pen_width_attribute_template)
 
     def test_default_regular_edge_pen_width(self):
         self.assertEqual(1, self.defaultEdgeShapeProcessor.get_pen_width(self.edge))
@@ -212,18 +218,6 @@ class EdgeShapeProcessorTestCase(unittest.TestCase):
 
     def test_default_repeat_edge_pen_width(self):
         self.assertEqual(.5, self.defaultEdgeShapeProcessor.get_pen_width(self.r_edge))
-
-    def test_default_direction(self):
-        self.assertEqual("none", self.defaultEdgeShapeProcessor.get_dir_type())
-
-    def test_default_regular_edge_direction(self):
-        self.assertEqual("none", self.defaultEdgeShapeProcessor.get_dir_type(self.edge))
-
-    def test_default_irregular_edge_direction(self):
-        self.assertEqual("none", self.defaultEdgeShapeProcessor.get_dir_type(self.ir_edge))
-
-    def test_default_repeat_edge_direction(self):
-        self.assertEqual("none", self.defaultEdgeShapeProcessor.get_dir_type(self.r_edge))
 
 
 class EdgeProcessorTestCase(unittest.TestCase):

@@ -103,8 +103,9 @@ class EdgeShapeProcessor(object):
         self.regular_edge_pen_width = 1
         self.irregular_edge_pen_with = .1
         self.repeat_edge_pen_width = .5
-        self.dir_type = "none"
-        self.arrow_type = "none"
+
+        self.style_attribute_template = "style=\"{style}\""
+        self.pen_width_attribute_template = "penwidth=\"{pen_width}\""
 
     def get_style(self, edge=None):
         if edge is None or not isinstance(edge, BGEdge):
@@ -125,9 +126,6 @@ class EdgeShapeProcessor(object):
             return self.irregular_edge_pen_with
         if edge.is_regular_edge:
             return self.regular_edge_pen_width
-
-    def get_dir_type(self, edge=None):
-        return self.dir_type
 
 
 class EdgeProcessor(object):
