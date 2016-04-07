@@ -149,6 +149,15 @@ class VertexProcessorTestCase(unittest.TestCase):
                             self.defaultVertexProcessor.get_vertex_id(vertex=vertex3))
         self.assertEqual(2, self.defaultVertexProcessor.get_vertex_id(vertex=vertex3))
 
+    def test_getting_irregular_bg_vertices_same_blcok_different_tags(self):
+        ir_vertex1 = TaggedInfinityVertex("10t")
+        ir_vertex2 = TaggedInfinityVertex("10t")
+        ir_vertex1.add_tag("repeat", "1h")
+        ir_vertex2.add_tag("repeat", "100h")
+        irv1_id = self.defaultVertexProcessor.get_vertex_id(vertex=ir_vertex1)
+        irv2_id = self.defaultVertexProcessor.get_vertex_id(vertex=ir_vertex2)
+        self.assertEqual(irv1_id, irv2_id)
+
     def test_getting_bg_vertex_id_large_number(self):
         indexed_vertices = [(number, TaggedBlockVertex(number)) for number in range(1, 100000)]
         for index, vertex in indexed_vertices:

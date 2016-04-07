@@ -82,6 +82,8 @@ class VertexProcessor(object):
         self.template = "{v_id} [{attributes}];"
 
     def get_vertex_id(self, vertex):
+        if isinstance(vertex, InfinityVertex):
+            vertex = BGVertex.get_vertex_name_root(vertex.name)
         if vertex not in self.vertices_ids_storage:
             self.vertices_ids_storage[vertex] = next(self.vertices_id_generator)
         return self.vertices_ids_storage[vertex]
