@@ -5,7 +5,7 @@ import collections
 
 from bg.edge import BGEdge
 from bg.multicolor import Multicolor
-from bg.graphviz import VertexShapeProcessor, VertexTextProcessor, VertexProcessor, EdgeShapeProcessor, EdgeProcessor
+from bg.graphviz import VertexShapeProcessor, VertexTextProcessor, VertexProcessor, EdgeShapeProcessor, EdgeProcessor, EdgeTextProcessor
 from bg.vertices import TaggedBlockVertex, TaggedInfinityVertex, BlockVertex, InfinityVertex
 
 
@@ -227,6 +227,64 @@ class EdgeShapeProcessorTestCase(unittest.TestCase):
 
     def test_default_repeat_edge_pen_width(self):
         self.assertEqual(.5, self.defaultEdgeShapeProcessor.get_pen_width(self.r_edge))
+
+
+class EdgeTextProcessorTestCase(unittest.TestCase):
+    def setUp(self):
+        self.defaultEdgeTextProcessor = EdgeTextProcessor()
+        self.regular_edge = BGEdge(vertex1=TaggedBlockVertex("10t"), vertex2=TaggedBlockVertex("11h"), multicolor=Multicolor())
+        self.irregular_edge = BGEdge(vertex1=TaggedInfinityVertex("11h"), vertex2=TaggedBlockVertex("11h"), multicolor=Multicolor())
+        repeat_irregular_vertex = TaggedInfinityVertex("11h")
+        repeat_irregular_vertex.add_tag("repeat", "LLC1h")
+        self.irregular_repeat_edge = BGEdge(vertex1=repeat_irregular_vertex, vertex2=TaggedBlockVertex("11h"), multicolor=Multicolor())
+
+    def test_default_label_size(self):
+        self.assertEqual(7, self.defaultEdgeTextProcessor.get_text_size(edge=self.regular_edge))
+        self.assertEqual(7, self.defaultEdgeTextProcessor.get_text_size(edge=self.irregular_edge))
+        self.assertEqual(7, self.defaultEdgeTextProcessor.get_text_size(edge=self.irregular_repeat_edge))
+
+    def test_default_font(self):
+        self.assertEqual("Arial", self.defaultEdgeTextProcessor.get_text_font_name(edge=self.regular_edge))
+        self.assertEqual("Arial", self.defaultEdgeTextProcessor.get_text_font_name(edge=self.irregular_edge))
+        self.assertEqual("Arial", self.defaultEdgeTextProcessor.get_text_font_name(edge=self.irregular_repeat_edge))
+
+    def test_default_color(self):
+        self.assertEqual("black", self.defaultEdgeTextProcessor.get_text_color(edge=self.regular_edge))
+        self.assertEqual("black", self.defaultEdgeTextProcessor.get_text_color(edge=self.irregular_edge))
+        self.assertEqual("black", self.defaultEdgeTextProcessor.get_text_color(edge=self.irregular_repeat_edge))
+
+    def test_text_size_template(self):
+        self.assertEqual("fontsize=\"{size}\"", self.defaultEdgeTextProcessor.size_attrib_template)
+
+    def test_text_font_template(self):
+        self.assertEqual("fontname=\"{font}\"", self.defaultEdgeTextProcessor.font_attrib_template)
+
+    def test_text_color_template(self):
+        self.assertEqual("fontcolor=\"{color}\"", self.defaultEdgeTextProcessor.color_attrib_template)
+
+    def test_label_attrib_template(self):
+        self.assertEqual("label={label}", self.defaultEdgeTextProcessor.label_attrib_template)
+
+    def test_get_label_regular_edge_plain(self):
+        self.assertEqual("\"\"", self.defaultEdgeTextProcessor.get_text(edge=self.regular_edge))
+        self.assertEqual("\"\"", self.defaultEdgeTextProcessor.get_text(edge=self.regular_edge, label_format="plain"))
+
+    def test_get_label_regular_edge_html(self):
+        self.assertEqual("\"\"", self.defaultEdgeTextProcessor.get_text(edge=self.regular_edge, label_format="html"))
+
+    def test_get_label_irregular_edge_plain(self):
+        self.assertEqual("\"\"", self.defaultEdgeTextProcessor.get_text(edge=self.irregular_edge))
+        self.assertEqual("\"\"", self.defaultEdgeTextProcessor.get_text(edge=self.irregular_edge, label_format="plain"))
+
+    def test_get_label_irregular_edge_html(self):
+        self.assertEqual("\"\"", self.defaultEdgeTextProcessor.get_text(edge=self.irregular_edge, label_format="html"))
+
+    def test_get_label_irregular_repeat_edge_plain(self):
+        self.assertEqual("\"r:LLC1h\"", self.defaultEdgeTextProcessor.get_text(edge=self.irregular_repeat_edge))
+        self.assertEqual("\"r:LLC1h\"", self.defaultEdgeTextProcessor.get_text(edge=self.irregular_repeat_edge, label_format="plain"))
+
+    def test_get_label_irregular_repeat_edge_html(self):
+        self.assertEqual("<r:LLC1<SUP>h</SUP>>", self.defaultEdgeTextProcessor.get_text(edge=self.irregular_repeat_edge, label_format="html"))
 
 
 class EdgeProcessorTestCase(unittest.TestCase):

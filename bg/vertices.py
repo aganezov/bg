@@ -322,28 +322,3 @@ class TaggedInfinityVertex(InfinityVertex, TaggedVertex):
             return super().make_object(data)
 
     json_schema = TaggedInfinityVertexJSONSchema()
-
-
-def vertex_as_a_sting(vertex):
-    result = ""
-    if isinstance(vertex, BGVertex):
-        orientation = "t" if vertex.is_tail_vertex else "h"
-        result += vertex.block_name + orientation
-        if vertex.is_tagged_vertex and len(vertex.tags) > 0:
-            result += " " + " ".join(map(lambda entry: "(" + entry + ")", vertex.get_tags_as_list_of_strings()))
-    else:
-        result = str(vertex)
-    return "{string}".format(string=result)
-
-
-def vertex_as_html(vertex):
-    result = ""
-    if isinstance(vertex, BGVertex):
-        if vertex.is_block_vertex:
-            orientation = "t" if vertex.is_tail_vertex else "h"
-            result += vertex.block_name + "<SUP>" + orientation + "</SUP>"
-        if vertex.is_tagged_vertex and len(vertex.tags) > 0:
-            result += " " + " ".join(map(lambda entry: "(" + entry + ")", vertex.get_tags_as_list_of_strings()))
-    else:
-        result = str(vertex)
-    return "<" + result + ">"

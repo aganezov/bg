@@ -2,7 +2,35 @@
 from enum import Enum
 
 from bg.edge import BGEdge
-from bg.vertices import BGVertex, vertex_as_a_sting, vertex_as_html, InfinityVertex
+from bg.vertices import BGVertex, InfinityVertex, TaggedInfinityVertex
+
+
+def vertex_as_a_sting(vertex):
+    result = ""
+    if isinstance(vertex, BGVertex):
+        orientation = "t" if vertex.is_tail_vertex else "h"
+        result += vertex.block_name + orientation
+        if vertex.is_tagged_vertex and len(vertex.tags) > 0:
+            result += " " + " ".join(map(lambda entry: "(" + entry + ")", vertex.get_tags_as_list_of_strings()))
+    else:
+        result = str(vertex)
+    return "{string}".format(string=result)
+
+
+def vertex_as_html(vertex):
+    result = ""
+    if isinstance(vertex, BGVertex):
+        if vertex.is_block_vertex:
+            orientation = "t" if vertex.is_tail_vertex else "h"
+            result += vertex.block_name + "<SUP>" + orientation + "</SUP>"
+        if vertex.is_tagged_vertex and len(vertex.tags) > 0:
+            result += " " + " ".join(map(lambda entry: "(" + entry + ")", vertex.get_tags_as_list_of_strings()))
+    else:
+        result = str(vertex)
+    return "<" + result + ">"
+
+class LabelFormatType(Enum):
+    pass
 
 
 def ids_generator(start=1, step=1):
@@ -36,7 +64,7 @@ class VertexShapeProcessor(object):
 
 
 class VertexTextProcessor(object):
-    class VertexTextType(Enum):
+    class VertexTextType(LabelFormatType):
         plain = "plain"
         html = "html"
 
@@ -128,6 +156,67 @@ class EdgeShapeProcessor(object):
             return self.irregular_edge_pen_with
         if edge.is_regular_edge:
             return self.regular_edge_pen_width
+
+
+class EdgeTextProcessor(object):
+    class EdgeTextType(LabelFormatType):
+        plain = "plain"
+        html = "html"
+
+    def __init__(self):
+        self.text_color = "black"
+        self.text_size = 7
+        self.text_font_name = "Arial"
+
+        self.font_attrib_template = "fontname=\"{font}\""
+        self.size_attrib_template = "fontsize=\"{size}\""
+        self.color_attrib_template = "fontcolor=\"{color}\""
+        self.label_attrib_template = "label={label}"
+
+    def get_text_font_name(self, edge):
+        return self.text_font_name
+
+    def get_text_size(self, edge):
+        return self.text_size
+
+    def get_text_color(self, edge):
+        return self.text_color
+
+    def get_text(self, edge, label_format=EdgeTextType.plain, tag_key_processor=None, tag_value_processor=None):
+        if tag_key_processor is None:
+            tag_key_processor = self._tag_key_processor
+        if tag_value_processor is None:
+            tag_value_processor = self._tag_value_processor
+        if not isinstance(edge, BGEdge) or not edge.is_repeat_edge:
+            return "\"\""
+        text = ""
+        if isinstance(edge.vertex1, TaggedInfinityVertex):
+            for tag, value in edge.vertex1.tags:
+                text += tag_key_processor(tag, label_format=label_format) + \
+                        edge.vertex1.TAG_SEPARATOR + \
+                        tag_value_processor(value, label_format=label_format)
+        if isinstance(edge.vertex2, TaggedInfinityVertex):
+            for tag, value in edge.vertex2.tags:
+                text += " " if len(text) > 0 else ""
+                text += tag_key_processor(tag, label_format=label_format) + \
+                        edge.vertex1.TAG_SEPARATOR + \
+                        tag_value_processor(value, label_format=label_format)
+        if label_format == self.EdgeTextType.plain.value or label_format == self.EdgeTextType.plain:
+            return "\"" + text + "\""
+        elif label_format == self.EdgeTextType.html.value or label_format == self.EdgeTextType.html:
+            return "<" + text + ">"
+        return "\"\""
+
+    def _tag_key_processor(self, key, label_format):
+        if key == "repeat":
+            return "r"
+        else:
+            return str(key)
+
+    def _tag_value_processor(self,value, label_format):
+        if str(value).endswith(("h", "t")) and (label_format == self.EdgeTextType.html.value or label_format == self.EdgeTextType.html):
+            return str(value)[:-1] + "<SUP>" + str(value)[-1] + "</SUP>"
+        return str(value)
 
 
 class EdgeProcessor(object):
