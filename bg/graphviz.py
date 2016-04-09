@@ -273,8 +273,8 @@ class EdgeTextProcessor(object):
             tag_key_processor = self._tag_key_processor
         if tag_value_processor is None:
             tag_value_processor = self._tag_value_processor
-        if not isinstance(edge, BGEdge) or not edge.is_repeat_edge:
-            return "\"\""
+        # if not isinstance(edge, BGEdge) or not edge.is_repeat_edge:
+        #     return "\"\""
         text = ""
         if isinstance(edge.vertex1, TaggedInfinityVertex):
             for tag, value in edge.vertex1.tags:
@@ -303,6 +303,12 @@ class EdgeTextProcessor(object):
         if str(value).endswith(("h", "t")) and (label_format == self.EdgeTextType.html.value or label_format == self.EdgeTextType.html):
             return str(value)[:-1] + "<SUP>" + str(value)[-1] + "</SUP>"
         return str(value)
+
+    def get_attributes_string_list(self, edge, label_format="plain"):
+        return [self.font_attrib_template.format(font=self.get_text_font_name(edge=edge)),
+                self.size_attrib_template.format(size=self.get_text_size(edge=edge)),
+                self.color_attrib_template.format(color=self.get_text_color(edge=edge)),
+                self.label_attrib_template.format(label=self.get_text(edge=edge, label_format=label_format))]
 
 
 class EdgeProcessor(object):

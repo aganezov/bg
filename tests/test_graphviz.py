@@ -355,14 +355,14 @@ class EdgeTextProcessorTestCase(unittest.TestCase):
         self.assertEqual("\"\"", self.defaultEdgeTextProcessor.get_text(edge=self.regular_edge, label_format="plain"))
 
     def test_get_label_regular_edge_html(self):
-        self.assertEqual("\"\"", self.defaultEdgeTextProcessor.get_text(edge=self.regular_edge, label_format="html"))
+        self.assertEqual("<>", self.defaultEdgeTextProcessor.get_text(edge=self.regular_edge, label_format="html"))
 
     def test_get_label_irregular_edge_plain(self):
         self.assertEqual("\"\"", self.defaultEdgeTextProcessor.get_text(edge=self.irregular_edge))
         self.assertEqual("\"\"", self.defaultEdgeTextProcessor.get_text(edge=self.irregular_edge, label_format="plain"))
 
     def test_get_label_irregular_edge_html(self):
-        self.assertEqual("\"\"", self.defaultEdgeTextProcessor.get_text(edge=self.irregular_edge, label_format="html"))
+        self.assertEqual("<>", self.defaultEdgeTextProcessor.get_text(edge=self.irregular_edge, label_format="html"))
 
     def test_get_label_irregular_repeat_edge_plain(self):
         self.assertEqual("\"r:LLC1h\"", self.defaultEdgeTextProcessor.get_text(edge=self.irregular_repeat_edge))
@@ -370,6 +370,36 @@ class EdgeTextProcessorTestCase(unittest.TestCase):
 
     def test_get_label_irregular_repeat_edge_html(self):
         self.assertEqual("<r:LLC1<SUP>h</SUP>>", self.defaultEdgeTextProcessor.get_text(edge=self.irregular_repeat_edge, label_format="html"))
+
+    def test_get_attributes_as_string_list_regular_edge(self):
+        self.assertSetEqual({"fontname=\"Arial\"", "fontsize=\"7\"", "fontcolor=\"black\"", "label=\"\""},
+                            set(self.defaultEdgeTextProcessor.get_attributes_string_list(edge=self.regular_edge)))
+        self.assertSetEqual({"fontname=\"Arial\"", "fontsize=\"7\"", "fontcolor=\"black\"", "label=\"\""},
+                            set(self.defaultEdgeTextProcessor.get_attributes_string_list(edge=self.regular_edge, label_format="plain")))
+
+    def test_get_attributes_as_string_list_regular_edge_html(self):
+        self.assertSetEqual({"fontname=\"Arial\"", "fontsize=\"7\"", "fontcolor=\"black\"", "label=<>"},
+                            set(self.defaultEdgeTextProcessor.get_attributes_string_list(edge=self.regular_edge, label_format="html")))
+
+    def test_get_attributes_as_string_list_irregular_edge(self):
+        self.assertSetEqual({"fontname=\"Arial\"", "fontsize=\"7\"", "fontcolor=\"black\"", "label=\"\""},
+                            set(self.defaultEdgeTextProcessor.get_attributes_string_list(edge=self.irregular_edge)))
+        self.assertSetEqual({"fontname=\"Arial\"", "fontsize=\"7\"", "fontcolor=\"black\"", "label=\"\""},
+                            set(self.defaultEdgeTextProcessor.get_attributes_string_list(edge=self.regular_edge, label_format="plain")))
+
+    def test_get_attributes_as_string_list_irregular_edge_html(self):
+        self.assertSetEqual({"fontname=\"Arial\"", "fontsize=\"7\"", "fontcolor=\"black\"", "label=<>"},
+                            set(self.defaultEdgeTextProcessor.get_attributes_string_list(edge=self.regular_edge, label_format="html")))
+
+    def test_get_attributes_as_string_list_repeat_edge(self):
+        self.assertSetEqual({"fontname=\"Arial\"", "fontsize=\"7\"", "fontcolor=\"black\"", "label=\"r:LLC1h\""},
+                            set(self.defaultEdgeTextProcessor.get_attributes_string_list(edge=self.irregular_repeat_edge)))
+        self.assertSetEqual({"fontname=\"Arial\"", "fontsize=\"7\"", "fontcolor=\"black\"", "label=\"r:LLC1h\""},
+                            set(self.defaultEdgeTextProcessor.get_attributes_string_list(edge=self.irregular_repeat_edge, label_format="plain")))
+
+    def test_get_attributes_as_string_list_repeat_edge_html(self):
+        self.assertSetEqual({"fontname=\"Arial\"", "fontsize=\"7\"", "fontcolor=\"black\"", "label=<r:LLC1<SUP>h</SUP>>"},
+                            set(self.defaultEdgeTextProcessor.get_attributes_string_list(edge=self.irregular_repeat_edge, label_format="html")))
 
 
 class EdgeProcessorTestCase(unittest.TestCase):
