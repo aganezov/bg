@@ -3,6 +3,7 @@ from unittest.mock import *
 
 import collections
 
+from bg import BGGenome
 from bg.edge import BGEdge
 from bg.multicolor import Multicolor
 from bg.graphviz import VertexShapeProcessor, VertexTextProcessor, VertexProcessor, EdgeShapeProcessor, EdgeProcessor, EdgeTextProcessor
@@ -228,6 +229,62 @@ class EdgeShapeProcessorTestCase(unittest.TestCase):
     def test_default_repeat_edge_pen_width(self):
         self.assertEqual(.5, self.defaultEdgeShapeProcessor.get_pen_width(self.r_edge))
 
+    def test_get_dot_colors_for_multicolor_single_color(self):
+        mc = Multicolor(BGGenome("genome1"))
+        dot_colors = self.defaultEdgeShapeProcessor.get_dot_colors(multicolor=mc)
+        self.assertEqual(len(dot_colors), 1)
+        self.assertEqual(len(set(dot_colors)), 1)
+        dot_color = dot_colors[0]
+        self.assertIn(dot_color, EdgeShapeProcessor.EdgeColors)
+        mc2 = Multicolor(BGGenome("genome1"))
+        dot_colors2 = self.defaultEdgeShapeProcessor.get_dot_colors(multicolor=mc2)
+        self.assertListEqual(dot_colors, dot_colors2)
+
+    def test_get_dot_colors_for_multicolor_multiple_colors(self):
+        mc = Multicolor(BGGenome("genome1"), BGGenome("genome2"), BGGenome("genome3"))
+        dot_colors = self.defaultEdgeShapeProcessor.get_dot_colors(multicolor=mc)
+        self.assertEqual(len(dot_colors), 3)
+        self.assertEqual(len(set(dot_colors)), 3)
+        for dot_color in dot_colors:
+            self.assertIn(dot_color, self.defaultEdgeShapeProcessor.EdgeColors)
+        mc2 = Multicolor(BGGenome("genome1"), BGGenome("genome2"))
+        mc3 = Multicolor(BGGenome("genome3"))
+        dot_colors2 = self.defaultEdgeShapeProcessor.get_dot_colors(multicolor=mc2)
+        dot_colors3 = self.defaultEdgeShapeProcessor.get_dot_colors(multicolor=mc3)
+        self.assertTrue(set(dot_colors2).issubset(dot_colors))
+        self.assertTrue(set(dot_colors3).issubset(dot_colors))
+
+    def test_get_dot_colors_for_multicolor_single_color_with_greater_multiplicity(self):
+        mc = Multicolor(BGGenome("genome1"), BGGenome("genome1"), BGGenome("genome1"))
+        dot_colors = self.defaultEdgeShapeProcessor.get_dot_colors(multicolor=mc)
+        self.assertEqual(len(dot_colors), 3)
+        self.assertEqual(len(set(dot_colors)), 1)
+        dot_color = set(dot_colors).pop()
+        self.assertIn(dot_color, self.defaultEdgeShapeProcessor.EdgeColors)
+        mc2 = Multicolor(BGGenome("genome1"), BGGenome("genome1"))
+        dot_colors2 = self.defaultEdgeShapeProcessor.get_dot_colors(multicolor=mc2)
+        self.assertEqual(len(dot_colors2), 2)
+        self.assertEqual(len(set(dot_colors2)), 1)
+        self.assertSetEqual(set(dot_colors2), set(dot_colors))
+
+    def test_get_dot_colors_for_multicolor_multiple_colors_with_greater_multiplicity(self):
+        mc = Multicolor(BGGenome("genome1"), BGGenome("genome1"), BGGenome("genome1"), BGGenome("genome2"), BGGenome("genome2"), BGGenome("genome3"))
+        dot_colors = self.defaultEdgeShapeProcessor.get_dot_colors(multicolor=mc)
+        self.assertEqual(len(dot_colors), 6)
+        self.assertEqual(len(set(dot_colors)), 3)
+        for color in dot_colors:
+            self.assertIn(color, self.defaultEdgeShapeProcessor.EdgeColors)
+        mc2 = Multicolor(BGGenome("genome1"), BGGenome("genome1"))
+        mc3 = Multicolor(BGGenome("genome2"), BGGenome("genome1"), BGGenome("genome2"))
+        dot_colors2 = self.defaultEdgeShapeProcessor.get_dot_colors(multicolor=mc2)
+        dot_colors3 = self.defaultEdgeShapeProcessor.get_dot_colors(multicolor=mc3)
+        self.assertEqual(len(dot_colors2), 2)
+        self.assertEqual(len(set(dot_colors2)), 1)
+        self.assertEqual(len(dot_colors3), 3)
+        self.assertEqual(len(set(dot_colors3)), 2)
+        self.assertTrue(set(dot_colors2).issubset(set(dot_colors)))
+        self.assertTrue(set(dot_colors3).issubset(set(dot_colors)))
+
 
 class EdgeTextProcessorTestCase(unittest.TestCase):
     def setUp(self):
@@ -289,7 +346,7 @@ class EdgeTextProcessorTestCase(unittest.TestCase):
 
 class EdgeProcessorTestCase(unittest.TestCase):
     def setUp(self):
-        self.defaultEdgeProcessor = EdgeProcessor()
+        self.defaultEdgeProcessor = EdgeProcessor(vertex_processor=VertexProcessor())
         self.regular_vertex = TaggedBlockVertex(1)
         self.regular_vertex2 = TaggedBlockVertex(2)
         self.edge = BGEdge(vertex1=self.regular_vertex, vertex2=self.regular_vertex2, multicolor=Multicolor())
@@ -300,7 +357,10 @@ class EdgeProcessorTestCase(unittest.TestCase):
         self.r_edge = BGEdge(vertex1=self.regular_vertex, vertex2=self.repeat_vertex, multicolor=Multicolor())
 
     def test_edge_shape_processor_field(self):
-        self.assertIsInstance(self.defaultEdgeProcessor.edge_shape_processor, EdgeShapeProcessor)
+        self.assertIsInstance(self.defaultEdgeProcessor.shape_processor, EdgeShapeProcessor)
+
+    def test_edge_text_processor_field(self):
+        self.assertIsInstance(self.defaultEdgeProcessor.text_processor, EdgeTextProcessor)
 
 
 if __name__ == '__main__':

@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+from collections import deque
 from enum import Enum
 
 from bg.edge import BGEdge
@@ -28,6 +29,7 @@ def vertex_as_html(vertex):
     else:
         result = str(vertex)
     return "<" + result + ">"
+
 
 class LabelFormatType(Enum):
     pass
@@ -126,6 +128,38 @@ class VertexProcessor(object):
 
 
 class EdgeShapeProcessor(object):
+    class EdgeColors(Enum):
+        red = "red"  # 1
+        green = "lawngreen"  # 2
+        teal = "teal"  # 3
+        navy = "navy"  # 4
+        aqua = "aqua"  # 5
+        magenta = "magenta"  # 6
+        chocolate = "chocolate"  # 7
+        wheat = "wheat"  # 8
+        violet = "violet"  # 9
+        orange = "orange"  # 10
+        lightpink = "lightpink"  # 11
+        aliceblue = "aliceblue"  # 12
+        antiquewhite = "antiquewhite"  # 13
+        aquamarine = "aquamarine"  # 14
+        brown = "brown"  # 15
+        darkcyan = "darkcyan"  # 16
+        deepskyblue = "deepskyblue"  # 17
+        gold = "gold"  # 18
+        lightcoral = "lightcoral"  # 19
+        mediumpurple = "mediumpurple"  # 20
+        mediumslateblue = "mediumslateblue"  # 21
+        mediumturquoise = "mediumturquoise"  # 22
+        navajowhite = "navajowhite"  # 23
+        palegoldenrod = "palegoldenrod"  # 24
+        silver = "silver"  # 25
+        yellowgreen = "yellowgreen"  # 26
+        rosybrown = "rosybrown"  # 27
+        slateblue = "slateblue"  # 28
+        forestgreen = "forestgreen"  # 29
+        snow = "snow"  # 30
+
     def __init__(self):
         self.regular_edge_style = "solid"
         self.irregular_edge_style = "dotted"
@@ -133,6 +167,39 @@ class EdgeShapeProcessor(object):
         self.regular_edge_pen_width = 1
         self.irregular_edge_pen_with = .1
         self.repeat_edge_pen_width = .5
+        self.unused_colors = deque([
+            EdgeShapeProcessor.EdgeColors.red,
+            EdgeShapeProcessor.EdgeColors.green,
+            EdgeShapeProcessor.EdgeColors.teal,
+            EdgeShapeProcessor.EdgeColors.navy,
+            EdgeShapeProcessor.EdgeColors.aqua,
+            EdgeShapeProcessor.EdgeColors.magenta,
+            EdgeShapeProcessor.EdgeColors.chocolate,
+            EdgeShapeProcessor.EdgeColors.wheat,
+            EdgeShapeProcessor.EdgeColors.violet,
+            EdgeShapeProcessor.EdgeColors.orange,
+            EdgeShapeProcessor.EdgeColors.lightpink,
+            EdgeShapeProcessor.EdgeColors.aliceblue,
+            EdgeShapeProcessor.EdgeColors.antiquewhite,
+            EdgeShapeProcessor.EdgeColors.aquamarine,
+            EdgeShapeProcessor.EdgeColors.brown,
+            EdgeShapeProcessor.EdgeColors.darkcyan,
+            EdgeShapeProcessor.EdgeColors.deepskyblue,
+            EdgeShapeProcessor.EdgeColors.gold,
+            EdgeShapeProcessor.EdgeColors.lightcoral,
+            EdgeShapeProcessor.EdgeColors.mediumpurple,
+            EdgeShapeProcessor.EdgeColors.mediumslateblue,
+            EdgeShapeProcessor.EdgeColors.mediumturquoise,
+            EdgeShapeProcessor.EdgeColors.navajowhite,
+            EdgeShapeProcessor.EdgeColors.palegoldenrod,
+            EdgeShapeProcessor.EdgeColors.silver,
+            EdgeShapeProcessor.EdgeColors.yellowgreen,
+            EdgeShapeProcessor.EdgeColors.rosybrown,
+            EdgeShapeProcessor.EdgeColors.slateblue,
+            EdgeShapeProcessor.EdgeColors.forestgreen,
+            EdgeShapeProcessor.EdgeColors.snow
+        ])
+        self.color_to_dot_color = {}
 
         self.style_attribute_template = "style=\"{style}\""
         self.pen_width_attribute_template = "penwidth=\"{pen_width}\""
@@ -156,6 +223,14 @@ class EdgeShapeProcessor(object):
             return self.irregular_edge_pen_with
         if edge.is_regular_edge:
             return self.regular_edge_pen_width
+
+    def get_dot_colors(self, multicolor):
+        return [self._get_dot_color(color) for color in multicolor.multicolors.elements()]
+
+    def _get_dot_color(self, color):
+        if color not in self.color_to_dot_color:
+            self.color_to_dot_color[color] = self.unused_colors.popleft()
+        return self.color_to_dot_color[color]
 
 
 class EdgeTextProcessor(object):
@@ -213,12 +288,14 @@ class EdgeTextProcessor(object):
         else:
             return str(key)
 
-    def _tag_value_processor(self,value, label_format):
+    def _tag_value_processor(self, value, label_format):
         if str(value).endswith(("h", "t")) and (label_format == self.EdgeTextType.html.value or label_format == self.EdgeTextType.html):
             return str(value)[:-1] + "<SUP>" + str(value)[-1] + "</SUP>"
         return str(value)
 
 
 class EdgeProcessor(object):
-    def __init__(self, edge_shape_processor=None):
-        self.edge_shape_processor = edge_shape_processor if edge_shape_processor is not None else EdgeShapeProcessor()
+    def __init__(self, vertex_processor, edge_shape_processor=None, edge_text_processor=None):
+        self.shape_processor = edge_shape_processor if edge_shape_processor is not None else EdgeShapeProcessor()
+        self.text_processor = edge_text_processor if edge_text_processor is not None else EdgeTextProcessor()
+        self.vertex_processor = vertex_processor
