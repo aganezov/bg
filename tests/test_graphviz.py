@@ -192,12 +192,14 @@ class EdgeShapeProcessorTestCase(unittest.TestCase):
         self.defaultEdgeShapeProcessor = EdgeShapeProcessor()
         self.regular_vertex = TaggedBlockVertex(1)
         self.regular_vertex2 = TaggedBlockVertex(2)
-        self.edge = BGEdge(vertex1=self.regular_vertex, vertex2=self.regular_vertex2, multicolor=Multicolor())
+        self.color1 = BGGenome("genome1")
+        self.color2 = BGGenome("genome2")
+        self.edge = BGEdge(vertex1=self.regular_vertex, vertex2=self.regular_vertex2, multicolor=Multicolor(self.color1))
         self.irregular_vertex = InfinityVertex("v1")
-        self.ir_edge = BGEdge(vertex1=self.regular_vertex, vertex2=self.irregular_vertex, multicolor=Multicolor())
+        self.ir_edge = BGEdge(vertex1=self.regular_vertex, vertex2=self.irregular_vertex, multicolor=Multicolor(self.color1))
         self.repeat_vertex = TaggedInfinityVertex("v1")
         self.repeat_vertex.add_tag("repeat", "rrr1")
-        self.r_edge = BGEdge(vertex1=self.regular_vertex, vertex2=self.repeat_vertex, multicolor=Multicolor())
+        self.r_edge = BGEdge(vertex1=self.regular_vertex, vertex2=self.repeat_vertex, multicolor=Multicolor(self.color1))
 
     def test_default_style(self):
         self.assertEqual("solid", self.defaultEdgeShapeProcessor.get_style())
@@ -285,6 +287,32 @@ class EdgeShapeProcessorTestCase(unittest.TestCase):
         self.assertTrue(set(dot_colors2).issubset(set(dot_colors)))
         self.assertTrue(set(dot_colors3).issubset(set(dot_colors)))
 
+    def test_color_attribute_template(self):
+        self.assertEqual("color=\"{color}\"", self.defaultEdgeShapeProcessor.color_attribute_template)
+
+    def test_get_all_attributes_as_list_of_strings_regular_edge(self):
+        color = self.defaultEdgeShapeProcessor.get_dot_colors(multicolor=Multicolor(self.color1))[0]
+        self.assertSetEqual({"color=\"" + color.value + "\"", "style=\"solid\"", "penwidth=\"1\""},
+                            set(self.defaultEdgeShapeProcessor.get_attributes_string_list(edge=self.edge)))
+
+    def test_get_all_attributes_as_list_of_strings_irregular_edge(self):
+        color = self.defaultEdgeShapeProcessor.get_dot_colors(multicolor=Multicolor(self.color1))[0]
+        self.assertSetEqual({"color=\"" + color.value + "\"", "style=\"dotted\"", "penwidth=\"0.1\""},
+                            set(self.defaultEdgeShapeProcessor.get_attributes_string_list(edge=self.ir_edge)))
+
+    def test_get_all_attributes_as_list_of_strings_repeat_edge(self):
+        color = self.defaultEdgeShapeProcessor.get_dot_colors(multicolor=Multicolor(self.color1))[0]
+        self.assertSetEqual({"color=\"" + color.value + "\"", "style=\"dashed\"", "penwidth=\"0.5\""},
+                            set(self.defaultEdgeShapeProcessor.get_attributes_string_list(edge=self.r_edge)))
+
+    def test_get_all_attribute_as_list_of_strings_multiedge_error(self):
+        with self.assertRaises(ValueError):
+            multiedge = BGEdge(vertex1=self.regular_vertex, vertex2=self.regular_vertex2, multicolor=Multicolor(self.color1, self.color2))
+            self.defaultEdgeShapeProcessor.get_attributes_string_list(edge=multiedge)
+        with self.assertRaises(ValueError):
+            multiedge = BGEdge(vertex1=self.regular_vertex, vertex2=self.regular_vertex2, multicolor=Multicolor(self.color1, self.color1))
+            self.defaultEdgeShapeProcessor.get_attributes_string_list(edge=multiedge)
+
 
 class EdgeTextProcessorTestCase(unittest.TestCase):
     def setUp(self):
@@ -346,7 +374,8 @@ class EdgeTextProcessorTestCase(unittest.TestCase):
 
 class EdgeProcessorTestCase(unittest.TestCase):
     def setUp(self):
-        self.defaultEdgeProcessor = EdgeProcessor(vertex_processor=VertexProcessor())
+        self.vertex_processor = VertexProcessor()
+        self.defaultEdgeProcessor = EdgeProcessor(vertex_processor=self.vertex_processor)
         self.regular_vertex = TaggedBlockVertex(1)
         self.regular_vertex2 = TaggedBlockVertex(2)
         self.edge = BGEdge(vertex1=self.regular_vertex, vertex2=self.regular_vertex2, multicolor=Multicolor())
@@ -361,6 +390,12 @@ class EdgeProcessorTestCase(unittest.TestCase):
 
     def test_edge_text_processor_field(self):
         self.assertIsInstance(self.defaultEdgeProcessor.text_processor, EdgeTextProcessor)
+
+    def test_full_regular_edge_graphviz_entry(self):
+        v1_id = self.vertex_processor.get_vertex_id(self.edge.vertex1)
+        v2_id = self.vertex_processor.get_vertex_id(self.edge.vertex2)
+        expected = str(v1_id) + " -- " + str(v2_id) + " [];"
+
 
 
 if __name__ == '__main__':

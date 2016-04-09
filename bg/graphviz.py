@@ -203,6 +203,7 @@ class EdgeShapeProcessor(object):
 
         self.style_attribute_template = "style=\"{style}\""
         self.pen_width_attribute_template = "penwidth=\"{pen_width}\""
+        self.color_attribute_template = "color=\"{color}\""
 
     def get_style(self, edge=None):
         if edge is None or not isinstance(edge, BGEdge):
@@ -231,6 +232,16 @@ class EdgeShapeProcessor(object):
         if color not in self.color_to_dot_color:
             self.color_to_dot_color[color] = self.unused_colors.popleft()
         return self.color_to_dot_color[color]
+
+    def get_attributes_string_list(self, edge):
+        if len(list(edge.multicolor.multicolors.elements())) != 1:
+            raise ValueError(
+                "Graphviz edge shape attributes can not be created only for multi-colored edge, but rather an edge with a single-colored edge")
+        color = self.get_dot_colors(multicolor=edge.multicolor)[0].value
+        return [
+            self.color_attribute_template.format(color=color),
+            self.style_attribute_template.format(style=self.get_style(edge=edge)),
+            self.pen_width_attribute_template.format(pen_width=self.get_pen_width(edge=edge))]
 
 
 class EdgeTextProcessor(object):
