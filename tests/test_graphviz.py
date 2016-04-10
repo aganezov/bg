@@ -6,8 +6,10 @@ import collections
 from bg import BGGenome
 from bg.edge import BGEdge
 from bg.multicolor import Multicolor
-from bg.graphviz import VertexShapeProcessor, VertexTextProcessor, VertexProcessor, EdgeShapeProcessor, EdgeProcessor, EdgeTextProcessor
+from bg.graphviz import VertexShapeProcessor, VertexTextProcessor, VertexProcessor, EdgeShapeProcessor, EdgeProcessor, EdgeTextProcessor, \
+    GraphProcessor
 from bg.vertices import TaggedBlockVertex, TaggedInfinityVertex, BlockVertex, InfinityVertex
+from bg.breakpoint_graph import BreakpointGraph
 
 
 class VertexShapeProcessorTestCase(unittest.TestCase):
@@ -38,11 +40,13 @@ class VertexShapeProcessorTestCase(unittest.TestCase):
 
     def test_get_all_attributes_as_list_of_strings_regular_vertex(self):
         vertex = TaggedBlockVertex("10t")
-        self.assertSetEqual({"shape=\"oval\"", "penwidth=\"1\""}, set(self.defaultVertexShapeProcessor.get_attributes_string_list(vertex=vertex)))
+        self.assertSetEqual({"shape=\"oval\"", "penwidth=\"1\""},
+                            set(self.defaultVertexShapeProcessor.get_attributes_string_list(vertex=vertex)))
 
     def test_get_all_attributes_as_list_of_strings_irregular_vertex(self):
         vertex = TaggedInfinityVertex("10t")
-        self.assertSetEqual({"shape=\"point\"", "penwidth=\"1\""}, set(self.defaultVertexShapeProcessor.get_attributes_string_list(vertex=vertex)))
+        self.assertSetEqual({"shape=\"point\"", "penwidth=\"1\""},
+                            set(self.defaultVertexShapeProcessor.get_attributes_string_list(vertex=vertex)))
 
 
 class VertexTextProcessorTestCase(unittest.TestCase):
@@ -75,27 +79,32 @@ class VertexTextProcessorTestCase(unittest.TestCase):
         self.assertEqual("\"namet\"", self.defaultVertexTextProcessor.get_text(vertex=regular_vertex))
         self.assertEqual("\"namet\"", self.defaultVertexTextProcessor.get_text(vertex=regular_vertex, label_format="plain"))
         self.assertEqual("\"namet\"",
-                         self.defaultVertexTextProcessor.get_text(vertex=regular_vertex, label_format=VertexTextProcessor.VertexTextType.plain))
+                         self.defaultVertexTextProcessor.get_text(vertex=regular_vertex,
+                                                                  label_format=VertexTextProcessor.VertexTextType.plain))
 
     def test_vertex_name_html_text(self):
         regular_vertex = TaggedBlockVertex(name="namet")
         self.assertEqual("<name<SUP>t</SUP>>", self.defaultVertexTextProcessor.get_text(vertex=regular_vertex, label_format="html"))
         self.assertEqual("<name<SUP>t</SUP>>",
-                         self.defaultVertexTextProcessor.get_text(vertex=regular_vertex, label_format=VertexTextProcessor.VertexTextType.html))
-        self.assertEqual("<namet>", self.defaultVertexTextProcessor.get_text(vertex="namet", label_format=VertexTextProcessor.VertexTextType.html))
+                         self.defaultVertexTextProcessor.get_text(vertex=regular_vertex,
+                                                                  label_format=VertexTextProcessor.VertexTextType.html))
+        self.assertEqual("<namet>",
+                         self.defaultVertexTextProcessor.get_text(vertex="namet", label_format=VertexTextProcessor.VertexTextType.html))
 
     def test_tagged_vertex_name_plain(self):
         tagged_vertex = TaggedBlockVertex(name="namet")
         tagged_vertex.add_tag("tag1", 10)
         tagged_vertex.add_tag("tag2", 20)
         self.assertEqual("\"namet (tag1:10) (tag2:20)\"", self.defaultVertexTextProcessor.get_text(vertex=tagged_vertex))
-        self.assertEqual("\"namet (tag1:10) (tag2:20)\"", self.defaultVertexTextProcessor.get_text(vertex=tagged_vertex, label_format="plain"))
+        self.assertEqual("\"namet (tag1:10) (tag2:20)\"",
+                         self.defaultVertexTextProcessor.get_text(vertex=tagged_vertex, label_format="plain"))
 
     def test_tagged_vertex_name_html(self):
         tagged_vertex = TaggedBlockVertex(name="namet")
         tagged_vertex.add_tag("tag1", 10)
         tagged_vertex.add_tag("tag2", 20)
-        self.assertEqual("<name<SUP>t</SUP> (tag1:10) (tag2:20)>", self.defaultVertexTextProcessor.get_text(vertex=tagged_vertex, label_format="html"))
+        self.assertEqual("<name<SUP>t</SUP> (tag1:10) (tag2:20)>",
+                         self.defaultVertexTextProcessor.get_text(vertex=tagged_vertex, label_format="html"))
 
     def test_get_all_attributes_as_list_of_strings_regular_vertex(self):
         vertex = TaggedBlockVertex("10t")
@@ -121,8 +130,10 @@ class VertexProcessorTestCase(unittest.TestCase):
     def test_getting_non_bg_vertex_id(self):
         vertex = "1"
         self.assertEqual(1, self.defaultVertexProcessor.get_vertex_id(vertex=vertex))
-        self.assertEqual(1, self.defaultVertexProcessor.get_vertex_id(vertex=vertex))  # consecutive access shall return previously assigned id
-        self.assertEqual(1, self.defaultVertexProcessor.get_vertex_id(vertex=vertex))  # consecutive access shall return previously assigned id
+        self.assertEqual(1,
+                         self.defaultVertexProcessor.get_vertex_id(vertex=vertex))  # consecutive access shall return previously assigned id
+        self.assertEqual(1,
+                         self.defaultVertexProcessor.get_vertex_id(vertex=vertex))  # consecutive access shall return previously assigned id
 
         vertex = "3"
         self.assertEqual(2, self.defaultVertexProcessor.get_vertex_id(vertex=vertex))
@@ -168,15 +179,17 @@ class VertexProcessorTestCase(unittest.TestCase):
         vertex = TaggedBlockVertex("10t")
         self.assertEqual("\"1\" [label=\"10t\", fontname=\"Arial\", fontsize=\"12\", fontcolor=\"black\", shape=\"oval\", penwidth=\"1\"];",
                          self.defaultVertexProcessor.export_vertex_as_dot(vertex=vertex))
-        self.assertEqual("\"1\" [label=<10<SUP>t</SUP>>, fontname=\"Arial\", fontsize=\"12\", fontcolor=\"black\", shape=\"oval\", penwidth=\"1\"];",
-                         self.defaultVertexProcessor.export_vertex_as_dot(vertex=vertex, label_format="html"))
+        self.assertEqual(
+            "\"1\" [label=<10<SUP>t</SUP>>, fontname=\"Arial\", fontsize=\"12\", fontcolor=\"black\", shape=\"oval\", penwidth=\"1\"];",
+            self.defaultVertexProcessor.export_vertex_as_dot(vertex=vertex, label_format="html"))
 
     def test_full_regular_vertex_with_tags_export_all_default(self):
         vertex = TaggedBlockVertex("10t")
         vertex.add_tag("tag1", 1)
         vertex.add_tag("tag2", 2)
-        self.assertEqual("\"1\" [label=\"10t (tag1:1) (tag2:2)\", fontname=\"Arial\", fontsize=\"12\", fontcolor=\"black\", shape=\"oval\", penwidth=\"1\"];",
-                                                                                         self.defaultVertexProcessor.export_vertex_as_dot(vertex=vertex))
+        self.assertEqual(
+            "\"1\" [label=\"10t (tag1:1) (tag2:2)\", fontname=\"Arial\", fontsize=\"12\", fontcolor=\"black\", shape=\"oval\", penwidth=\"1\"];",
+            self.defaultVertexProcessor.export_vertex_as_dot(vertex=vertex))
         self.assertEqual(
             "\"1\" [label=<10<SUP>t</SUP> (tag1:1) (tag2:2)>, fontname=\"Arial\", fontsize=\"12\", fontcolor=\"black\", shape=\"oval\", penwidth=\"1\"];",
             self.defaultVertexProcessor.export_vertex_as_dot(vertex=vertex, label_format="html"))
@@ -184,7 +197,8 @@ class VertexProcessorTestCase(unittest.TestCase):
     def test_full_irregular_vertex_graphviz_entry_all_default(self):
         vertex = TaggedInfinityVertex("10t")
         self.assertEqual("\"1\" [shape=\"point\", penwidth=\"1\"];", self.defaultVertexProcessor.export_vertex_as_dot(vertex=vertex))
-        self.assertEqual("\"1\" [shape=\"point\", penwidth=\"1\"];", self.defaultVertexProcessor.export_vertex_as_dot(vertex=vertex, label_format="html"))
+        self.assertEqual("\"1\" [shape=\"point\", penwidth=\"1\"];",
+                         self.defaultVertexProcessor.export_vertex_as_dot(vertex=vertex, label_format="html"))
 
 
 class EdgeShapeProcessorTestCase(unittest.TestCase):
@@ -270,7 +284,8 @@ class EdgeShapeProcessorTestCase(unittest.TestCase):
         self.assertSetEqual(set(dot_colors2), set(dot_colors))
 
     def test_get_dot_colors_for_multicolor_multiple_colors_with_greater_multiplicity(self):
-        mc = Multicolor(BGGenome("genome1"), BGGenome("genome1"), BGGenome("genome1"), BGGenome("genome2"), BGGenome("genome2"), BGGenome("genome3"))
+        mc = Multicolor(BGGenome("genome1"), BGGenome("genome1"), BGGenome("genome1"), BGGenome("genome2"), BGGenome("genome2"),
+                        BGGenome("genome3"))
         dot_colors = self.defaultEdgeShapeProcessor.get_dot_colors(multicolor=mc)
         self.assertEqual(len(dot_colors), 6)
         self.assertEqual(len(set(dot_colors)), 3)
@@ -369,7 +384,8 @@ class EdgeTextProcessorTestCase(unittest.TestCase):
         self.assertEqual("\"r:LLC1h\"", self.defaultEdgeTextProcessor.get_text(edge=self.irregular_repeat_edge, label_format="plain"))
 
     def test_get_label_irregular_repeat_edge_html(self):
-        self.assertEqual("<r:LLC1<SUP>h</SUP>>", self.defaultEdgeTextProcessor.get_text(edge=self.irregular_repeat_edge, label_format="html"))
+        self.assertEqual("<r:LLC1<SUP>h</SUP>>",
+                         self.defaultEdgeTextProcessor.get_text(edge=self.irregular_repeat_edge, label_format="html"))
 
     def test_get_attributes_as_string_list_regular_edge(self):
         self.assertSetEqual({"fontname=\"Arial\"", "fontsize=\"7\"", "fontcolor=\"black\"", "label=\"\""},
@@ -395,11 +411,13 @@ class EdgeTextProcessorTestCase(unittest.TestCase):
         self.assertSetEqual({"fontname=\"Arial\"", "fontsize=\"7\"", "fontcolor=\"black\"", "label=\"r:LLC1h\""},
                             set(self.defaultEdgeTextProcessor.get_attributes_string_list(edge=self.irregular_repeat_edge)))
         self.assertSetEqual({"fontname=\"Arial\"", "fontsize=\"7\"", "fontcolor=\"black\"", "label=\"r:LLC1h\""},
-                            set(self.defaultEdgeTextProcessor.get_attributes_string_list(edge=self.irregular_repeat_edge, label_format="plain")))
+                            set(self.defaultEdgeTextProcessor.get_attributes_string_list(edge=self.irregular_repeat_edge,
+                                                                                         label_format="plain")))
 
     def test_get_attributes_as_string_list_repeat_edge_html(self):
         self.assertSetEqual({"fontname=\"Arial\"", "fontsize=\"7\"", "fontcolor=\"black\"", "label=<r:LLC1<SUP>h</SUP>>"},
-                            set(self.defaultEdgeTextProcessor.get_attributes_string_list(edge=self.irregular_repeat_edge, label_format="html")))
+                            set(self.defaultEdgeTextProcessor.get_attributes_string_list(edge=self.irregular_repeat_edge,
+                                                                                         label_format="html")))
 
 
 class EdgeProcessorTestCase(unittest.TestCase):
@@ -447,8 +465,10 @@ class EdgeProcessorTestCase(unittest.TestCase):
         v2_id = self.vertex_processor.get_vertex_id(self.edge.vertex2)
         str_color1 = self.defaultEdgeProcessor.shape_processor.get_dot_colors(multicolor=Multicolor(self.color1))[0].value
         str_color2 = self.defaultEdgeProcessor.shape_processor.get_dot_colors(multicolor=Multicolor(self.color2))[0].value
-        expected_entry_1 = "\"" + str(v1_id) + "\" -- \"" + str(v2_id) + "\" [color=\"" + str_color1 + "\", style=\"solid\", penwidth=\"1\"];"
-        expected_entry_2 = "\"" + str(v1_id) + "\" -- \"" + str(v2_id) + "\" [color=\"" + str_color2 + "\", style=\"solid\", penwidth=\"1\"];"
+        expected_entry_1 = "\"" + str(v1_id) + "\" -- \"" + str(
+            v2_id) + "\" [color=\"" + str_color1 + "\", style=\"solid\", penwidth=\"1\"];"
+        expected_entry_2 = "\"" + str(v1_id) + "\" -- \"" + str(
+            v2_id) + "\" [color=\"" + str_color2 + "\", style=\"solid\", penwidth=\"1\"];"
         self.edge.multicolor = Multicolor(self.color1, self.color2)
         graphviz_entries = self.defaultEdgeProcessor.export_edge_as_dot(edge=self.edge)
         self.assertIsInstance(graphviz_entries, list)
@@ -476,9 +496,12 @@ class EdgeProcessorTestCase(unittest.TestCase):
         str_color1 = self.defaultEdgeProcessor.shape_processor.get_dot_colors(multicolor=Multicolor(self.color1))[0].value
         str_color2 = self.defaultEdgeProcessor.shape_processor.get_dot_colors(multicolor=Multicolor(self.color2))[0].value
         str_color3 = self.defaultEdgeProcessor.shape_processor.get_dot_colors(multicolor=Multicolor(self.color3))[0].value
-        expected_entry_1 = "\"" + str(v1_id) + "\" -- \"" + str(v2_id) + "\" [color=\"" + str_color1 + "\", style=\"solid\", penwidth=\"1\"];"
-        expected_entry_2 = "\"" + str(v1_id) + "\" -- \"" + str(v2_id) + "\" [color=\"" + str_color2 + "\", style=\"solid\", penwidth=\"1\"];"
-        expected_entry_3 = "\"" + str(v1_id) + "\" -- \"" + str(v2_id) + "\" [color=\"" + str_color3 + "\", style=\"solid\", penwidth=\"1\"];"
+        expected_entry_1 = "\"" + str(v1_id) + "\" -- \"" + str(
+            v2_id) + "\" [color=\"" + str_color1 + "\", style=\"solid\", penwidth=\"1\"];"
+        expected_entry_2 = "\"" + str(v1_id) + "\" -- \"" + str(
+            v2_id) + "\" [color=\"" + str_color2 + "\", style=\"solid\", penwidth=\"1\"];"
+        expected_entry_3 = "\"" + str(v1_id) + "\" -- \"" + str(
+            v2_id) + "\" [color=\"" + str_color3 + "\", style=\"solid\", penwidth=\"1\"];"
         self.edge.multicolor = Multicolor(self.color1, self.color2, self.color1, self.color1, self.color2, self.color3)
         graphviz_entries = self.defaultEdgeProcessor.export_edge_as_dot(edge=self.edge)
         self.assertIsInstance(graphviz_entries, list)
@@ -491,7 +514,8 @@ class EdgeProcessorTestCase(unittest.TestCase):
         v1_id = self.vertex_processor.get_vertex_id(self.ir_edge.vertex1)
         v2_id = self.vertex_processor.get_vertex_id(self.ir_edge.vertex2)
         str_color1 = self.defaultEdgeProcessor.shape_processor.get_dot_colors(multicolor=self.ir_edge.multicolor)[0].value
-        expected_entry = "\"" + str(v1_id) + "\" -- \"" + str(v2_id) + "\" [color=\"" + str_color1 + "\", style=\"dotted\", penwidth=\"0.1\"];"
+        expected_entry = "\"" + str(v1_id) + "\" -- \"" + str(
+            v2_id) + "\" [color=\"" + str_color1 + "\", style=\"dotted\", penwidth=\"0.1\"];"
         graphviz_entries = self.defaultEdgeProcessor.export_edge_as_dot(edge=self.ir_edge)
         self.assertIsInstance(graphviz_entries, list)
         for entry in graphviz_entries:
@@ -505,8 +529,10 @@ class EdgeProcessorTestCase(unittest.TestCase):
         str_color1 = self.defaultEdgeProcessor.shape_processor.get_dot_colors(multicolor=Multicolor(self.color1))[0].value
         str_color2 = self.defaultEdgeProcessor.shape_processor.get_dot_colors(multicolor=Multicolor(self.color2))[0].value
         self.ir_edge.multicolor = Multicolor(self.color1, self.color2)
-        expected_entry1 = "\"" + str(v1_id) + "\" -- \"" + str(v2_id) + "\" [color=\"" + str_color1 + "\", style=\"dotted\", penwidth=\"0.1\"];"
-        expected_entry2 = "\"" + str(v1_id) + "\" -- \"" + str(v2_id) + "\" [color=\"" + str_color2 + "\", style=\"dotted\", penwidth=\"0.1\"];"
+        expected_entry1 = "\"" + str(v1_id) + "\" -- \"" + str(
+            v2_id) + "\" [color=\"" + str_color1 + "\", style=\"dotted\", penwidth=\"0.1\"];"
+        expected_entry2 = "\"" + str(v1_id) + "\" -- \"" + str(
+            v2_id) + "\" [color=\"" + str_color2 + "\", style=\"dotted\", penwidth=\"0.1\"];"
         graphviz_entries = self.defaultEdgeProcessor.export_edge_as_dot(edge=self.ir_edge)
         self.assertIsInstance(graphviz_entries, list)
         for entry in graphviz_entries:
@@ -519,7 +545,8 @@ class EdgeProcessorTestCase(unittest.TestCase):
         v1_id = self.vertex_processor.get_vertex_id(self.ir_edge.vertex1)
         v2_id = self.vertex_processor.get_vertex_id(self.ir_edge.vertex2)
         str_color1 = self.defaultEdgeProcessor.shape_processor.get_dot_colors(multicolor=Multicolor(self.color1))[0].value
-        expected_entry = "\"" + str(v1_id) + "\" -- \"" + str(v2_id) + "\" [color=\"" + str_color1 + "\", style=\"dotted\", penwidth=\"0.1\"];"
+        expected_entry = "\"" + str(v1_id) + "\" -- \"" + str(
+            v2_id) + "\" [color=\"" + str_color1 + "\", style=\"dotted\", penwidth=\"0.1\"];"
         self.ir_edge.multicolor = Multicolor(self.color1, self.color1, self.color1)
         graphviz_entries = self.defaultEdgeProcessor.export_edge_as_dot(edge=self.ir_edge)
         self.assertIsInstance(graphviz_entries, list)
@@ -536,9 +563,12 @@ class EdgeProcessorTestCase(unittest.TestCase):
         str_color2 = self.defaultEdgeProcessor.shape_processor.get_dot_colors(multicolor=Multicolor(self.color2))[0].value
         str_color3 = self.defaultEdgeProcessor.shape_processor.get_dot_colors(multicolor=Multicolor(self.color3))[0].value
         self.ir_edge.multicolor = Multicolor(self.color1, self.color1, self.color1, self.color2, self.color2, self.color3)
-        expected_entry1 = "\"" + str(v1_id) + "\" -- \"" + str(v2_id) + "\" [color=\"" + str_color1 + "\", style=\"dotted\", penwidth=\"0.1\"];"
-        expected_entry2 = "\"" + str(v1_id) + "\" -- \"" + str(v2_id) + "\" [color=\"" + str_color2 + "\", style=\"dotted\", penwidth=\"0.1\"];"
-        expected_entry3 = "\"" + str(v1_id) + "\" -- \"" + str(v2_id) + "\" [color=\"" + str_color3 + "\", style=\"dotted\", penwidth=\"0.1\"];"
+        expected_entry1 = "\"" + str(v1_id) + "\" -- \"" + str(
+            v2_id) + "\" [color=\"" + str_color1 + "\", style=\"dotted\", penwidth=\"0.1\"];"
+        expected_entry2 = "\"" + str(v1_id) + "\" -- \"" + str(
+            v2_id) + "\" [color=\"" + str_color2 + "\", style=\"dotted\", penwidth=\"0.1\"];"
+        expected_entry3 = "\"" + str(v1_id) + "\" -- \"" + str(
+            v2_id) + "\" [color=\"" + str_color3 + "\", style=\"dotted\", penwidth=\"0.1\"];"
         graphviz_entries = self.defaultEdgeProcessor.export_edge_as_dot(edge=self.ir_edge)
         self.assertIsInstance(graphviz_entries, list)
         for entry in graphviz_entries:
@@ -555,9 +585,12 @@ class EdgeProcessorTestCase(unittest.TestCase):
         self.assertEqual(v1_id, v3_id)
         self.assertEqual(v2_id, v4_id)
         str_color1 = self.defaultEdgeProcessor.shape_processor.get_dot_colors(multicolor=Multicolor(self.color1))[0].value
-        expected_entry1 = "\"" + str(v1_id) + "\" -- \"" + str(v2_id) + "\" [color=\"" + str_color1 + "\", style=\"dotted\", penwidth=\"0.1\"];"
-        expected_entry2_plain = "\"" + str(v3_id) + "\" -- \"" + str(v2_id) + "\" [color=\"" + str_color1 + "\", style=\"dashed\", penwidth=\"0.5\", fontname=\"Arial\", fontsize=\"7\", fontcolor=\"black\", label=\"r:LLC1h\"];"
-        expected_entry2_html = "\"" + str(v3_id) + "\" -- \"" + str(v2_id) + "\" [color=\"" + str_color1 + "\", style=\"dashed\", penwidth=\"0.5\", fontname=\"Arial\", fontsize=\"7\", fontcolor=\"black\", label=<r:LLC1<SUP>h</SUP>>];"
+        expected_entry1 = "\"" + str(v1_id) + "\" -- \"" + str(
+            v2_id) + "\" [color=\"" + str_color1 + "\", style=\"dotted\", penwidth=\"0.1\"];"
+        expected_entry2_plain = "\"" + str(v3_id) + "\" -- \"" + str(
+            v2_id) + "\" [color=\"" + str_color1 + "\", style=\"dashed\", penwidth=\"0.5\", fontname=\"Arial\", fontsize=\"7\", fontcolor=\"black\", label=\"r:LLC1h\"];"
+        expected_entry2_html = "\"" + str(v3_id) + "\" -- \"" + str(
+            v2_id) + "\" [color=\"" + str_color1 + "\", style=\"dashed\", penwidth=\"0.5\", fontname=\"Arial\", fontsize=\"7\", fontcolor=\"black\", label=<r:LLC1<SUP>h</SUP>>];"
         ir_edge_graphviz_entries = self.defaultEdgeProcessor.export_edge_as_dot(edge=self.ir_edge)
         r_edge_graphviz_entries_plain = self.defaultEdgeProcessor.export_edge_as_dot(edge=self.r_edge)
         r_edge_graphviz_entries_html = self.defaultEdgeProcessor.export_edge_as_dot(edge=self.r_edge, label_format="html")
@@ -585,15 +618,24 @@ class EdgeProcessorTestCase(unittest.TestCase):
         str_color1 = self.defaultEdgeProcessor.shape_processor.get_dot_colors(multicolor=Multicolor(self.color1))[0].value
         str_color2 = self.defaultEdgeProcessor.shape_processor.get_dot_colors(multicolor=Multicolor(self.color2))[0].value
         str_color3 = self.defaultEdgeProcessor.shape_processor.get_dot_colors(multicolor=Multicolor(self.color3))[0].value
-        ie_expected_entry1 = "\"" + str(v1_id) + "\" -- \"" + str(v2_id) + "\" [color=\"" + str_color1 + "\", style=\"dotted\", penwidth=\"0.1\"];"
-        ie_expected_entry2 = "\"" + str(v1_id) + "\" -- \"" + str(v2_id) + "\" [color=\"" + str_color2 + "\", style=\"dotted\", penwidth=\"0.1\"];"
-        ie_expected_entry3 = "\"" + str(v1_id) + "\" -- \"" + str(v2_id) + "\" [color=\"" + str_color3 + "\", style=\"dotted\", penwidth=\"0.1\"];"
-        re1_expected_entry1_plain = "\"" + str(v1_id) + "\" -- \"" + str(v2_id) + "\" [color=\"" + str_color1 + "\", style=\"dashed\", penwidth=\"0.5\", fontname=\"Arial\", fontsize=\"7\", fontcolor=\"black\", label=\"r:LLC1h\"];"
-        re1_expected_entry1_html = "\"" + str(v1_id) + "\" -- \"" + str(v2_id) + "\" [color=\"" + str_color1 + "\", style=\"dashed\", penwidth=\"0.5\", fontname=\"Arial\", fontsize=\"7\", fontcolor=\"black\", label=<r:LLC1<SUP>h</SUP>>];"
-        re2_expected_entry1_plain = "\"" + str(v1_id) + "\" -- \"" + str(v2_id) + "\" [color=\"" + str_color1 + "\", style=\"dashed\", penwidth=\"0.5\", fontname=\"Arial\", fontsize=\"7\", fontcolor=\"black\", label=\"r:LLC2h\"];"
-        re2_expected_entry1_html = "\"" + str(v1_id) + "\" -- \"" + str(v2_id) + "\" [color=\"" + str_color1 + "\", style=\"dashed\", penwidth=\"0.5\", fontname=\"Arial\", fontsize=\"7\", fontcolor=\"black\", label=<r:LLC2<SUP>h</SUP>>];"
-        re2_expected_entry2_plain = "\"" + str(v1_id) + "\" -- \"" + str(v2_id) + "\" [color=\"" + str_color2 + "\", style=\"dashed\", penwidth=\"0.5\", fontname=\"Arial\", fontsize=\"7\", fontcolor=\"black\", label=\"r:LLC2h\"];"
-        re2_expected_entry2_html = "\"" + str(v1_id) + "\" -- \"" + str(v2_id) + "\" [color=\"" + str_color2 + "\", style=\"dashed\", penwidth=\"0.5\", fontname=\"Arial\", fontsize=\"7\", fontcolor=\"black\", label=<r:LLC2<SUP>h</SUP>>];"
+        ie_expected_entry1 = "\"" + str(v1_id) + "\" -- \"" + str(
+            v2_id) + "\" [color=\"" + str_color1 + "\", style=\"dotted\", penwidth=\"0.1\"];"
+        ie_expected_entry2 = "\"" + str(v1_id) + "\" -- \"" + str(
+            v2_id) + "\" [color=\"" + str_color2 + "\", style=\"dotted\", penwidth=\"0.1\"];"
+        ie_expected_entry3 = "\"" + str(v1_id) + "\" -- \"" + str(
+            v2_id) + "\" [color=\"" + str_color3 + "\", style=\"dotted\", penwidth=\"0.1\"];"
+        re1_expected_entry1_plain = "\"" + str(v1_id) + "\" -- \"" + str(
+            v2_id) + "\" [color=\"" + str_color1 + "\", style=\"dashed\", penwidth=\"0.5\", fontname=\"Arial\", fontsize=\"7\", fontcolor=\"black\", label=\"r:LLC1h\"];"
+        re1_expected_entry1_html = "\"" + str(v1_id) + "\" -- \"" + str(
+            v2_id) + "\" [color=\"" + str_color1 + "\", style=\"dashed\", penwidth=\"0.5\", fontname=\"Arial\", fontsize=\"7\", fontcolor=\"black\", label=<r:LLC1<SUP>h</SUP>>];"
+        re2_expected_entry1_plain = "\"" + str(v1_id) + "\" -- \"" + str(
+            v2_id) + "\" [color=\"" + str_color1 + "\", style=\"dashed\", penwidth=\"0.5\", fontname=\"Arial\", fontsize=\"7\", fontcolor=\"black\", label=\"r:LLC2h\"];"
+        re2_expected_entry1_html = "\"" + str(v1_id) + "\" -- \"" + str(
+            v2_id) + "\" [color=\"" + str_color1 + "\", style=\"dashed\", penwidth=\"0.5\", fontname=\"Arial\", fontsize=\"7\", fontcolor=\"black\", label=<r:LLC2<SUP>h</SUP>>];"
+        re2_expected_entry2_plain = "\"" + str(v1_id) + "\" -- \"" + str(
+            v2_id) + "\" [color=\"" + str_color2 + "\", style=\"dashed\", penwidth=\"0.5\", fontname=\"Arial\", fontsize=\"7\", fontcolor=\"black\", label=\"r:LLC2h\"];"
+        re2_expected_entry2_html = "\"" + str(v1_id) + "\" -- \"" + str(
+            v2_id) + "\" [color=\"" + str_color2 + "\", style=\"dashed\", penwidth=\"0.5\", fontname=\"Arial\", fontsize=\"7\", fontcolor=\"black\", label=<r:LLC2<SUP>h</SUP>>];"
         self.ir_edge.multicolor = mc3
         self.r_edge.multicolor = mc1
         self.r_edge2.multicolor = mc2
@@ -627,6 +669,142 @@ class EdgeProcessorTestCase(unittest.TestCase):
             self.assertIn(entry, [re2_expected_entry1_plain, re2_expected_entry2_plain])
         for entry in re2_graphviz_entries_html:
             self.assertIn(entry, [re2_expected_entry1_html, re2_expected_entry2_html])
+
+
+class GraphProcessorTestCase(unittest.TestCase):
+    def setUp(self):
+        self.vertex_processor = VertexProcessor()
+        self.edge_processor = EdgeProcessor(vertex_processor=self.vertex_processor)
+        self.defaultGraphProcessor = GraphProcessor(vertex_processor=self.vertex_processor, edge_processor=self.edge_processor)
+        self.v1 = TaggedBlockVertex("10h")
+        self.v2 = TaggedBlockVertex("10t")
+        self.v3 = TaggedBlockVertex("11t")
+        self.v4 = TaggedBlockVertex("11h")
+        self.i_v1 = TaggedInfinityVertex("10h")
+        self.i_v2 = TaggedInfinityVertex("10t")
+        self.i_v3 = TaggedInfinityVertex("11t")
+        self.i_v4 = TaggedInfinityVertex("11h")
+        self.color1 = BGGenome("genome1")
+        self.color2 = BGGenome("genome2")
+        self.color3 = BGGenome("genome3")
+        self.mc1 = Multicolor(self.color1)
+        self.mc2 = Multicolor(self.color1, self.color2)
+        self.mc3 = Multicolor(self.color1, self.color2, self.color3)
+        self.edge1 = BGEdge(vertex1=self.v1, vertex2=self.v2, multicolor=self.mc1)
+        self.edge2 = BGEdge(vertex1=self.v1, vertex2=self.v3, multicolor=self.mc2)
+        self.edge3 = BGEdge(vertex1=self.v3, vertex2=self.v4, multicolor=self.mc1)
+        self.iedge1 = BGEdge(vertex1=self.v1, vertex2=self.i_v1, multicolor=self.mc2)
+        self.iedge2 = BGEdge(vertex1=self.v2, vertex2=self.i_v2, multicolor=self.mc2)
+        self.iedge3 = BGEdge(vertex1=self.v3, vertex2=self.i_v3, multicolor=self.mc1)
+        self.iedge4 = BGEdge(vertex1=self.v4, vertex2=self.i_v4, multicolor=self.mc3)
+        self.graph = BreakpointGraph()
+        self.graph.add_bgedge(bgedge=self.edge1, merge=False)
+        self.graph.add_bgedge(bgedge=self.edge2, merge=False)
+        self.graph.add_bgedge(bgedge=self.edge3, merge=False)
+        self.graph.add_bgedge(bgedge=self.iedge1, merge=False)
+        self.graph.add_bgedge(bgedge=self.iedge2, merge=False)
+        self.graph.add_bgedge(bgedge=self.iedge3, merge=False)
+        self.graph.add_bgedge(bgedge=self.iedge4, merge=False)
+
+    def test_overall_template(self):
+        self.assertEqual("graph {{\n"
+                         "{edges}\n"
+                         "{vertices}\n"
+                         "}}", self.defaultGraphProcessor.template)
+
+    def test_get_vertices_graphviz_entries_plain(self):
+        vertices_entries = self.defaultGraphProcessor.export_vertices_as_dot(graph=self.graph)
+        expected = [self.vertex_processor.export_vertex_as_dot(vertex=v) for v in
+                    [self.v1, self.v2, self.v3, self.v4, self.i_v1, self.i_v2, self.i_v3, self.i_v4]]
+        self.assertIsInstance(vertices_entries, list)
+        self.assertEqual(len(vertices_entries), 8)
+        for entry in vertices_entries:
+            self.assertIsInstance(entry, str)
+            self.assertIn(entry, expected)
+
+    def test_get_vertices_graphviz_entries_html(self):
+        vertices_entries = self.defaultGraphProcessor.export_vertices_as_dot(graph=self.graph, label_format="html")
+        expected = [self.vertex_processor.export_vertex_as_dot(vertex=v, label_format="html") for v in
+                    [self.v1, self.v2, self.v3, self.v4, self.i_v1, self.i_v2, self.i_v3, self.i_v4]]
+        self.assertIsInstance(vertices_entries, list)
+        self.assertEqual(len(vertices_entries), 8)
+        for entry in vertices_entries:
+            self.assertIsInstance(entry, str)
+            self.assertIn(entry, expected)
+
+    def test_get_edges_graphviz_entries_plain(self):
+        edges_entries = self.defaultGraphProcessor.export_edges_as_dot(graph=self.graph)
+        expected = [entry for e in [self.edge1, self.edge2, self.edge3, self.iedge1, self.iedge2, self.iedge3, self.iedge4] for edge in
+                    [BGEdge(vertex1=e.vertex1, vertex2=e.vertex2, multicolor=e.multicolor),
+                     BGEdge(vertex1=e.vertex2, vertex2=e.vertex1, multicolor=e.multicolor)] for entry in
+                    self.edge_processor.export_edge_as_dot(edge=edge)]
+        self.assertIsInstance(edges_entries, list)
+        self.assertEqual(len(edges_entries), 12)
+        for entry in edges_entries:
+            self.assertIsInstance(entry, str)
+            self.assertIn(entry, expected)
+
+    def test_get_edges_graphviz_entries_html(self):
+        edges_entries = self.defaultGraphProcessor.export_edges_as_dot(graph=self.graph)
+        expected = [entry for e in [self.edge1, self.edge2, self.edge3, self.iedge1, self.iedge2, self.iedge3, self.iedge4] for edge in
+                    [BGEdge(vertex1=e.vertex1, vertex2=e.vertex2, multicolor=e.multicolor),
+                     BGEdge(vertex1=e.vertex2, vertex2=e.vertex1, multicolor=e.multicolor)] for entry in
+                    self.edge_processor.export_edge_as_dot(edge=edge, label_format="html")]
+        self.assertIsInstance(edges_entries, list)
+        self.assertEqual(len(edges_entries), 12)
+        for entry in edges_entries:
+            self.assertIsInstance(entry, str)
+            self.assertIn(entry, expected)
+
+    def test_export_graph_as_dot_plain(self):
+        graph = BreakpointGraph()
+        bg_edge_v1 = BGEdge(vertex1=self.v1, vertex2=self.v2, multicolor=self.mc1)
+        bg_edge_v2 = BGEdge(vertex1=self.v2, vertex2=self.v1, multicolor=self.mc1)
+        graph.add_bgedge(bgedge=bg_edge_v1)
+        expected_v1 = "graph {\n" + \
+                      "\n".join(self.edge_processor.export_edge_as_dot(edge=bg_edge_v1)) + "\n" + \
+                      self.vertex_processor.export_vertex_as_dot(vertex=self.v1) + "\n" + \
+                      self.vertex_processor.export_vertex_as_dot(vertex=self.v2) + "\n" + "}"
+        expected_v2 = "graph {\n" + \
+                      "\n".join(self.edge_processor.export_edge_as_dot(edge=bg_edge_v1)) + "\n" + \
+                      self.vertex_processor.export_vertex_as_dot(vertex=self.v2) + "\n" + \
+                      self.vertex_processor.export_vertex_as_dot(vertex=self.v1) + "\n" + "}"
+        expected_v3 = "graph {\n" + \
+                      "\n".join(self.edge_processor.export_edge_as_dot(edge=bg_edge_v2)) + "\n" + \
+                      self.vertex_processor.export_vertex_as_dot(vertex=self.v1) + "\n" + \
+                      self.vertex_processor.export_vertex_as_dot(vertex=self.v2) + "\n" + "}"
+        expected_v4 = "graph {\n" + \
+                      "\n".join(self.edge_processor.export_edge_as_dot(edge=bg_edge_v2)) + "\n" + \
+                      self.vertex_processor.export_vertex_as_dot(vertex=self.v2) + "\n" + \
+                      self.vertex_processor.export_vertex_as_dot(vertex=self.v1) + "\n" + "}"
+        graph_graphviz_entry = self.defaultGraphProcessor.export_graph_as_dot(graph=graph)
+        self.assertIsInstance(graph_graphviz_entry, str)
+        self.assertIn(graph_graphviz_entry, [expected_v1, expected_v2, expected_v3, expected_v4])
+
+    def test_export_graph_as_dot_html(self):
+        graph = BreakpointGraph()
+        bg_edge_v1 = BGEdge(vertex1=self.v1, vertex2=self.v2, multicolor=self.mc1)
+        bg_edge_v2 = BGEdge(vertex1=self.v2, vertex2=self.v1, multicolor=self.mc1)
+        graph.add_bgedge(bgedge=bg_edge_v1)
+        expected_v1 = "graph {\n" + \
+                      "\n".join(self.edge_processor.export_edge_as_dot(edge=bg_edge_v1, label_format="html")) + "\n" + \
+                      self.vertex_processor.export_vertex_as_dot(vertex=self.v1, label_format="html") + "\n" + \
+                      self.vertex_processor.export_vertex_as_dot(vertex=self.v2, label_format="html") + "\n" + "}"
+        expected_v2 = "graph {\n" + \
+                      "\n".join(self.edge_processor.export_edge_as_dot(edge=bg_edge_v1, label_format="html")) + "\n" + \
+                      self.vertex_processor.export_vertex_as_dot(vertex=self.v2, label_format="html") + "\n" + \
+                      self.vertex_processor.export_vertex_as_dot(vertex=self.v1, label_format="html") + "\n" + "}"
+        expected_v3 = "graph {\n" + \
+                      "\n".join(self.edge_processor.export_edge_as_dot(edge=bg_edge_v2, label_format="html")) + "\n" + \
+                      self.vertex_processor.export_vertex_as_dot(vertex=self.v1, label_format="html") + "\n" + \
+                      self.vertex_processor.export_vertex_as_dot(vertex=self.v2, label_format="html") + "\n" + "}"
+        expected_v4 = "graph {\n" + \
+                      "\n".join(self.edge_processor.export_edge_as_dot(edge=bg_edge_v2, label_format="html")) + "\n" + \
+                      self.vertex_processor.export_vertex_as_dot(vertex=self.v2, label_format="html") + "\n" + \
+                      self.vertex_processor.export_vertex_as_dot(vertex=self.v1, label_format="html") + "\n" + "}"
+        graph_graphviz_entry = self.defaultGraphProcessor.export_graph_as_dot(graph=graph, label_format="html")
+        self.assertIsInstance(graph_graphviz_entry, str)
+        self.assertIn(graph_graphviz_entry, [expected_v1, expected_v2, expected_v3, expected_v4])
 
 
 if __name__ == '__main__':

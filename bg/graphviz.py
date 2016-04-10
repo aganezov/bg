@@ -5,6 +5,7 @@ from enum import Enum
 from bg import Multicolor
 from bg.edge import BGEdge
 from bg.vertices import BGVertex, InfinityVertex, TaggedInfinityVertex
+from bg.breakpoint_graph import BreakpointGraph
 
 
 def vertex_as_a_sting(vertex):
@@ -328,3 +329,27 @@ class EdgeProcessor(object):
                 attributes.extend(self.text_processor.get_attributes_string_list(edge=tmp_edge, label_format=label_format))
             result.append(self.template.format(v1_id=v1_id, v2_id=v2_id, attributes=", ".join(attributes)))
         return result
+
+
+class GraphProcessor(object):
+    def __init__(self, vertex_processor=None, edge_processor=None):
+        self.vertex_processor = vertex_processor if vertex_processor is not None else VertexProcessor()
+        self.edge_processor = edge_processor if edge_processor is not None else EdgeProcessor(vertex_processor=self.vertex_processor)
+        self.template = "graph {{\n{edges}\n{vertices}\n}}"
+
+    def export_vertices_as_dot(self, graph: BreakpointGraph, label_format="plain"):
+        result = []
+        for vertex in graph.nodes():
+            result.append(self.vertex_processor.export_vertex_as_dot(vertex=vertex, label_format=label_format))
+        return result
+
+    def export_edges_as_dot(self, graph: BreakpointGraph, label_format="plain"):
+        result = []
+        for edge in graph.edges():
+            result.extend(self.edge_processor.export_edge_as_dot(edge=edge, label_format=label_format))
+        return result
+
+    def export_graph_as_dot(self, graph, label_format="plain"):
+        vertices_entries = self.export_vertices_as_dot(graph=graph, label_format=label_format)
+        edges_entries = self.export_edges_as_dot(graph=graph, label_format=label_format)
+        return self.template.format(edges="\n".join(edges_entries), vertices="\n".join(vertices_entries))
