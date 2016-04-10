@@ -116,7 +116,7 @@ class VertexProcessorTestCase(unittest.TestCase):
         self.assertIsInstance(self.defaultVertexProcessor.text_processor, VertexTextProcessor)
 
     def test_overall_template(self):
-        self.assertEqual("{v_id} [{attributes}];", self.defaultVertexProcessor.template)
+        self.assertEqual("\"{v_id}\" [{attributes}];", self.defaultVertexProcessor.template)
 
     def test_getting_non_bg_vertex_id(self):
         vertex = "1"
@@ -150,7 +150,7 @@ class VertexProcessorTestCase(unittest.TestCase):
                             self.defaultVertexProcessor.get_vertex_id(vertex=vertex3))
         self.assertEqual(2, self.defaultVertexProcessor.get_vertex_id(vertex=vertex3))
 
-    def test_getting_irregular_bg_vertices_same_blcok_different_tags(self):
+    def test_getting_irregular_bg_vertices_same_block_different_tags(self):
         ir_vertex1 = TaggedInfinityVertex("10t")
         ir_vertex2 = TaggedInfinityVertex("10t")
         ir_vertex1.add_tag("repeat", "1h")
@@ -166,25 +166,25 @@ class VertexProcessorTestCase(unittest.TestCase):
 
     def test_full_regular_vertex_graphviz_export_all_default(self):
         vertex = TaggedBlockVertex("10t")
-        self.assertEqual("1 [label=\"10t\", fontname=\"Arial\", fontsize=\"12\", fontcolor=\"black\", shape=\"oval\", penwidth=\"1\"];",
+        self.assertEqual("\"1\" [label=\"10t\", fontname=\"Arial\", fontsize=\"12\", fontcolor=\"black\", shape=\"oval\", penwidth=\"1\"];",
                          self.defaultVertexProcessor.export_vertex_as_dot(vertex=vertex))
-        self.assertEqual("1 [label=<10<SUP>t</SUP>>, fontname=\"Arial\", fontsize=\"12\", fontcolor=\"black\", shape=\"oval\", penwidth=\"1\"];",
+        self.assertEqual("\"1\" [label=<10<SUP>t</SUP>>, fontname=\"Arial\", fontsize=\"12\", fontcolor=\"black\", shape=\"oval\", penwidth=\"1\"];",
                          self.defaultVertexProcessor.export_vertex_as_dot(vertex=vertex, label_format="html"))
 
     def test_full_regular_vertex_with_tags_export_all_default(self):
         vertex = TaggedBlockVertex("10t")
         vertex.add_tag("tag1", 1)
         vertex.add_tag("tag2", 2)
-        self.assertEqual("1 [label=\"10t (tag1:1) (tag2:2)\", fontname=\"Arial\", fontsize=\"12\", fontcolor=\"black\", shape=\"oval\", penwidth=\"1\"];",
+        self.assertEqual("\"1\" [label=\"10t (tag1:1) (tag2:2)\", fontname=\"Arial\", fontsize=\"12\", fontcolor=\"black\", shape=\"oval\", penwidth=\"1\"];",
                                                                                          self.defaultVertexProcessor.export_vertex_as_dot(vertex=vertex))
         self.assertEqual(
-            "1 [label=<10<SUP>t</SUP> (tag1:1) (tag2:2)>, fontname=\"Arial\", fontsize=\"12\", fontcolor=\"black\", shape=\"oval\", penwidth=\"1\"];",
+            "\"1\" [label=<10<SUP>t</SUP> (tag1:1) (tag2:2)>, fontname=\"Arial\", fontsize=\"12\", fontcolor=\"black\", shape=\"oval\", penwidth=\"1\"];",
             self.defaultVertexProcessor.export_vertex_as_dot(vertex=vertex, label_format="html"))
 
     def test_full_irregular_vertex_graphviz_entry_all_default(self):
         vertex = TaggedInfinityVertex("10t")
-        self.assertEqual("1 [shape=\"point\", penwidth=\"1\"];", self.defaultVertexProcessor.export_vertex_as_dot(vertex=vertex))
-        self.assertEqual("1 [shape=\"point\", penwidth=\"1\"];", self.defaultVertexProcessor.export_vertex_as_dot(vertex=vertex, label_format="html"))
+        self.assertEqual("\"1\" [shape=\"point\", penwidth=\"1\"];", self.defaultVertexProcessor.export_vertex_as_dot(vertex=vertex))
+        self.assertEqual("\"1\" [shape=\"point\", penwidth=\"1\"];", self.defaultVertexProcessor.export_vertex_as_dot(vertex=vertex, label_format="html"))
 
 
 class EdgeShapeProcessorTestCase(unittest.TestCase):
@@ -408,12 +408,18 @@ class EdgeProcessorTestCase(unittest.TestCase):
         self.defaultEdgeProcessor = EdgeProcessor(vertex_processor=self.vertex_processor)
         self.regular_vertex = TaggedBlockVertex(1)
         self.regular_vertex2 = TaggedBlockVertex(2)
-        self.edge = BGEdge(vertex1=self.regular_vertex, vertex2=self.regular_vertex2, multicolor=Multicolor())
+        self.color1 = BGGenome("genome1")
+        self.color2 = BGGenome("genome2")
+        self.color3 = BGGenome("genome3")
+        self.edge = BGEdge(vertex1=self.regular_vertex, vertex2=self.regular_vertex2, multicolor=Multicolor(self.color1))
         self.irregular_vertex = InfinityVertex("v1")
-        self.ir_edge = BGEdge(vertex1=self.regular_vertex, vertex2=self.irregular_vertex, multicolor=Multicolor())
+        self.ir_edge = BGEdge(vertex1=self.regular_vertex, vertex2=self.irregular_vertex, multicolor=Multicolor(self.color1))
         self.repeat_vertex = TaggedInfinityVertex("v1")
-        self.repeat_vertex.add_tag("repeat", "rrr1")
-        self.r_edge = BGEdge(vertex1=self.regular_vertex, vertex2=self.repeat_vertex, multicolor=Multicolor())
+        self.repeat_vertex.add_tag("repeat", "LLC1h")
+        self.r_edge = BGEdge(vertex1=self.regular_vertex, vertex2=self.repeat_vertex, multicolor=Multicolor(self.color1))
+        self.repeat_vertex2 = TaggedInfinityVertex("v1")
+        self.repeat_vertex2.add_tag("repeat", "LLC2h")
+        self.r_edge2 = BGEdge(vertex1=self.regular_vertex, vertex2=self.repeat_vertex2, multicolor=Multicolor(self.color1))
 
     def test_edge_shape_processor_field(self):
         self.assertIsInstance(self.defaultEdgeProcessor.shape_processor, EdgeShapeProcessor)
@@ -421,11 +427,206 @@ class EdgeProcessorTestCase(unittest.TestCase):
     def test_edge_text_processor_field(self):
         self.assertIsInstance(self.defaultEdgeProcessor.text_processor, EdgeTextProcessor)
 
-    def test_full_regular_edge_graphviz_entry(self):
+    def test_overall_template(self):
+        self.assertEqual("\"{v1_id}\" -- \"{v2_id}\" [{attributes}];", self.defaultEdgeProcessor.template)
+
+    def test_regular_edge_graphviz_export_entries_single_colored_no_multiplicity(self):
         v1_id = self.vertex_processor.get_vertex_id(self.edge.vertex1)
         v2_id = self.vertex_processor.get_vertex_id(self.edge.vertex2)
-        expected = str(v1_id) + " -- " + str(v2_id) + " [];"
+        str_color1 = self.defaultEdgeProcessor.shape_processor.get_dot_colors(multicolor=self.edge.multicolor)[0].value
+        expected_entry = "\"" + str(v1_id) + "\" -- \"" + str(v2_id) + "\" [color=\"" + str_color1 + "\", style=\"solid\", penwidth=\"1\"];"
+        graphviz_entries = self.defaultEdgeProcessor.export_edge_as_dot(edge=self.edge)
+        self.assertIsInstance(graphviz_entries, list)
+        for entry in graphviz_entries:
+            self.assertIsInstance(entry, str)
+        self.assertEqual(len(graphviz_entries), 1)
+        self.assertEqual(graphviz_entries[0], expected_entry)
 
+    def test_regular_edge_graphviz_export_entries_multi_colored_no_multiplicity(self):
+        v1_id = self.vertex_processor.get_vertex_id(self.edge.vertex1)
+        v2_id = self.vertex_processor.get_vertex_id(self.edge.vertex2)
+        str_color1 = self.defaultEdgeProcessor.shape_processor.get_dot_colors(multicolor=Multicolor(self.color1))[0].value
+        str_color2 = self.defaultEdgeProcessor.shape_processor.get_dot_colors(multicolor=Multicolor(self.color2))[0].value
+        expected_entry_1 = "\"" + str(v1_id) + "\" -- \"" + str(v2_id) + "\" [color=\"" + str_color1 + "\", style=\"solid\", penwidth=\"1\"];"
+        expected_entry_2 = "\"" + str(v1_id) + "\" -- \"" + str(v2_id) + "\" [color=\"" + str_color2 + "\", style=\"solid\", penwidth=\"1\"];"
+        self.edge.multicolor = Multicolor(self.color1, self.color2)
+        graphviz_entries = self.defaultEdgeProcessor.export_edge_as_dot(edge=self.edge)
+        self.assertIsInstance(graphviz_entries, list)
+        self.assertEqual(len(graphviz_entries), 2)
+        for entry in graphviz_entries:
+            self.assertIsInstance(entry, str)
+            self.assertIn(entry, [expected_entry_1, expected_entry_2])
+
+    def test_regular_edge_graphviz_export_entries_single_colored_with_multiplicity(self):
+        v1_id = self.vertex_processor.get_vertex_id(self.edge.vertex1)
+        v2_id = self.vertex_processor.get_vertex_id(self.edge.vertex2)
+        str_color1 = self.defaultEdgeProcessor.shape_processor.get_dot_colors(multicolor=self.edge.multicolor)[0].value
+        expected_entry = "\"" + str(v1_id) + "\" -- \"" + str(v2_id) + "\" [color=\"" + str_color1 + "\", style=\"solid\", penwidth=\"1\"];"
+        self.edge.multicolor = Multicolor(self.color1, self.color1, self.color1)
+        graphviz_entries = self.defaultEdgeProcessor.export_edge_as_dot(edge=self.edge)
+        self.assertIsInstance(graphviz_entries, list)
+        for entry in graphviz_entries:
+            self.assertIsInstance(entry, str)
+            self.assertEqual(entry, expected_entry)
+        self.assertEqual(len(graphviz_entries), 3)
+
+    def test_regular_edge_graphviz_export_entries_multi_colored_with_multiplicity(self):
+        v1_id = self.vertex_processor.get_vertex_id(self.edge.vertex1)
+        v2_id = self.vertex_processor.get_vertex_id(self.edge.vertex2)
+        str_color1 = self.defaultEdgeProcessor.shape_processor.get_dot_colors(multicolor=Multicolor(self.color1))[0].value
+        str_color2 = self.defaultEdgeProcessor.shape_processor.get_dot_colors(multicolor=Multicolor(self.color2))[0].value
+        str_color3 = self.defaultEdgeProcessor.shape_processor.get_dot_colors(multicolor=Multicolor(self.color3))[0].value
+        expected_entry_1 = "\"" + str(v1_id) + "\" -- \"" + str(v2_id) + "\" [color=\"" + str_color1 + "\", style=\"solid\", penwidth=\"1\"];"
+        expected_entry_2 = "\"" + str(v1_id) + "\" -- \"" + str(v2_id) + "\" [color=\"" + str_color2 + "\", style=\"solid\", penwidth=\"1\"];"
+        expected_entry_3 = "\"" + str(v1_id) + "\" -- \"" + str(v2_id) + "\" [color=\"" + str_color3 + "\", style=\"solid\", penwidth=\"1\"];"
+        self.edge.multicolor = Multicolor(self.color1, self.color2, self.color1, self.color1, self.color2, self.color3)
+        graphviz_entries = self.defaultEdgeProcessor.export_edge_as_dot(edge=self.edge)
+        self.assertIsInstance(graphviz_entries, list)
+        self.assertEqual(len(graphviz_entries), 6)
+        for entry in graphviz_entries:
+            self.assertIsInstance(entry, str)
+            self.assertIn(entry, [expected_entry_1, expected_entry_2, expected_entry_3])
+
+    def test_irregular_edge_graphviz_export_entries_single_colored_no_multiplicity(self):
+        v1_id = self.vertex_processor.get_vertex_id(self.ir_edge.vertex1)
+        v2_id = self.vertex_processor.get_vertex_id(self.ir_edge.vertex2)
+        str_color1 = self.defaultEdgeProcessor.shape_processor.get_dot_colors(multicolor=self.ir_edge.multicolor)[0].value
+        expected_entry = "\"" + str(v1_id) + "\" -- \"" + str(v2_id) + "\" [color=\"" + str_color1 + "\", style=\"dotted\", penwidth=\"0.1\"];"
+        graphviz_entries = self.defaultEdgeProcessor.export_edge_as_dot(edge=self.ir_edge)
+        self.assertIsInstance(graphviz_entries, list)
+        for entry in graphviz_entries:
+            self.assertIsInstance(entry, str)
+        self.assertEqual(len(graphviz_entries), 1)
+        self.assertEqual(graphviz_entries[0], expected_entry)
+
+    def test_irregular_edge_graphviz_export_entries_multi_colored_no_multiplicity(self):
+        v1_id = self.vertex_processor.get_vertex_id(self.ir_edge.vertex1)
+        v2_id = self.vertex_processor.get_vertex_id(self.ir_edge.vertex2)
+        str_color1 = self.defaultEdgeProcessor.shape_processor.get_dot_colors(multicolor=Multicolor(self.color1))[0].value
+        str_color2 = self.defaultEdgeProcessor.shape_processor.get_dot_colors(multicolor=Multicolor(self.color2))[0].value
+        self.ir_edge.multicolor = Multicolor(self.color1, self.color2)
+        expected_entry1 = "\"" + str(v1_id) + "\" -- \"" + str(v2_id) + "\" [color=\"" + str_color1 + "\", style=\"dotted\", penwidth=\"0.1\"];"
+        expected_entry2 = "\"" + str(v1_id) + "\" -- \"" + str(v2_id) + "\" [color=\"" + str_color2 + "\", style=\"dotted\", penwidth=\"0.1\"];"
+        graphviz_entries = self.defaultEdgeProcessor.export_edge_as_dot(edge=self.ir_edge)
+        self.assertIsInstance(graphviz_entries, list)
+        for entry in graphviz_entries:
+            self.assertIsInstance(entry, str)
+            self.assertIn(entry, [expected_entry1, expected_entry2])
+        self.assertEqual(len(graphviz_entries), 2)
+        self.assertEqual(len(set(graphviz_entries)), 2)
+
+    def test_irregular_edge_graphviz_export_entries_single_colored_with_multiplicity(self):
+        v1_id = self.vertex_processor.get_vertex_id(self.ir_edge.vertex1)
+        v2_id = self.vertex_processor.get_vertex_id(self.ir_edge.vertex2)
+        str_color1 = self.defaultEdgeProcessor.shape_processor.get_dot_colors(multicolor=Multicolor(self.color1))[0].value
+        expected_entry = "\"" + str(v1_id) + "\" -- \"" + str(v2_id) + "\" [color=\"" + str_color1 + "\", style=\"dotted\", penwidth=\"0.1\"];"
+        self.ir_edge.multicolor = Multicolor(self.color1, self.color1, self.color1)
+        graphviz_entries = self.defaultEdgeProcessor.export_edge_as_dot(edge=self.ir_edge)
+        self.assertIsInstance(graphviz_entries, list)
+        for entry in graphviz_entries:
+            self.assertIsInstance(entry, str)
+            self.assertEqual(entry, expected_entry)
+        self.assertEqual(len(graphviz_entries), 3)
+        self.assertEqual(len(set(graphviz_entries)), 1)
+
+    def test_irregular_edge_graphviz_export_entries_multi_colored_with_multiplicity(self):
+        v1_id = self.vertex_processor.get_vertex_id(self.ir_edge.vertex1)
+        v2_id = self.vertex_processor.get_vertex_id(self.ir_edge.vertex2)
+        str_color1 = self.defaultEdgeProcessor.shape_processor.get_dot_colors(multicolor=Multicolor(self.color1))[0].value
+        str_color2 = self.defaultEdgeProcessor.shape_processor.get_dot_colors(multicolor=Multicolor(self.color2))[0].value
+        str_color3 = self.defaultEdgeProcessor.shape_processor.get_dot_colors(multicolor=Multicolor(self.color3))[0].value
+        self.ir_edge.multicolor = Multicolor(self.color1, self.color1, self.color1, self.color2, self.color2, self.color3)
+        expected_entry1 = "\"" + str(v1_id) + "\" -- \"" + str(v2_id) + "\" [color=\"" + str_color1 + "\", style=\"dotted\", penwidth=\"0.1\"];"
+        expected_entry2 = "\"" + str(v1_id) + "\" -- \"" + str(v2_id) + "\" [color=\"" + str_color2 + "\", style=\"dotted\", penwidth=\"0.1\"];"
+        expected_entry3 = "\"" + str(v1_id) + "\" -- \"" + str(v2_id) + "\" [color=\"" + str_color3 + "\", style=\"dotted\", penwidth=\"0.1\"];"
+        graphviz_entries = self.defaultEdgeProcessor.export_edge_as_dot(edge=self.ir_edge)
+        self.assertIsInstance(graphviz_entries, list)
+        for entry in graphviz_entries:
+            self.assertIsInstance(entry, str)
+            self.assertIn(entry, [expected_entry1, expected_entry2, expected_entry3])
+        self.assertEqual(len(graphviz_entries), 6)
+        self.assertEqual(len(set(graphviz_entries)), 3)
+
+    def test_repeat_edge_graphviz_export_entries_joined_with_irregular_edge_single_colored(self):
+        v1_id = self.vertex_processor.get_vertex_id(self.ir_edge.vertex1)
+        v2_id = self.vertex_processor.get_vertex_id(self.ir_edge.vertex2)
+        v3_id = self.vertex_processor.get_vertex_id(self.r_edge.vertex1)
+        v4_id = self.vertex_processor.get_vertex_id(self.r_edge.vertex2)
+        self.assertEqual(v1_id, v3_id)
+        self.assertEqual(v2_id, v4_id)
+        str_color1 = self.defaultEdgeProcessor.shape_processor.get_dot_colors(multicolor=Multicolor(self.color1))[0].value
+        expected_entry1 = "\"" + str(v1_id) + "\" -- \"" + str(v2_id) + "\" [color=\"" + str_color1 + "\", style=\"dotted\", penwidth=\"0.1\"];"
+        expected_entry2_plain = "\"" + str(v3_id) + "\" -- \"" + str(v2_id) + "\" [color=\"" + str_color1 + "\", style=\"dashed\", penwidth=\"0.5\", fontname=\"Arial\", fontsize=\"7\", fontcolor=\"black\", label=\"r:LLC1h\"];"
+        expected_entry2_html = "\"" + str(v3_id) + "\" -- \"" + str(v2_id) + "\" [color=\"" + str_color1 + "\", style=\"dashed\", penwidth=\"0.5\", fontname=\"Arial\", fontsize=\"7\", fontcolor=\"black\", label=<r:LLC1<SUP>h</SUP>>];"
+        ir_edge_graphviz_entries = self.defaultEdgeProcessor.export_edge_as_dot(edge=self.ir_edge)
+        r_edge_graphviz_entries_plain = self.defaultEdgeProcessor.export_edge_as_dot(edge=self.r_edge)
+        r_edge_graphviz_entries_html = self.defaultEdgeProcessor.export_edge_as_dot(edge=self.r_edge, label_format="html")
+        for export_entry in [ir_edge_graphviz_entries, r_edge_graphviz_entries_plain, r_edge_graphviz_entries_html]:
+            self.assertIsInstance(export_entry, list)
+            self.assertEqual(len(export_entry), 1)
+        self.assertEqual(ir_edge_graphviz_entries[0], expected_entry1)
+        self.assertEqual(r_edge_graphviz_entries_plain[0], expected_entry2_plain)
+        self.assertEqual(r_edge_graphviz_entries_html[0], expected_entry2_html)
+
+    def test_repeat_edge_graphviz_export_entries_joined_with_other_repeat_edges_ad_irregular_edges_multi_colored(self):
+        v1_id = self.vertex_processor.get_vertex_id(self.ir_edge.vertex1)
+        v2_id = self.vertex_processor.get_vertex_id(self.ir_edge.vertex2)
+        v3_id = self.vertex_processor.get_vertex_id(self.r_edge.vertex1)
+        v4_id = self.vertex_processor.get_vertex_id(self.r_edge.vertex2)
+        v5_id = self.vertex_processor.get_vertex_id(self.r_edge2.vertex1)
+        v6_id = self.vertex_processor.get_vertex_id(self.r_edge2.vertex2)
+        self.assertEqual(v1_id, v3_id)
+        self.assertEqual(v3_id, v5_id)
+        self.assertEqual(v2_id, v4_id)
+        self.assertEqual(v4_id, v6_id)
+        mc1 = Multicolor(self.color1, self.color1)
+        mc2 = Multicolor(self.color1, self.color2)
+        mc3 = Multicolor(self.color1, self.color2, self.color3, self.color3)
+        str_color1 = self.defaultEdgeProcessor.shape_processor.get_dot_colors(multicolor=Multicolor(self.color1))[0].value
+        str_color2 = self.defaultEdgeProcessor.shape_processor.get_dot_colors(multicolor=Multicolor(self.color2))[0].value
+        str_color3 = self.defaultEdgeProcessor.shape_processor.get_dot_colors(multicolor=Multicolor(self.color3))[0].value
+        ie_expected_entry1 = "\"" + str(v1_id) + "\" -- \"" + str(v2_id) + "\" [color=\"" + str_color1 + "\", style=\"dotted\", penwidth=\"0.1\"];"
+        ie_expected_entry2 = "\"" + str(v1_id) + "\" -- \"" + str(v2_id) + "\" [color=\"" + str_color2 + "\", style=\"dotted\", penwidth=\"0.1\"];"
+        ie_expected_entry3 = "\"" + str(v1_id) + "\" -- \"" + str(v2_id) + "\" [color=\"" + str_color3 + "\", style=\"dotted\", penwidth=\"0.1\"];"
+        re1_expected_entry1_plain = "\"" + str(v1_id) + "\" -- \"" + str(v2_id) + "\" [color=\"" + str_color1 + "\", style=\"dashed\", penwidth=\"0.5\", fontname=\"Arial\", fontsize=\"7\", fontcolor=\"black\", label=\"r:LLC1h\"];"
+        re1_expected_entry1_html = "\"" + str(v1_id) + "\" -- \"" + str(v2_id) + "\" [color=\"" + str_color1 + "\", style=\"dashed\", penwidth=\"0.5\", fontname=\"Arial\", fontsize=\"7\", fontcolor=\"black\", label=<r:LLC1<SUP>h</SUP>>];"
+        re2_expected_entry1_plain = "\"" + str(v1_id) + "\" -- \"" + str(v2_id) + "\" [color=\"" + str_color1 + "\", style=\"dashed\", penwidth=\"0.5\", fontname=\"Arial\", fontsize=\"7\", fontcolor=\"black\", label=\"r:LLC2h\"];"
+        re2_expected_entry1_html = "\"" + str(v1_id) + "\" -- \"" + str(v2_id) + "\" [color=\"" + str_color1 + "\", style=\"dashed\", penwidth=\"0.5\", fontname=\"Arial\", fontsize=\"7\", fontcolor=\"black\", label=<r:LLC2<SUP>h</SUP>>];"
+        re2_expected_entry2_plain = "\"" + str(v1_id) + "\" -- \"" + str(v2_id) + "\" [color=\"" + str_color2 + "\", style=\"dashed\", penwidth=\"0.5\", fontname=\"Arial\", fontsize=\"7\", fontcolor=\"black\", label=\"r:LLC2h\"];"
+        re2_expected_entry2_html = "\"" + str(v1_id) + "\" -- \"" + str(v2_id) + "\" [color=\"" + str_color2 + "\", style=\"dashed\", penwidth=\"0.5\", fontname=\"Arial\", fontsize=\"7\", fontcolor=\"black\", label=<r:LLC2<SUP>h</SUP>>];"
+        self.ir_edge.multicolor = mc3
+        self.r_edge.multicolor = mc1
+        self.r_edge2.multicolor = mc2
+        ie_graphviz_entries = self.defaultEdgeProcessor.export_edge_as_dot(edge=self.ir_edge)
+        re1_graphviz_entries_plain = self.defaultEdgeProcessor.export_edge_as_dot(edge=self.r_edge)
+        re1_graphviz_entries_html = self.defaultEdgeProcessor.export_edge_as_dot(edge=self.r_edge, label_format="html")
+        re2_graphviz_entries_plain = self.defaultEdgeProcessor.export_edge_as_dot(edge=self.r_edge2)
+        re2_graphviz_entries_html = self.defaultEdgeProcessor.export_edge_as_dot(edge=self.r_edge2, label_format="html")
+        self.assertIsInstance(ie_graphviz_entries, list)
+        self.assertEqual(len(ie_graphviz_entries), 4)
+        self.assertEqual(len(set(ie_graphviz_entries)), 3)
+        for entry in ie_graphviz_entries:
+            self.assertIn(entry, [ie_expected_entry1, ie_expected_entry2, ie_expected_entry3])
+        self.assertIsInstance(re1_graphviz_entries_plain, list)
+        self.assertIsInstance(re1_graphviz_entries_html, list)
+        self.assertEqual(len(re1_graphviz_entries_plain), 2)
+        self.assertEqual(len(set(re1_graphviz_entries_plain)), 1)
+        self.assertEqual(len(re1_graphviz_entries_html), 2)
+        self.assertEqual(len(set(re1_graphviz_entries_html)), 1)
+        for entry in re1_graphviz_entries_plain:
+            self.assertEqual(entry, re1_expected_entry1_plain)
+        for entry in re1_graphviz_entries_html:
+            self.assertEqual(entry, re1_expected_entry1_html)
+        self.assertIsInstance(re2_graphviz_entries_plain, list)
+        self.assertIsInstance(re2_graphviz_entries_html, list)
+        self.assertEqual(len(re2_graphviz_entries_plain), 2)
+        self.assertEqual(len(set(re2_graphviz_entries_plain)), 2)
+        self.assertEqual(len(re2_graphviz_entries_html), 2)
+        self.assertEqual(len(set(re2_graphviz_entries_html)), 2)
+        for entry in re2_graphviz_entries_plain:
+            self.assertIn(entry, [re2_expected_entry1_plain, re2_expected_entry2_plain])
+        for entry in re2_graphviz_entries_html:
+            self.assertIn(entry, [re2_expected_entry1_html, re2_expected_entry2_html])
 
 
 if __name__ == '__main__':

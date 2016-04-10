@@ -2,6 +2,7 @@
 from collections import deque
 from enum import Enum
 
+from bg import Multicolor
 from bg.edge import BGEdge
 from bg.vertices import BGVertex, InfinityVertex, TaggedInfinityVertex
 
@@ -109,7 +110,7 @@ class VertexProcessor(object):
         self.vertices_ids_storage = {}
         self.shape_processor = shape_processor if shape_processor is not None else VertexShapeProcessor()
         self.text_processor = text_processor if text_processor is not None else VertexTextProcessor()
-        self.template = "{v_id} [{attributes}];"
+        self.template = "\"{v_id}\" [{attributes}];"
 
     def get_vertex_id(self, vertex):
         if isinstance(vertex, InfinityVertex):
@@ -273,8 +274,6 @@ class EdgeTextProcessor(object):
             tag_key_processor = self._tag_key_processor
         if tag_value_processor is None:
             tag_value_processor = self._tag_value_processor
-        # if not isinstance(edge, BGEdge) or not edge.is_repeat_edge:
-        #     return "\"\""
         text = ""
         if isinstance(edge.vertex1, TaggedInfinityVertex):
             for tag, value in edge.vertex1.tags:
@@ -316,3 +315,16 @@ class EdgeProcessor(object):
         self.shape_processor = edge_shape_processor if edge_shape_processor is not None else EdgeShapeProcessor()
         self.text_processor = edge_text_processor if edge_text_processor is not None else EdgeTextProcessor()
         self.vertex_processor = vertex_processor
+        self.template = "\"{v1_id}\" -- \"{v2_id}\" [{attributes}];"
+
+    def export_edge_as_dot(self, edge, label_format=EdgeTextProcessor.EdgeTextType.plain):
+        v1_id = self.vertex_processor.get_vertex_id(vertex=edge.vertex1)
+        v2_id = self.vertex_processor.get_vertex_id(vertex=edge.vertex2)
+        result = []
+        for color in edge.multicolor.multicolors.elements():
+            tmp_edge = BGEdge(vertex1=edge.vertex1, vertex2=edge.vertex2, multicolor=Multicolor(color), data=edge.data)
+            attributes = self.shape_processor.get_attributes_string_list(edge=tmp_edge)
+            if len(self.text_processor.get_text(edge=tmp_edge)) > 2:
+                attributes.extend(self.text_processor.get_attributes_string_list(edge=tmp_edge, label_format=label_format))
+            result.append(self.template.format(v1_id=v1_id, v2_id=v2_id, attributes=", ".join(attributes)))
+        return result
