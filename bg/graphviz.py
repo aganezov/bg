@@ -85,6 +85,7 @@ class ColorSource(object):
     def __init__(self):
         self.color_to_dot_color = {}
         self.unused_colors = deque([
+            Colors.black,
             Colors.red,
             Colors.green,
             Colors.teal,
@@ -175,7 +176,7 @@ class TextProcessor:
         return [self.label_attrib_template.format(label=self.get_text(entry=entry, label_format=label_format)),
                 self.font_attrib_template.format(font=self.text_font_name),
                 self.size_attrib_template.format(size=self.text_size),
-                self.color_attrib_template.format(color=self.color.value)]
+                self.color_attrib_template.format(color=self.get_text_color(entry=entry))]
 
 
 class VertexShapeProcessor(ShapeProcessor):
@@ -297,9 +298,8 @@ class EdgeShapeProcessor(ShapeProcessor):
 
 
 class EdgeTextProcessor(TextProcessor):
-    def __init__(self):
-        super().__init__()
-        self.text_size = 7
+    def __init__(self, size=7, font_name="Arial", color=Colors.black):
+        super().__init__(size=7, font_name=font_name, color=color)
 
     def get_text(self, entry=None, label_format=LabelFormat.plain, tag_key_processor=None, tag_value_processor=None):
         """
@@ -414,3 +414,29 @@ class TreeVertexShapeProcessor(VertexShapeProcessor):
         else:
             entry = None
         return super().get_color_as_string(entry=entry)
+
+
+class TreeVertexTextProcessor(TextProcessor):
+    def __init__(self, color=Colors.black, size=12, font_name="Arial", color_source=None):
+        super().__init__(color=color, size=size, font_name=font_name)
+        self.color_source = color_source if color_source is not None else ColorSource()
+
+    def get_text_color(self, entry=None):
+        if entry is None or not isinstance(entry, TreeNode):
+            return super().get_text_color(entry=entry)
+        if entry.is_leaf():
+            entry = entry.name
+        else:
+            entry = ""
+        return self.color_source.get_color_as_string(entry=entry)
+
+    def get_text(self, entry=None, label_format=LabelFormat.plain):
+        if entry is None or not isinstance(entry, TreeNode):
+            return super().get_text(entry=entry, label_format=label_format)
+        text = ""
+        if entry.is_leaf():
+            text += entry.name
+        if label_format == LabelFormat.html or label_format == LabelFormat.html.value:
+            return "<" + text + ">"
+        return "\"" + text + "\""
+
