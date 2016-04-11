@@ -7,7 +7,7 @@ from bg import BGGenome
 from bg.edge import BGEdge
 from bg.multicolor import Multicolor
 from bg.graphviz import BGVertexShapeProcessor, BGVertexTextProcessor, BGVertexProcessor, EdgeShapeProcessor, EdgeProcessor, EdgeTextProcessor, \
-    GraphProcessor, LabelFormat, Colors, TreeVertexShapeProcessor, TreeVertexTextProcessor, TreeVertexProcessor
+    GraphProcessor, LabelFormat, Colors, TreeVertexShapeProcessor, TreeVertexTextProcessor, TreeVertexProcessor, TreeEdgeShapeProcessor
 from bg.vertices import TaggedBlockVertex, TaggedInfinityVertex, BlockVertex, InfinityVertex
 from bg.breakpoint_graph import BreakpointGraph
 from bg.tree import BGTree
@@ -817,6 +817,10 @@ class TreeTestCase(unittest.TestCase):
         self.non_leaf_nodes_binary_tree = [node for node in self.binary_tree.nodes() if not node.is_leaf()]
         self.leaf_nodes_non_binary_tree = [node for node in self.non_binary_tree.nodes() if node.is_leaf()]
         self.non_leaf_nodes_non_binary_tree = [node for node in self.non_binary_tree.nodes() if not node.is_leaf()]
+        self.leaf_branches_binary_tree = [edge for edge in self.binary_tree.edges() if isinstance(edge[0], BGGenome) or isinstance(edge[1], BGGenome)]
+        self.non_leaf_branches_binary_tree = [edge for edge in self.binary_tree.edges() if not isinstance(edge[0], BGGenome) and not isinstance(edge[1], BGGenome)]
+        self.leaf_branches_non_binary_tree = [edge for edge in self.non_binary_tree.edges() if isinstance(edge[0], BGGenome) or isinstance(edge[1], BGGenome)]
+        self.non_leaf_branches_non_binary_tree = [edge for edge in self.non_binary_tree.edges() if not isinstance(edge[0], BGGenome) and not isinstance(edge[1], BGGenome)]
         self.genome1 = BGGenome("a")
         self.genome2 = BGGenome("b")
         self.genome3 = BGGenome("c")
@@ -1082,6 +1086,20 @@ class TreeVertexProcessorTestCase(TreeTestCase):
         self.assertEqual(self.default_tree_vertex_processor.export_vertex_as_dot(vertex=v, label_format=LabelFormat.html), expected)
         self.assertEqual(self.default_tree_vertex_processor.export_vertex_as_dot(vertex=v, label_format="html"), expected)
 
+
+class TreeEdgeShapeProcessorTestCase(TreeTestCase):
+    def setUp(self):
+        super().setUp()
+        self.default_tree_edge_shape_processor = TreeEdgeShapeProcessor()
+
+    def test_color_attrib_template(self):
+        self.assertEqual("color=\"{color}\"", self.default_tree_edge_shape_processor.color_attrib_template)
+
+    def test_style_attrib_template(self):
+        self.assertEqual("style=\"{style}\"", self.default_tree_edge_shape_processor.style_attrib_template)
+
+    def test_pen_width_attrib_template(self):
+        self.assertEqual("penwidth=\"{pen_width}\"", self.default_tree_edge_shape_processor.pen_width_attrib_template)
 
 if __name__ == '__main__':
     unittest.main()

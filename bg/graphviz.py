@@ -478,3 +478,8 @@ class TreeVertexProcessor(VertexProcessor):
             attributes.extend(self.text_processor.get_attributes_string_list(entry=vertex, label_format=label_format))
         attributes.extend(self.shape_processor.get_attributes_string_list(entry=vertex))
         return self.template.format(v_id=vertex_id, attributes=", ".join(attributes))
+
+
+class TreeEdgeShapeProcessor(ShapeProcessor):
+    def __init__(self, pen_width=1, color=Colors.black, color_source=None, style="solid"):
+        super().__init__(pen_width=pen_width, color=color, color_source=color_source, style=style)
