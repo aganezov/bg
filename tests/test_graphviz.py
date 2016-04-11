@@ -7,9 +7,10 @@ from bg import BGGenome
 from bg.edge import BGEdge
 from bg.multicolor import Multicolor
 from bg.graphviz import VertexShapeProcessor, VertexTextProcessor, VertexProcessor, EdgeShapeProcessor, EdgeProcessor, EdgeTextProcessor, \
-    GraphProcessor
+    GraphProcessor, LabelFormat, Colors
 from bg.vertices import TaggedBlockVertex, TaggedInfinityVertex, BlockVertex, InfinityVertex
 from bg.breakpoint_graph import BreakpointGraph
+from bg.tree import BGTree
 
 
 class VertexShapeProcessorTestCase(unittest.TestCase):
@@ -24,10 +25,10 @@ class VertexShapeProcessorTestCase(unittest.TestCase):
             self.assertEqual("oval", self.defaultVertexShapeProcessor.get_shape(vertex))
 
     def test_default_shape_for_regular_bg_vertex(self):
-        self.assertEqual("oval", self.defaultVertexShapeProcessor.get_shape(vertex=BlockVertex(name="test")))
+        self.assertEqual("oval", self.defaultVertexShapeProcessor.get_shape(entry=BlockVertex(name="test")))
 
     def test_default_shape_for_irregular_bg_vertex(self):
-        self.assertEqual("point", self.defaultVertexShapeProcessor.get_shape(vertex=InfinityVertex(name="test")))
+        self.assertEqual("point", self.defaultVertexShapeProcessor.get_shape(entry=InfinityVertex(name="test")))
 
     def test_shape_attrib_template(self):
         self.assertEqual("shape=\"{shape}\"", self.defaultVertexShapeProcessor.shape_attrib_template)
@@ -76,42 +77,42 @@ class VertexTextProcessorTestCase(unittest.TestCase):
 
     def test_vertex_name_plain_text(self):
         regular_vertex = TaggedBlockVertex(name="namet")
-        self.assertEqual("\"namet\"", self.defaultVertexTextProcessor.get_text(vertex=regular_vertex))
-        self.assertEqual("\"namet\"", self.defaultVertexTextProcessor.get_text(vertex=regular_vertex, label_format="plain"))
+        self.assertEqual("\"namet\"", self.defaultVertexTextProcessor.get_text(entry=regular_vertex))
+        self.assertEqual("\"namet\"", self.defaultVertexTextProcessor.get_text(entry=regular_vertex, label_format="plain"))
         self.assertEqual("\"namet\"",
-                         self.defaultVertexTextProcessor.get_text(vertex=regular_vertex,
-                                                                  label_format=VertexTextProcessor.VertexTextType.plain))
+                         self.defaultVertexTextProcessor.get_text(entry=regular_vertex,
+                                                                  label_format=LabelFormat.plain))
 
     def test_vertex_name_html_text(self):
         regular_vertex = TaggedBlockVertex(name="namet")
-        self.assertEqual("<name<SUP>t</SUP>>", self.defaultVertexTextProcessor.get_text(vertex=regular_vertex, label_format="html"))
+        self.assertEqual("<name<SUP>t</SUP>>", self.defaultVertexTextProcessor.get_text(entry=regular_vertex, label_format="html"))
         self.assertEqual("<name<SUP>t</SUP>>",
-                         self.defaultVertexTextProcessor.get_text(vertex=regular_vertex,
-                                                                  label_format=VertexTextProcessor.VertexTextType.html))
+                         self.defaultVertexTextProcessor.get_text(entry=regular_vertex,
+                                                                  label_format=LabelFormat.html))
         self.assertEqual("<namet>",
-                         self.defaultVertexTextProcessor.get_text(vertex="namet", label_format=VertexTextProcessor.VertexTextType.html))
+                         self.defaultVertexTextProcessor.get_text(entry="namet", label_format=LabelFormat.html))
 
     def test_tagged_vertex_name_plain(self):
         tagged_vertex = TaggedBlockVertex(name="namet")
         tagged_vertex.add_tag("tag1", 10)
         tagged_vertex.add_tag("tag2", 20)
-        self.assertEqual("\"namet (tag1:10) (tag2:20)\"", self.defaultVertexTextProcessor.get_text(vertex=tagged_vertex))
+        self.assertEqual("\"namet (tag1:10) (tag2:20)\"", self.defaultVertexTextProcessor.get_text(entry=tagged_vertex))
         self.assertEqual("\"namet (tag1:10) (tag2:20)\"",
-                         self.defaultVertexTextProcessor.get_text(vertex=tagged_vertex, label_format="plain"))
+                         self.defaultVertexTextProcessor.get_text(entry=tagged_vertex, label_format="plain"))
 
     def test_tagged_vertex_name_html(self):
         tagged_vertex = TaggedBlockVertex(name="namet")
         tagged_vertex.add_tag("tag1", 10)
         tagged_vertex.add_tag("tag2", 20)
         self.assertEqual("<name<SUP>t</SUP> (tag1:10) (tag2:20)>",
-                         self.defaultVertexTextProcessor.get_text(vertex=tagged_vertex, label_format="html"))
+                         self.defaultVertexTextProcessor.get_text(entry=tagged_vertex, label_format="html"))
 
     def test_get_all_attributes_as_list_of_strings_regular_vertex(self):
         vertex = TaggedBlockVertex("10t")
         self.assertSetEqual({"label=\"10t\"", "fontname=\"Arial\"", "fontsize=\"12\"", "fontcolor=\"black\""},
-                            set(self.defaultVertexTextProcessor.get_attributes_string_list(vertex=vertex)))
+                            set(self.defaultVertexTextProcessor.get_attributes_string_list(entry=vertex)))
         self.assertSetEqual({"label=\"10t\"", "fontname=\"Arial\"", "fontsize=\"12\"", "fontcolor=\"black\""},
-                            set(self.defaultVertexTextProcessor.get_attributes_string_list(vertex=vertex, label_format="plain")))
+                            set(self.defaultVertexTextProcessor.get_attributes_string_list(entry=vertex, label_format="plain")))
 
 
 class VertexProcessorTestCase(unittest.TestCase):
@@ -228,13 +229,13 @@ class EdgeShapeProcessorTestCase(unittest.TestCase):
         self.assertEqual("dashed", self.defaultEdgeShapeProcessor.get_style(self.r_edge))
 
     def test_style_attribute_template(self):
-        self.assertEqual("style=\"{style}\"", self.defaultEdgeShapeProcessor.style_attribute_template)
+        self.assertEqual("style=\"{style}\"", self.defaultEdgeShapeProcessor.style_attrib_template)
 
     def test_default_pen_width(self):
         self.assertEqual(1, self.defaultEdgeShapeProcessor.get_pen_width())
 
     def test_pen_width_attribute_template(self):
-        self.assertEqual("penwidth=\"{pen_width}\"", self.defaultEdgeShapeProcessor.pen_width_attribute_template)
+        self.assertEqual("penwidth=\"{pen_width}\"", self.defaultEdgeShapeProcessor.pen_width_attrib_template)
 
     def test_default_regular_edge_pen_width(self):
         self.assertEqual(1, self.defaultEdgeShapeProcessor.get_pen_width(self.edge))
@@ -251,7 +252,7 @@ class EdgeShapeProcessorTestCase(unittest.TestCase):
         self.assertEqual(len(dot_colors), 1)
         self.assertEqual(len(set(dot_colors)), 1)
         dot_color = dot_colors[0]
-        self.assertIn(dot_color, EdgeShapeProcessor.EdgeColors)
+        self.assertIn(dot_color, Colors)
         mc2 = Multicolor(BGGenome("genome1"))
         dot_colors2 = self.defaultEdgeShapeProcessor.get_dot_colors(multicolor=mc2)
         self.assertListEqual(dot_colors, dot_colors2)
@@ -262,7 +263,7 @@ class EdgeShapeProcessorTestCase(unittest.TestCase):
         self.assertEqual(len(dot_colors), 3)
         self.assertEqual(len(set(dot_colors)), 3)
         for dot_color in dot_colors:
-            self.assertIn(dot_color, self.defaultEdgeShapeProcessor.EdgeColors)
+            self.assertIn(dot_color, Colors)
         mc2 = Multicolor(BGGenome("genome1"), BGGenome("genome2"))
         mc3 = Multicolor(BGGenome("genome3"))
         dot_colors2 = self.defaultEdgeShapeProcessor.get_dot_colors(multicolor=mc2)
@@ -276,7 +277,7 @@ class EdgeShapeProcessorTestCase(unittest.TestCase):
         self.assertEqual(len(dot_colors), 3)
         self.assertEqual(len(set(dot_colors)), 1)
         dot_color = set(dot_colors).pop()
-        self.assertIn(dot_color, self.defaultEdgeShapeProcessor.EdgeColors)
+        self.assertIn(dot_color, Colors)
         mc2 = Multicolor(BGGenome("genome1"), BGGenome("genome1"))
         dot_colors2 = self.defaultEdgeShapeProcessor.get_dot_colors(multicolor=mc2)
         self.assertEqual(len(dot_colors2), 2)
@@ -290,7 +291,7 @@ class EdgeShapeProcessorTestCase(unittest.TestCase):
         self.assertEqual(len(dot_colors), 6)
         self.assertEqual(len(set(dot_colors)), 3)
         for color in dot_colors:
-            self.assertIn(color, self.defaultEdgeShapeProcessor.EdgeColors)
+            self.assertIn(color, Colors)
         mc2 = Multicolor(BGGenome("genome1"), BGGenome("genome1"))
         mc3 = Multicolor(BGGenome("genome2"), BGGenome("genome1"), BGGenome("genome2"))
         dot_colors2 = self.defaultEdgeShapeProcessor.get_dot_colors(multicolor=mc2)
@@ -303,7 +304,7 @@ class EdgeShapeProcessorTestCase(unittest.TestCase):
         self.assertTrue(set(dot_colors3).issubset(set(dot_colors)))
 
     def test_color_attribute_template(self):
-        self.assertEqual("color=\"{color}\"", self.defaultEdgeShapeProcessor.color_attribute_template)
+        self.assertEqual("color=\"{color}\"", self.defaultEdgeShapeProcessor.color_attrib_template)
 
     def test_get_all_attributes_as_list_of_strings_regular_edge(self):
         color = self.defaultEdgeShapeProcessor.get_dot_colors(multicolor=Multicolor(self.color1))[0]
@@ -339,19 +340,19 @@ class EdgeTextProcessorTestCase(unittest.TestCase):
         self.irregular_repeat_edge = BGEdge(vertex1=repeat_irregular_vertex, vertex2=TaggedBlockVertex("11h"), multicolor=Multicolor())
 
     def test_default_label_size(self):
-        self.assertEqual(7, self.defaultEdgeTextProcessor.get_text_size(edge=self.regular_edge))
-        self.assertEqual(7, self.defaultEdgeTextProcessor.get_text_size(edge=self.irregular_edge))
-        self.assertEqual(7, self.defaultEdgeTextProcessor.get_text_size(edge=self.irregular_repeat_edge))
+        self.assertEqual(7, self.defaultEdgeTextProcessor.get_text_size(entry=self.regular_edge))
+        self.assertEqual(7, self.defaultEdgeTextProcessor.get_text_size(entry=self.irregular_edge))
+        self.assertEqual(7, self.defaultEdgeTextProcessor.get_text_size(entry=self.irregular_repeat_edge))
 
     def test_default_font(self):
-        self.assertEqual("Arial", self.defaultEdgeTextProcessor.get_text_font_name(edge=self.regular_edge))
-        self.assertEqual("Arial", self.defaultEdgeTextProcessor.get_text_font_name(edge=self.irregular_edge))
-        self.assertEqual("Arial", self.defaultEdgeTextProcessor.get_text_font_name(edge=self.irregular_repeat_edge))
+        self.assertEqual("Arial", self.defaultEdgeTextProcessor.get_text_font(entry=self.regular_edge))
+        self.assertEqual("Arial", self.defaultEdgeTextProcessor.get_text_font(entry=self.irregular_edge))
+        self.assertEqual("Arial", self.defaultEdgeTextProcessor.get_text_font(entry=self.irregular_repeat_edge))
 
     def test_default_color(self):
-        self.assertEqual("black", self.defaultEdgeTextProcessor.get_text_color(edge=self.regular_edge))
-        self.assertEqual("black", self.defaultEdgeTextProcessor.get_text_color(edge=self.irregular_edge))
-        self.assertEqual("black", self.defaultEdgeTextProcessor.get_text_color(edge=self.irregular_repeat_edge))
+        self.assertEqual("black", self.defaultEdgeTextProcessor.get_text_color(entry=self.regular_edge))
+        self.assertEqual("black", self.defaultEdgeTextProcessor.get_text_color(entry=self.irregular_edge))
+        self.assertEqual("black", self.defaultEdgeTextProcessor.get_text_color(entry=self.irregular_repeat_edge))
 
     def test_text_size_template(self):
         self.assertEqual("fontsize=\"{size}\"", self.defaultEdgeTextProcessor.size_attrib_template)
@@ -366,57 +367,57 @@ class EdgeTextProcessorTestCase(unittest.TestCase):
         self.assertEqual("label={label}", self.defaultEdgeTextProcessor.label_attrib_template)
 
     def test_get_label_regular_edge_plain(self):
-        self.assertEqual("\"\"", self.defaultEdgeTextProcessor.get_text(edge=self.regular_edge))
-        self.assertEqual("\"\"", self.defaultEdgeTextProcessor.get_text(edge=self.regular_edge, label_format="plain"))
+        self.assertEqual("\"\"", self.defaultEdgeTextProcessor.get_text(entry=self.regular_edge))
+        self.assertEqual("\"\"", self.defaultEdgeTextProcessor.get_text(entry=self.regular_edge, label_format="plain"))
 
     def test_get_label_regular_edge_html(self):
-        self.assertEqual("<>", self.defaultEdgeTextProcessor.get_text(edge=self.regular_edge, label_format="html"))
+        self.assertEqual("<>", self.defaultEdgeTextProcessor.get_text(entry=self.regular_edge, label_format="html"))
 
     def test_get_label_irregular_edge_plain(self):
-        self.assertEqual("\"\"", self.defaultEdgeTextProcessor.get_text(edge=self.irregular_edge))
-        self.assertEqual("\"\"", self.defaultEdgeTextProcessor.get_text(edge=self.irregular_edge, label_format="plain"))
+        self.assertEqual("\"\"", self.defaultEdgeTextProcessor.get_text(entry=self.irregular_edge))
+        self.assertEqual("\"\"", self.defaultEdgeTextProcessor.get_text(entry=self.irregular_edge, label_format="plain"))
 
     def test_get_label_irregular_edge_html(self):
-        self.assertEqual("<>", self.defaultEdgeTextProcessor.get_text(edge=self.irregular_edge, label_format="html"))
+        self.assertEqual("<>", self.defaultEdgeTextProcessor.get_text(entry=self.irregular_edge, label_format="html"))
 
     def test_get_label_irregular_repeat_edge_plain(self):
-        self.assertEqual("\"r:LLC1h\"", self.defaultEdgeTextProcessor.get_text(edge=self.irregular_repeat_edge))
-        self.assertEqual("\"r:LLC1h\"", self.defaultEdgeTextProcessor.get_text(edge=self.irregular_repeat_edge, label_format="plain"))
+        self.assertEqual("\"r:LLC1h\"", self.defaultEdgeTextProcessor.get_text(entry=self.irregular_repeat_edge))
+        self.assertEqual("\"r:LLC1h\"", self.defaultEdgeTextProcessor.get_text(entry=self.irregular_repeat_edge, label_format="plain"))
 
     def test_get_label_irregular_repeat_edge_html(self):
         self.assertEqual("<r:LLC1<SUP>h</SUP>>",
-                         self.defaultEdgeTextProcessor.get_text(edge=self.irregular_repeat_edge, label_format="html"))
+                         self.defaultEdgeTextProcessor.get_text(entry=self.irregular_repeat_edge, label_format="html"))
 
     def test_get_attributes_as_string_list_regular_edge(self):
         self.assertSetEqual({"fontname=\"Arial\"", "fontsize=\"7\"", "fontcolor=\"black\"", "label=\"\""},
-                            set(self.defaultEdgeTextProcessor.get_attributes_string_list(edge=self.regular_edge)))
+                            set(self.defaultEdgeTextProcessor.get_attributes_string_list(entry=self.regular_edge)))
         self.assertSetEqual({"fontname=\"Arial\"", "fontsize=\"7\"", "fontcolor=\"black\"", "label=\"\""},
-                            set(self.defaultEdgeTextProcessor.get_attributes_string_list(edge=self.regular_edge, label_format="plain")))
+                            set(self.defaultEdgeTextProcessor.get_attributes_string_list(entry=self.regular_edge, label_format="plain")))
 
     def test_get_attributes_as_string_list_regular_edge_html(self):
         self.assertSetEqual({"fontname=\"Arial\"", "fontsize=\"7\"", "fontcolor=\"black\"", "label=<>"},
-                            set(self.defaultEdgeTextProcessor.get_attributes_string_list(edge=self.regular_edge, label_format="html")))
+                            set(self.defaultEdgeTextProcessor.get_attributes_string_list(entry=self.regular_edge, label_format="html")))
 
     def test_get_attributes_as_string_list_irregular_edge(self):
         self.assertSetEqual({"fontname=\"Arial\"", "fontsize=\"7\"", "fontcolor=\"black\"", "label=\"\""},
-                            set(self.defaultEdgeTextProcessor.get_attributes_string_list(edge=self.irregular_edge)))
+                            set(self.defaultEdgeTextProcessor.get_attributes_string_list(entry=self.irregular_edge)))
         self.assertSetEqual({"fontname=\"Arial\"", "fontsize=\"7\"", "fontcolor=\"black\"", "label=\"\""},
-                            set(self.defaultEdgeTextProcessor.get_attributes_string_list(edge=self.regular_edge, label_format="plain")))
+                            set(self.defaultEdgeTextProcessor.get_attributes_string_list(entry=self.regular_edge, label_format="plain")))
 
     def test_get_attributes_as_string_list_irregular_edge_html(self):
         self.assertSetEqual({"fontname=\"Arial\"", "fontsize=\"7\"", "fontcolor=\"black\"", "label=<>"},
-                            set(self.defaultEdgeTextProcessor.get_attributes_string_list(edge=self.regular_edge, label_format="html")))
+                            set(self.defaultEdgeTextProcessor.get_attributes_string_list(entry=self.regular_edge, label_format="html")))
 
     def test_get_attributes_as_string_list_repeat_edge(self):
         self.assertSetEqual({"fontname=\"Arial\"", "fontsize=\"7\"", "fontcolor=\"black\"", "label=\"r:LLC1h\""},
-                            set(self.defaultEdgeTextProcessor.get_attributes_string_list(edge=self.irregular_repeat_edge)))
+                            set(self.defaultEdgeTextProcessor.get_attributes_string_list(entry=self.irregular_repeat_edge)))
         self.assertSetEqual({"fontname=\"Arial\"", "fontsize=\"7\"", "fontcolor=\"black\"", "label=\"r:LLC1h\""},
-                            set(self.defaultEdgeTextProcessor.get_attributes_string_list(edge=self.irregular_repeat_edge,
+                            set(self.defaultEdgeTextProcessor.get_attributes_string_list(entry=self.irregular_repeat_edge,
                                                                                          label_format="plain")))
 
     def test_get_attributes_as_string_list_repeat_edge_html(self):
         self.assertSetEqual({"fontname=\"Arial\"", "fontsize=\"7\"", "fontcolor=\"black\"", "label=<r:LLC1<SUP>h</SUP>>"},
-                            set(self.defaultEdgeTextProcessor.get_attributes_string_list(edge=self.irregular_repeat_edge,
+                            set(self.defaultEdgeTextProcessor.get_attributes_string_list(entry=self.irregular_repeat_edge,
                                                                                          label_format="html")))
 
 
@@ -588,9 +589,9 @@ class EdgeProcessorTestCase(unittest.TestCase):
         expected_entry1 = "\"" + str(v1_id) + "\" -- \"" + str(
             v2_id) + "\" [color=\"" + str_color1 + "\", style=\"dotted\", penwidth=\"0.1\"];"
         expected_entry2_plain = "\"" + str(v3_id) + "\" -- \"" + str(
-            v2_id) + "\" [color=\"" + str_color1 + "\", style=\"dashed\", penwidth=\"0.5\", fontname=\"Arial\", fontsize=\"7\", fontcolor=\"black\", label=\"r:LLC1h\"];"
+            v2_id) + "\" [color=\"" + str_color1 + "\", style=\"dashed\", penwidth=\"0.5\", label=\"r:LLC1h\", fontname=\"Arial\", fontsize=\"7\", fontcolor=\"black\"];"
         expected_entry2_html = "\"" + str(v3_id) + "\" -- \"" + str(
-            v2_id) + "\" [color=\"" + str_color1 + "\", style=\"dashed\", penwidth=\"0.5\", fontname=\"Arial\", fontsize=\"7\", fontcolor=\"black\", label=<r:LLC1<SUP>h</SUP>>];"
+            v2_id) + "\" [color=\"" + str_color1 + "\", style=\"dashed\", penwidth=\"0.5\", label=<r:LLC1<SUP>h</SUP>>, fontname=\"Arial\", fontsize=\"7\", fontcolor=\"black\"];"
         ir_edge_graphviz_entries = self.defaultEdgeProcessor.export_edge_as_dot(edge=self.ir_edge)
         r_edge_graphviz_entries_plain = self.defaultEdgeProcessor.export_edge_as_dot(edge=self.r_edge)
         r_edge_graphviz_entries_html = self.defaultEdgeProcessor.export_edge_as_dot(edge=self.r_edge, label_format="html")
@@ -625,17 +626,17 @@ class EdgeProcessorTestCase(unittest.TestCase):
         ie_expected_entry3 = "\"" + str(v1_id) + "\" -- \"" + str(
             v2_id) + "\" [color=\"" + str_color3 + "\", style=\"dotted\", penwidth=\"0.1\"];"
         re1_expected_entry1_plain = "\"" + str(v1_id) + "\" -- \"" + str(
-            v2_id) + "\" [color=\"" + str_color1 + "\", style=\"dashed\", penwidth=\"0.5\", fontname=\"Arial\", fontsize=\"7\", fontcolor=\"black\", label=\"r:LLC1h\"];"
+            v2_id) + "\" [color=\"" + str_color1 + "\", style=\"dashed\", penwidth=\"0.5\", label=\"r:LLC1h\", fontname=\"Arial\", fontsize=\"7\", fontcolor=\"black\"];"
         re1_expected_entry1_html = "\"" + str(v1_id) + "\" -- \"" + str(
-            v2_id) + "\" [color=\"" + str_color1 + "\", style=\"dashed\", penwidth=\"0.5\", fontname=\"Arial\", fontsize=\"7\", fontcolor=\"black\", label=<r:LLC1<SUP>h</SUP>>];"
+            v2_id) + "\" [color=\"" + str_color1 + "\", style=\"dashed\", penwidth=\"0.5\", label=<r:LLC1<SUP>h</SUP>>, fontname=\"Arial\", fontsize=\"7\", fontcolor=\"black\"];"
         re2_expected_entry1_plain = "\"" + str(v1_id) + "\" -- \"" + str(
-            v2_id) + "\" [color=\"" + str_color1 + "\", style=\"dashed\", penwidth=\"0.5\", fontname=\"Arial\", fontsize=\"7\", fontcolor=\"black\", label=\"r:LLC2h\"];"
+            v2_id) + "\" [color=\"" + str_color1 + "\", style=\"dashed\", penwidth=\"0.5\", label=\"r:LLC2h\", fontname=\"Arial\", fontsize=\"7\", fontcolor=\"black\"];"
         re2_expected_entry1_html = "\"" + str(v1_id) + "\" -- \"" + str(
-            v2_id) + "\" [color=\"" + str_color1 + "\", style=\"dashed\", penwidth=\"0.5\", fontname=\"Arial\", fontsize=\"7\", fontcolor=\"black\", label=<r:LLC2<SUP>h</SUP>>];"
+            v2_id) + "\" [color=\"" + str_color1 + "\", style=\"dashed\", penwidth=\"0.5\", label=<r:LLC2<SUP>h</SUP>>, fontname=\"Arial\", fontsize=\"7\", fontcolor=\"black\"];"
         re2_expected_entry2_plain = "\"" + str(v1_id) + "\" -- \"" + str(
-            v2_id) + "\" [color=\"" + str_color2 + "\", style=\"dashed\", penwidth=\"0.5\", fontname=\"Arial\", fontsize=\"7\", fontcolor=\"black\", label=\"r:LLC2h\"];"
+            v2_id) + "\" [color=\"" + str_color2 + "\", style=\"dashed\", penwidth=\"0.5\", label=\"r:LLC2h\", fontname=\"Arial\", fontsize=\"7\", fontcolor=\"black\"];"
         re2_expected_entry2_html = "\"" + str(v1_id) + "\" -- \"" + str(
-            v2_id) + "\" [color=\"" + str_color2 + "\", style=\"dashed\", penwidth=\"0.5\", fontname=\"Arial\", fontsize=\"7\", fontcolor=\"black\", label=<r:LLC2<SUP>h</SUP>>];"
+            v2_id) + "\" [color=\"" + str_color2 + "\", style=\"dashed\", penwidth=\"0.5\", label=<r:LLC2<SUP>h</SUP>>, fontname=\"Arial\", fontsize=\"7\", fontcolor=\"black\"];"
         self.ir_edge.multicolor = mc3
         self.r_edge.multicolor = mc1
         self.r_edge2.multicolor = mc2
