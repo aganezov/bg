@@ -7,7 +7,7 @@ from bg import BGGenome
 from bg.edge import BGEdge
 from bg.multicolor import Multicolor
 from bg.graphviz import BGVertexShapeProcessor, BGVertexTextProcessor, BGVertexProcessor, EdgeShapeProcessor, EdgeProcessor, EdgeTextProcessor, \
-    GraphProcessor, LabelFormat, Colors, TreeVertexShapeProcessor, TreeVertexTextProcessor
+    GraphProcessor, LabelFormat, Colors, TreeVertexShapeProcessor, TreeVertexTextProcessor, TreeVertexProcessor
 from bg.vertices import TaggedBlockVertex, TaggedInfinityVertex, BlockVertex, InfinityVertex
 from bg.breakpoint_graph import BreakpointGraph
 from bg.tree import BGTree
@@ -1013,6 +1013,75 @@ class TreeVertexTextProcessorTestCase(TreeTestCase):
         self.assertSetEqual({"fontcolor=\"" + color2_str + "\"", "fontsize=\"12\"", "fontname=\"Arial\"", "label=<>"},
                             set(self.default_tree_vertex_text_processor.get_attributes_string_list(entry=self.non_leaf_nodes_binary_tree[1],
                                                                                                    label_format=LabelFormat.html)))
+
+
+class TreeVertexProcessorTestCase(TreeTestCase):
+    def setUp(self):
+        super().setUp()
+        self.default_tree_vertex_shape_processor = TreeVertexShapeProcessor()
+        self.default_tree_vertex_text_processor = TreeVertexTextProcessor()
+        self.default_tree_vertex_processor = TreeVertexProcessor(shape_processor=self.default_tree_vertex_shape_processor,
+                                                                 text_processor=self.default_tree_vertex_text_processor)
+
+    def test_overall_template(self):
+        self.assertEqual("\"{v_id}\" [{attributes}];", self.default_tree_vertex_processor.template)
+
+    def test_shape_processor_field(self):
+        self.assertIs(self.default_tree_vertex_processor.shape_processor, self.default_tree_vertex_shape_processor)
+
+    def test_text_processor_field(self):
+        self.assertIs(self.default_tree_vertex_processor.text_processor, self.default_tree_vertex_text_processor)
+
+    def test_get_vertices_ids(self):
+        leaf_ids = [self.default_tree_vertex_processor.get_vertex_id(vertex=node) for node in self.leaf_nodes_binary_tree_sorted]
+        non_leaf_ids = [self.default_tree_vertex_processor.get_vertex_id(vertex=node) for node in self.non_leaf_nodes_binary_tree]
+        self.assertEqual(len(leaf_ids), 5)
+        self.assertEqual(len(set(leaf_ids)), 5)
+        self.assertEqual(len(non_leaf_ids), 4)
+        self.assertEqual((len(set(non_leaf_ids))), 4)
+        for leaf_id in leaf_ids:
+            self.assertNotIn(leaf_id, non_leaf_ids)
+        for non_leaf_id in non_leaf_ids:
+            self.assertNotIn(non_leaf_id, leaf_ids)
+
+    def test_leaf_node_graphviz_entry_plain(self):
+        v = self.leaf_nodes_binary_tree_sorted[0]
+        str_color = self.default_tree_vertex_shape_processor.get_color_as_string(entry=v)
+        v_id = self.default_tree_vertex_processor.get_vertex_id(vertex=v)
+        expected = "\"" + str(v_id) + "\" [label=\"a\", fontname=\"Arial\", " \
+                                      "fontsize=\"12\", fontcolor=\"" + str_color + "\", " \
+                                                                                    "shape=\"oval\", penwidth=\"3\", style=\"solid\", color=\"" + str_color + "\"];"
+        self.assertEqual(self.default_tree_vertex_processor.export_vertex_as_dot(vertex=v), expected)
+        self.assertEqual(self.default_tree_vertex_processor.export_vertex_as_dot(vertex=v, label_format=LabelFormat.plain), expected)
+        self.assertEqual(self.default_tree_vertex_processor.export_vertex_as_dot(vertex=v, label_format="plain"), expected)
+
+    def test_leaf_node_graphviz_entry_html(self):
+        v = self.leaf_nodes_binary_tree_sorted[0]
+        str_color = self.default_tree_vertex_shape_processor.get_color_as_string(entry=v)
+        v_id = self.default_tree_vertex_processor.get_vertex_id(vertex=v)
+        expected = "\"" + str(v_id) + "\" [label=<a>, fontname=\"Arial\", " \
+                                      "fontsize=\"12\", fontcolor=\"" + str_color + "\", " \
+                                                                                    "shape=\"oval\", penwidth=\"3\", style=\"solid\", color=\"" + str_color + "\"];"
+        self.assertEqual(self.default_tree_vertex_processor.export_vertex_as_dot(vertex=v, label_format=LabelFormat.html), expected)
+        self.assertEqual(self.default_tree_vertex_processor.export_vertex_as_dot(vertex=v, label_format="html"), expected)
+
+    def test_non_leaf_graphviz_entry_plain(self):
+        v = self.non_leaf_nodes_binary_tree[0]
+        str_color = self.default_tree_vertex_shape_processor.get_color_as_string(entry=v)
+        v_id = self.default_tree_vertex_processor.get_vertex_id(vertex=v)
+        expected = "\"" + str(v_id) + "\" [shape=\"oval\", penwidth=\"1\", style=\"solid\", color=\"" + str_color + "\"];"
+        self.assertEqual(self.default_tree_vertex_processor.export_vertex_as_dot(vertex=v), expected)
+        self.assertEqual(self.default_tree_vertex_processor.export_vertex_as_dot(vertex=v, label_format=LabelFormat.plain), expected)
+        self.assertEqual(self.default_tree_vertex_processor.export_vertex_as_dot(vertex=v, label_format="plain"), expected)
+
+    def test_non_leaf_graphviz_entry_html(self):
+        v = self.non_leaf_nodes_binary_tree[0]
+        str_color = self.default_tree_vertex_shape_processor.get_color_as_string(entry=v)
+        v_id = self.default_tree_vertex_processor.get_vertex_id(vertex=v)
+        expected = "\"" + str(v_id) + "\" [shape=\"oval\", penwidth=\"1\", style=\"solid\", color=\"" + str_color + "\"];"
+        self.assertEqual(self.default_tree_vertex_processor.export_vertex_as_dot(vertex=v, label_format=LabelFormat.html), expected)
+        self.assertEqual(self.default_tree_vertex_processor.export_vertex_as_dot(vertex=v, label_format="html"), expected)
+
 
 if __name__ == '__main__':
     unittest.main()

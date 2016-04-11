@@ -225,20 +225,41 @@ class BGVertexTextProcessor(TextProcessor):
             return vertex_as_html(vertex=entry)
 
 
-class BGVertexProcessor(object):
+class VertexProcessor(object):
     def __init__(self, shape_processor=None, text_processor=None):
         self.vertices_id_generator = ids_generator()
         self.vertices_ids_storage = {}
+        self.shape_processor = shape_processor
+        self.text_processor = text_processor
+        self.template = "\"{v_id}\" [{attributes}];"
+
+    def get_vertex_id(self, vertex):
+        if vertex not in self.vertices_ids_storage:
+            self.vertices_ids_storage[vertex] = next(self.vertices_id_generator)
+        return self.vertices_ids_storage[vertex]
+
+    def export_vertex_as_dot(self, vertex, label_format=LabelFormat.plain):
+        """
+
+        :type label_format: Union[str, LabelFormat]
+        """
+        vertex_id = self.get_vertex_id(vertex=vertex)
+        attributes = []
+        attributes.extend(self.text_processor.get_attributes_string_list(entry=vertex, label_format=label_format))
+        attributes.extend(self.shape_processor.get_attributes_string_list(entry=vertex))
+        return self.template.format(v_id=vertex_id, attributes=", ".join(attributes))
+
+
+class BGVertexProcessor(VertexProcessor):
+    def __init__(self, shape_processor=None, text_processor=None):
+        super().__init__(shape_processor=shape_processor, text_processor=text_processor)
         self.shape_processor = shape_processor if shape_processor is not None else BGVertexShapeProcessor()
         self.text_processor = text_processor if text_processor is not None else BGVertexTextProcessor()
-        self.template = "\"{v_id}\" [{attributes}];"
 
     def get_vertex_id(self, vertex):
         if isinstance(vertex, InfinityVertex):
             vertex = BGVertex.get_vertex_name_root(vertex.name)
-        if vertex not in self.vertices_ids_storage:
-            self.vertices_ids_storage[vertex] = next(self.vertices_id_generator)
-        return self.vertices_ids_storage[vertex]
+        return super().get_vertex_id(vertex=vertex)
 
     def export_vertex_as_dot(self, vertex, label_format=LabelFormat.plain):
         """
@@ -299,7 +320,7 @@ class EdgeShapeProcessor(ShapeProcessor):
 
 class EdgeTextProcessor(TextProcessor):
     def __init__(self, size=7, font_name="Arial", color=Colors.black):
-        super().__init__(size=7, font_name=font_name, color=color)
+        super().__init__(size=size, font_name=font_name, color=color)
 
     def get_text(self, entry=None, label_format=LabelFormat.plain, tag_key_processor=None, tag_value_processor=None):
         """
@@ -440,3 +461,20 @@ class TreeVertexTextProcessor(TextProcessor):
             return "<" + text + ">"
         return "\"" + text + "\""
 
+
+class TreeVertexProcessor(VertexProcessor):
+    def __init__(self, shape_processor=None, text_processor=None):
+        super().__init__(shape_processor=shape_processor, text_processor=text_processor)
+        self.shape_processor = shape_processor if shape_processor is not None else TreeVertexShapeProcessor()
+        self.text_processor = text_processor if text_processor is not None else TreeVertexTextProcessor()
+
+    def get_vertex_id(self, vertex):
+        return super().get_vertex_id(vertex=vertex)
+
+    def export_vertex_as_dot(self, vertex, label_format=LabelFormat.plain):
+        vertex_id = self.get_vertex_id(vertex=vertex)
+        attributes = []
+        if isinstance(vertex, TreeNode) and vertex.is_leaf():
+            attributes.extend(self.text_processor.get_attributes_string_list(entry=vertex, label_format=label_format))
+        attributes.extend(self.shape_processor.get_attributes_string_list(entry=vertex))
+        return self.template.format(v_id=vertex_id, attributes=", ".join(attributes))
