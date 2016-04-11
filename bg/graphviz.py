@@ -2,9 +2,12 @@
 from collections import deque
 from enum import Enum
 
+from ete3 import TreeNode
+
 from bg import Multicolor
 from bg.breakpoint_graph import BreakpointGraph
 from bg.edge import BGEdge
+from bg.genome import BGGenome
 from bg.vertices import BGVertex, InfinityVertex, TaggedInfinityVertex
 
 
@@ -39,7 +42,7 @@ class LabelFormat(Enum):
 
 
 class Colors(Enum):
-    black = "black" # 0
+    black = "black"  # 0
     red = "red"  # 1
     green = "lawngreen"  # 2
     teal = "teal"  # 3
@@ -78,10 +81,8 @@ def ids_generator(start=1, step=1):
         start += step
 
 
-class ShapeProcessor:
-    def __init__(self, pen_width=1, style="solid", color=Colors.black):
-        self.style_attrib_template = "style=\"{style}\""
-        self.color_attrib_template = "color=\"{color}\""
+class ColorSource(object):
+    def __init__(self):
         self.color_to_dot_color = {}
         self.unused_colors = deque([
             Colors.red,
@@ -115,25 +116,37 @@ class ShapeProcessor:
             Colors.forestgreen,
             Colors.snow
         ])
-        self.pen_width = pen_width
-        self.style = style
-        self.color = color
-        self.pen_width_attrib_template = "penwidth=\"{pen_width}\""
-
-    def get_pen_width(self):
-        return self.pen_width
-
-    def get_style(self, entry=None):
-        return "solid"
 
     def get_unused_color(self, entry):
         if entry not in self.color_to_dot_color:
             self.color_to_dot_color[entry] = self.unused_colors.popleft()
         return self.color_to_dot_color[entry]
 
+    def get_color_as_string(self, entry):
+        return self.get_unused_color(entry=entry).value
+
+
+class ShapeProcessor:
+    def __init__(self, pen_width=1, style="solid", color=Colors.black, color_source=None):
+        self.style_attrib_template = "style=\"{style}\""
+        self.color_attrib_template = "color=\"{color}\""
+        self.color_source = color_source if color_source is not None else ColorSource()
+        self.pen_width = pen_width
+        self.style = style
+        self.color = color
+        self.pen_width_attrib_template = "penwidth=\"{pen_width}\""
+
+    def get_pen_width(self, entry=None):
+        return self.pen_width
+
+    def get_style(self, entry=None):
+        return "solid"
+
+    def get_color_as_string(self, entry):
+        return self.color_source.get_color_as_string(entry=entry)
+
 
 class TextProcessor:
-
     def __init__(self, color=Colors.black, size=12, font_name="Arial"):
         self.color = color
         self.text_size = size
@@ -166,25 +179,39 @@ class TextProcessor:
 
 
 class VertexShapeProcessor(ShapeProcessor):
-    def __init__(self, pen_width=1, style="solid", color=Colors.black, regular_vertex_shape="oval", irregular_vertex_shape="point", non_bg_vertex_shape="oval"):
-        super().__init__(pen_width=pen_width, style=style, color=color)
+    def __init__(self, pen_width=1, style="solid", color=Colors.black, shape="oval", color_source=None):
+        super().__init__(pen_width=pen_width, style=style, color=color, color_source=color_source)
         self.shape_attrib_template = "shape=\"{shape}\""
+        self.shape = shape
+
+    def get_shape(self, entry=None):
+        return self.shape
+
+    def get_attributes_string_list(self, entry):
+        return [self.shape_attrib_template.format(shape=self.get_shape(entry=entry)),
+                self.pen_width_attrib_template.format(pen_width=self.get_pen_width(entry=entry)),
+                self.style_attrib_template.format(style=self.get_style(entry=entry)),
+                self.color_attrib_template.format(color=self.get_color_as_string(entry=entry))]
+
+
+class BGVertexShapeProcessor(VertexShapeProcessor):
+    def __init__(self, pen_width=1, style="solid", color=Colors.black, color_source=None,
+                 regular_vertex_shape="oval", irregular_vertex_shape="point", non_bg_vertex_shape="oval"):
+        super().__init__(pen_width=pen_width, style=style, color=color, shape=non_bg_vertex_shape, color_source=color_source)
         self.regular_vertex_shape = regular_vertex_shape
         self.irregular_vertex_shape = irregular_vertex_shape
-        self.non_bg_vertex_shape = non_bg_vertex_shape
 
     def get_shape(self, entry=None):
         if isinstance(entry, BGVertex):
             return self.regular_vertex_shape if entry.is_regular_vertex else self.irregular_vertex_shape
-        else:
-            return self.non_bg_vertex_shape
+        return super().get_shape(entry=entry)
 
-    def get_attributes_string_list(self, vertex):
-        return [self.shape_attrib_template.format(shape=self.get_shape(entry=vertex)),
+    def get_attributes_string_list(self, entry):
+        return [self.shape_attrib_template.format(shape=self.get_shape(entry=entry)),
                 self.pen_width_attrib_template.format(pen_width=self.get_pen_width())]
 
 
-class VertexTextProcessor(TextProcessor):
+class BGVertexTextProcessor(TextProcessor):
     def __init__(self, color=Colors.black, size=12, font_name="Arial"):
         super().__init__(color=color, size=size, font_name=font_name)
 
@@ -197,12 +224,12 @@ class VertexTextProcessor(TextProcessor):
             return vertex_as_html(vertex=entry)
 
 
-class VertexProcessor(object):
+class BGVertexProcessor(object):
     def __init__(self, shape_processor=None, text_processor=None):
         self.vertices_id_generator = ids_generator()
         self.vertices_ids_storage = {}
-        self.shape_processor = shape_processor if shape_processor is not None else VertexShapeProcessor()
-        self.text_processor = text_processor if text_processor is not None else VertexTextProcessor()
+        self.shape_processor = shape_processor if shape_processor is not None else BGVertexShapeProcessor()
+        self.text_processor = text_processor if text_processor is not None else BGVertexTextProcessor()
         self.template = "\"{v_id}\" [{attributes}];"
 
     def get_vertex_id(self, vertex):
@@ -221,12 +248,11 @@ class VertexProcessor(object):
         attributes = []
         if not isinstance(vertex, InfinityVertex):
             attributes.extend(self.text_processor.get_attributes_string_list(entry=vertex, label_format=label_format))
-        attributes.extend(self.shape_processor.get_attributes_string_list(vertex=vertex))
+        attributes.extend(self.shape_processor.get_attributes_string_list(entry=vertex))
         return self.template.format(v_id=vertex_id, attributes=", ".join(attributes))
 
 
 class EdgeShapeProcessor(ShapeProcessor):
-
     def __init__(self):
         super().__init__()
         self.regular_edge_style = "solid"
@@ -257,21 +283,20 @@ class EdgeShapeProcessor(ShapeProcessor):
             return self.regular_edge_pen_width
 
     def get_dot_colors(self, multicolor):
-        return [self.get_unused_color(entry=color) for color in multicolor.multicolors.elements()]
+        return [self.color_source.get_unused_color(entry=color) for color in multicolor.multicolors.elements()]
 
-    def get_attributes_string_list(self, edge):
-        if len(list(edge.multicolor.multicolors.elements())) != 1:
+    def get_attributes_string_list(self, entry):
+        if len(list(entry.multicolor.multicolors.elements())) != 1:
             raise ValueError(
                 "Graphviz edge shape attributes can not be created only for multi-colored edge, but rather an edge with a single-colored edge")
-        color = self.get_dot_colors(multicolor=edge.multicolor)[0].value
+        color = self.get_dot_colors(multicolor=entry.multicolor)[0].value
         return [
             self.color_attrib_template.format(color=color),
-            self.style_attrib_template.format(style=self.get_style(entry=edge)),
-            self.pen_width_attrib_template.format(pen_width=self.get_pen_width(entry=edge))]
+            self.style_attrib_template.format(style=self.get_style(entry=entry)),
+            self.pen_width_attrib_template.format(pen_width=self.get_pen_width(entry=entry))]
 
 
 class EdgeTextProcessor(TextProcessor):
-
     def __init__(self):
         super().__init__()
         self.text_size = 7
@@ -334,7 +359,7 @@ class EdgeProcessor(object):
         result = []
         for color in edge.multicolor.multicolors.elements():
             tmp_edge = BGEdge(vertex1=edge.vertex1, vertex2=edge.vertex2, multicolor=Multicolor(color), data=edge.data)
-            attributes = self.shape_processor.get_attributes_string_list(edge=tmp_edge)
+            attributes = self.shape_processor.get_attributes_string_list(entry=tmp_edge)
             if len(self.text_processor.get_text(entry=tmp_edge)) > 2:
                 attributes.extend(self.text_processor.get_attributes_string_list(entry=tmp_edge, label_format=label_format))
             result.append(self.template.format(v1_id=v1_id, v2_id=v2_id, attributes=", ".join(attributes)))
@@ -343,7 +368,7 @@ class EdgeProcessor(object):
 
 class GraphProcessor(object):
     def __init__(self, vertex_processor=None, edge_processor=None):
-        self.vertex_processor = vertex_processor if vertex_processor is not None else VertexProcessor()
+        self.vertex_processor = vertex_processor if vertex_processor is not None else BGVertexProcessor()
         self.edge_processor = edge_processor if edge_processor is not None else EdgeProcessor(vertex_processor=self.vertex_processor)
         self.template = "graph {{\n{edges}\n{vertices}\n}}"
 
@@ -363,3 +388,29 @@ class GraphProcessor(object):
         vertices_entries = self.export_vertices_as_dot(graph=graph, label_format=label_format)
         edges_entries = self.export_edges_as_dot(graph=graph, label_format=label_format)
         return self.template.format(edges="\n".join(edges_entries), vertices="\n".join(vertices_entries))
+
+
+class TreeVertexShapeProcessor(VertexShapeProcessor):
+    def __init__(self, color=Colors.black, style="solid", internal_node_pen_width=1, leaf_node_pen_width=3, shape="oval", color_source=None,
+                 vertex_data_wrapper=BGGenome):
+        super().__init__(color=color, style=style, pen_width=internal_node_pen_width, shape=shape, color_source=color_source)
+        self.leaf_node_pen_width = leaf_node_pen_width
+        self.internal_node_pen_width = internal_node_pen_width
+        self.vertex_data_wrapper = vertex_data_wrapper
+
+    def get_pen_width(self, entry=None):
+        if not isinstance(entry, TreeNode):
+            return super().get_pen_width(entry=entry)
+        if entry.is_leaf():
+            return self.leaf_node_pen_width
+        else:
+            return self.internal_node_pen_width
+
+    def get_color_as_string(self, entry):
+        if not isinstance(entry, TreeNode):
+            return super().get_color_as_string(entry=entry)
+        if entry.is_leaf():
+            entry = entry.name
+        else:
+            entry = None
+        return super().get_color_as_string(entry=entry)
