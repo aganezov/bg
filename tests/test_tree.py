@@ -1,5 +1,8 @@
 # -*- coding: utf-8 -*-
 from unittest.mock import Mock
+
+from ete3 import TreeNode
+
 from bg import Multicolor, BGEdge
 from bg.genome import BGGenome
 from bg.tree import BGTree, DEFAULT_EDGE_LENGTH
@@ -49,7 +52,7 @@ class BGTreeTestCase(unittest.TestCase):
         tree.add_edge(node1_name=self.v1, node2_name=self.v3)
         self.assertFalse(tree.multicolors_are_up_to_date)
         self.assertEqual(len(list(tree.nodes())), 3)
-        self.assertEqual(len(list(tree.edges())), 3)  # outgoing edge from top-level element is also counted
+        self.assertEqual(len(list(tree.edges())), 2)
         self.assertEqual(tree.get_distance(self.v1, self.v2), 5)
         self.assertEqual(tree.get_distance(self.v1, self.v3), 1)
         self.assertEqual(tree.get_distance(self.v2, self.v3), 6)
@@ -62,7 +65,7 @@ class BGTreeTestCase(unittest.TestCase):
         tree.add_edge(node1_name=self.v2, node2_name=self.v3, edge_length=5)
         self.assertFalse(tree.multicolors_are_up_to_date)
         self.assertEqual(len(list(tree.nodes())), 3)
-        self.assertEqual(len(list(tree.edges())), 3)
+        self.assertEqual(len(list(tree.edges())), 2)
         self.assertEqual(tree.get_distance(self.v1, self.v3), 6)
         self.assertEqual(tree.get_distance(self.v2, self.v3), 5)
         self.assertFalse(tree.multicolors_are_up_to_date)
@@ -120,12 +123,12 @@ class BGTreeTestCase(unittest.TestCase):
         #####
         self.assertFalse(tree1.multicolors_are_up_to_date)
         self.assertEqual(len(list(tree1.nodes())), 6)
-        self.assertEqual(len(list(tree1.edges())), 6)
+        self.assertEqual(len(list(tree1.edges())), 5)
         self.assertTrue(tree1.has_edge(node1_name=self.v1, node2_name=self.v3))
         #####
         self.assertTrue(tree2.multicolors_are_up_to_date)
         self.assertEqual(len(list(tree2.nodes())), 3)
-        self.assertEqual(len(list(tree2.edges())), 3)
+        self.assertEqual(len(list(tree2.edges())), 2)
         tree1.get_node_by_name("v5").name = "new_v5"
         self.assertFalse(tree2.has_node("v5"))
 
@@ -138,12 +141,12 @@ class BGTreeTestCase(unittest.TestCase):
         #####
         self.assertFalse(tree1.multicolors_are_up_to_date)
         self.assertEqual(len(list(tree1.nodes())), 6)
-        self.assertEqual(len(list(tree1.edges())), 6)
+        self.assertEqual(len(list(tree1.edges())), 5)
         self.assertTrue(tree1.has_edge(node1_name=self.v1, node2_name=self.v3))
         #####
         self.assertTrue(tree2.multicolors_are_up_to_date)
         self.assertEqual(len(list(tree2.nodes())), 3)
-        self.assertEqual(len(list(tree2.edges())), 3)
+        self.assertEqual(len(list(tree2.edges())), 2)
         tree1.get_node_by_name("v5").name = "new_v5"
         self.assertTrue(tree2.has_node("v5"))
 
@@ -439,6 +442,34 @@ class BGTreeTestCase(unittest.TestCase):
         self.assertEqual(len(tree_consistent_multicolors), 4)
         for mc in tree_consistent_multicolors:
             self.assertIn(mc, ref_multicolors)
+
+    def test_edges_empty_tree(self):
+        tree = BGTree()
+        self.assertEqual(len(list(tree.edges())), 0)
+
+    def test_edges_binary_tree(self):
+        tree = BGTree(newick="((a, (b, c)), (d, (e, (f, g))));", leaf_wrapper=BGGenome)
+        edges = list(tree.edges())
+        self.assertEqual(len(edges), 12)
+        for edge in edges:
+            self.assertIsInstance(edge, tuple)
+            self.assertEqual(len(edge), 2)
+            self.assertTrue(isinstance(edge[0], BGGenome) or isinstance(edge[0], TreeNode))
+            self.assertTrue(isinstance(edge[1], BGGenome) or isinstance(edge[1], TreeNode))
+        leaf_edges = [edge for edge in edges if isinstance(edge[0], BGGenome) or isinstance(edge[1], BGGenome)]
+        self.assertEqual(len(leaf_edges), 7)
+
+    def test_edges_non_binary_tree(self):
+        tree = BGTree(newick="((a, b, c), (d, e, (f, g, e)));", leaf_wrapper=BGGenome)
+        edges = list(tree.edges())
+        self.assertEqual(len(edges), 11)
+        for edge in edges:
+            self.assertIsInstance(edge, tuple)
+            self.assertEqual(len(edge), 2)
+            self.assertTrue(isinstance(edge[0], BGGenome) or isinstance(edge[0], TreeNode))
+            self.assertTrue(isinstance(edge[1], BGGenome) or isinstance(edge[1], TreeNode))
+        leaf_edges = [edge for edge in edges if isinstance(edge[0], BGGenome) or isinstance(edge[1], BGGenome)]
+        self.assertEqual(len(leaf_edges), 8)
 
 if __name__ == '__main__':
     unittest.main()

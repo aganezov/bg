@@ -45,13 +45,23 @@ class BGTree(object):
         yield from self.__root.iter_descendants()
 
     def edges(self):
-        """ Proxies iteration to the underlying Tree.iter_edges iterator
+        """
 
-        :return: iterator over edges in current tree. Edges are represented in a non standard way.
-            Refer to TreeNode.iter_edges() method in ete3 library documentation.
+        :return: iterator over edges in current tree.
         :rtype: iterator
         """
-        yield from self.__root.iter_edges()
+        if self.__root is None:
+            return
+        nodes = deque([self.__root])
+        while len(nodes) > 0:
+            current_node = nodes.popleft()
+            if current_node.is_leaf():
+                continue
+            else:
+                for child in current_node.children:
+                    yield current_node, child if not child.is_leaf() else self.__leaf_wrapper(child.name)
+                    if not child.is_leaf():
+                        nodes.append(child)
 
     def add_edge(self, node1_name, node2_name, edge_length=DEFAULT_EDGE_LENGTH):
         """ Adds a new edge to the current tree with specified characteristics
