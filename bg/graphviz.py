@@ -155,7 +155,8 @@ class ShapeProcessor:
 
 
 class TextProcessor:
-    def __init__(self, color=Colors.black, size=12, font_name="Arial"):
+    def __init__(self, color=Colors.black, size=12, font_name="Arial", color_source=None):
+        self.color_source = color_source if color_source is not None else ColorSource()
         self.color = color
         self.text_size = size
         self.text_font_name = font_name
@@ -449,8 +450,7 @@ class TreeVertexShapeProcessor(VertexShapeProcessor):
 
 class TreeVertexTextProcessor(TextProcessor):
     def __init__(self, color=Colors.black, size=12, font_name="Arial", color_source=None, leaf_wrapper=None):
-        super().__init__(color=color, size=size, font_name=font_name)
-        self.color_source = color_source if color_source is not None else ColorSource()
+        super().__init__(color=color, size=size, font_name=font_name, color_source=color_source)
         self.__leaf_wrapper = lambda node: BGGenome(node.name) if leaf_wrapper is None else leaf_wrapper
 
     def get_text_color(self, entry=None, leaf_wrapper=None):
@@ -518,5 +518,9 @@ class TreeEdgeShapeProcessor(ShapeProcessor):
         else:
             return self.non_leaf_branch_pen_width
 
+
+class TreeEdgeTextProcessor(TextProcessor):
+    def __init__(self, font_name="Arial", size=7, color=Colors.black, color_source=None):
+        super().__init__(color=color, size=size, font_name=font_name, color_source=color_source)
 
 

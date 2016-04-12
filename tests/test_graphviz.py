@@ -8,7 +8,8 @@ from bg.edge import BGEdge
 from bg.multicolor import Multicolor
 from bg.graphviz import BGVertexShapeProcessor, BGVertexTextProcessor, BGVertexProcessor, EdgeShapeProcessor, EdgeProcessor, \
     EdgeTextProcessor, \
-    GraphProcessor, LabelFormat, Colors, TreeVertexShapeProcessor, TreeVertexTextProcessor, TreeVertexProcessor, TreeEdgeShapeProcessor
+    GraphProcessor, LabelFormat, Colors, TreeVertexShapeProcessor, TreeVertexTextProcessor, TreeVertexProcessor, TreeEdgeShapeProcessor, \
+    TreeEdgeTextProcessor
 from bg.vertices import TaggedBlockVertex, TaggedInfinityVertex, BlockVertex, InfinityVertex
 from bg.breakpoint_graph import BreakpointGraph
 from bg.tree import BGTree
@@ -1179,12 +1180,98 @@ class TreeEdgeShapeProcessorTestCase(TreeTestCase):
     def test_get_attributes_string_list_non_leaf_branch(self):
         color_str = self.default_tree_edge_shape_processor.get_color_as_string(entry=self.non_leaf_branches_binary_tree[0])
         self.assertSetEqual({"color=\"" + color_str + "\"", "style=\"solid\"", "penwidth=\"1\""},
-                            set(self.default_tree_edge_shape_processor.get_attributes_string_list(entry=self.non_leaf_branches_binary_tree[0])))
+                            set(self.default_tree_edge_shape_processor.get_attributes_string_list(
+                                entry=self.non_leaf_branches_binary_tree[0])))
 
     def test_get_attribute_string_list_leaf_branch(self):
         color_str = self.default_tree_edge_shape_processor.get_color_as_string(entry=self.leaf_branches_binary_tree[0])
         self.assertSetEqual({"color=\"" + color_str + "\"", "style=\"solid\"", "penwidth=\"3\""},
                             set(self.default_tree_edge_shape_processor.get_attributes_string_list(entry=self.leaf_branches_binary_tree[0])))
+
+
+class TreeEdgeTextProcessorTestCase(TreeTestCase):
+    def setUp(self):
+        super().setUp()
+        self.default_tree_edge_text_processor = TreeEdgeTextProcessor()
+
+    def test_font_name_attrib_template(self):
+        self.assertEqual("fontname=\"{font}\"", self.default_tree_edge_text_processor.font_attrib_template)
+
+    def test_font_size_attrib_tempalte(self):
+        self.assertEqual("fontsize=\"{size}\"", self.default_tree_edge_text_processor.size_attrib_template)
+
+    def test_font_color_attrib_template(self):
+        self.assertEqual("fontcolor=\"{color}\"", self.default_tree_edge_text_processor.color_attrib_template)
+
+    def test_get_text_non_leaf_branch_plain(self):
+        self.assertEqual("\"\"", self.default_tree_edge_text_processor.get_text(entry=self.non_leaf_branches_binary_tree[0]))
+        self.assertEqual("\"\"", self.default_tree_edge_text_processor.get_text(entry=self.non_leaf_branches_binary_tree[0],
+                                                                                label_format=LabelFormat.plain))
+        self.assertEqual("\"\"",
+                         self.default_tree_edge_text_processor.get_text(entry=self.non_leaf_branches_binary_tree[0], label_format="plain"))
+
+    def test_get_text_non_leaf_branch_html(self):
+        self.assertEqual("<>", self.default_tree_edge_text_processor.get_text(entry=self.non_leaf_branches_binary_tree[0],
+                                                                              label_format=LabelFormat.html))
+        self.assertEqual("<>", self.default_tree_edge_text_processor.get_text(entry=self.non_leaf_branches_binary_tree[0],
+                                                                              label_format="html"))
+
+    def test_get_text_leaf_branch_plain(self):
+        self.assertEqual("\"\"", self.default_tree_edge_text_processor.get_text(entry=self.leaf_branches_binary_tree[0]))
+        self.assertEqual("\"\"", self.default_tree_edge_text_processor.get_text(entry=self.leaf_branches_binary_tree[0],
+                                                                                label_format=LabelFormat.plain))
+        self.assertEqual("\"\"", self.default_tree_edge_text_processor.get_text(entry=self.leaf_branches_binary_tree[0],
+                                                                                label_format="plain"))
+
+    def test_get_text_leaf_branch_html(self):
+        self.assertEqual("<>", self.default_tree_edge_text_processor.get_text(entry=self.leaf_branches_binary_tree[0],
+                                                                              label_format=LabelFormat.html))
+        self.assertEqual("<>", self.default_tree_edge_text_processor.get_text(entry=self.leaf_branches_binary_tree[0],
+                                                                              label_format="html"))
+
+    def test_get_font_color_non_leaf_branches(self):
+        non_leaf_branches_colors = [self.default_tree_edge_text_processor.get_text_color(entry=edge) for edge in
+                                    self.non_leaf_branches_binary_tree]
+        self.assertEqual(len(non_leaf_branches_colors), 3)
+        self.assertEqual(len(set(non_leaf_branches_colors)), 1)
+
+    def test_get_font_color_leaf_branches(self):
+        leaf_branches_colors = [self.default_tree_edge_text_processor.get_text_color(entry=edge) for edge in
+                                self.leaf_branches_binary_tree]
+        self.assertEqual(len(leaf_branches_colors), 5)
+        self.assertEqual(len(set(leaf_branches_colors)), 1)
+
+    def test_get_font_size_non_leaf_branches(self):
+        self.assertEqual(7, self.default_tree_edge_text_processor.get_text_size(entry=self.non_leaf_branches_binary_tree[0]))
+
+    def test_get_font_size_leaf_branches(self):
+        self.assertEqual(7, self.default_tree_edge_text_processor.get_text_size(entry=self.leaf_branches_binary_tree[0]))
+
+    def test_get_font_name_non_leaf_branches(self):
+        self.assertEqual("Arial", self.default_tree_edge_text_processor.get_text_font(entry=self.non_leaf_branches_binary_tree[0]))
+
+    def test_get_font_name_leaf_branches(self):
+        self.assertEqual("Arial", self.default_tree_edge_text_processor.get_text_font(entry=self.leaf_branches_binary_tree[0]))
+
+    def test_get_attribute_string_list_non_leaf_plain(self):
+        self.assertSetEqual({"label=\"\"", "fontname=\"Arial\"", "fontsize=\"7\"", "fontcolor=\"black\""},
+                            set(self.default_tree_edge_text_processor.get_attributes_string_list(
+                                entry=self.non_leaf_branches_binary_tree[0])))
+
+    def test_get_attribute_string_list_non_leaf_html(self):
+        self.assertSetEqual({"label=<>", "fontname=\"Arial\"", "fontsize=\"7\"", "fontcolor=\"black\""},
+                            set(self.default_tree_edge_text_processor.get_attributes_string_list(
+                                entry=self.non_leaf_branches_binary_tree[0],
+                                label_format=LabelFormat.html)))
+
+    def test_get_attribute_string_list_leaf_plain(self):
+        self.assertSetEqual({"label=\"\"", "fontname=\"Arial\"", "fontsize=\"7\"", "fontcolor=\"black\""},
+                            set(self.default_tree_edge_text_processor.get_attributes_string_list(entry=self.leaf_branches_binary_tree[0])))
+
+    def test_get_attribute_string_list_leaf_html(self):
+        self.assertSetEqual({"label=<>", "fontname=\"Arial\"", "fontsize=\"7\"", "fontcolor=\"black\""},
+                            set(self.default_tree_edge_text_processor.get_attributes_string_list(entry=self.leaf_branches_binary_tree[0],
+                                                                                                 label_format=LabelFormat.html)))
 
 
 if __name__ == '__main__':
