@@ -4,7 +4,7 @@ from enum import Enum
 
 from ete3 import TreeNode
 
-from bg import Multicolor
+from bg import Multicolor, BGEdge
 from bg.breakpoint_graph import BreakpointGraph
 from bg.edge import BGEdge
 from bg.genome import BGGenome
@@ -221,8 +221,8 @@ class BGVertexShapeProcessor(VertexShapeProcessor):
 
 
 class BGVertexTextProcessor(TextProcessor):
-    def __init__(self, color=Colors.black, size=12, font_name="Arial"):
-        super().__init__(color=color, size=size, font_name=font_name)
+    def __init__(self, color=Colors.black, size=12, font_name="Arial", color_source=None):
+        super().__init__(color=color, size=size, font_name=font_name, color_source=color_source)
 
     def get_text(self, entry=None, label_format=LabelFormat.plain):
         if entry is None:
@@ -259,10 +259,14 @@ class VertexProcessor(object):
 
 
 class BGVertexProcessor(VertexProcessor):
-    def __init__(self, shape_processor=None, text_processor=None):
+    def __init__(self, shape_processor=None, text_processor=None, color_source=None):
         super().__init__(shape_processor=shape_processor, text_processor=text_processor)
-        self.shape_processor = shape_processor if shape_processor is not None else BGVertexShapeProcessor()
-        self.text_processor = text_processor if text_processor is not None else BGVertexTextProcessor()
+        if color_source is None:
+            color_source = ColorSource()
+        if self.shape_processor is None:
+            self.shape_processor = BGVertexShapeProcessor(color_source=color_source)
+        if self.text_processor is None:
+            self.text_processor = BGVertexTextProcessor(color_source=color_source)
 
     def get_vertex_id(self, vertex):
         if isinstance(vertex, InfinityVertex):
@@ -282,9 +286,9 @@ class BGVertexProcessor(VertexProcessor):
         return self.template.format(v_id=vertex_id, attributes=", ".join(attributes))
 
 
-class EdgeShapeProcessor(ShapeProcessor):
-    def __init__(self):
-        super().__init__()
+class BGEdgeShapeProcessor(ShapeProcessor):
+    def __init__(self, pen_width=1, style="solid", color=Colors.black, color_source=None):
+        super().__init__(pen_width=pen_width, style=style, color=color, color_source=color_source)
         self.regular_edge_style = "solid"
         self.irregular_edge_style = "dotted"
         self.repeat_edge_style = "dashed"
@@ -326,9 +330,9 @@ class EdgeShapeProcessor(ShapeProcessor):
             self.pen_width_attrib_template.format(pen_width=self.get_pen_width(entry=entry))]
 
 
-class EdgeTextProcessor(TextProcessor):
-    def __init__(self, size=7, font_name="Arial", color=Colors.black):
-        super().__init__(size=size, font_name=font_name, color=color)
+class BGEdgeTextProcessor(TextProcessor):
+    def __init__(self, size=7, font_name="Arial", color=Colors.black, color_source=None):
+        super().__init__(size=size, font_name=font_name, color=color, color_source=color_source)
 
     def get_text(self, entry=None, label_format=LabelFormat.plain, tag_key_processor=None, tag_value_processor=None):
         """
@@ -373,8 +377,8 @@ class EdgeTextProcessor(TextProcessor):
 
 class EdgeProcessor(object):
     def __init__(self, vertex_processor, edge_shape_processor=None, edge_text_processor=None):
-        self.shape_processor = edge_shape_processor if edge_shape_processor is not None else EdgeShapeProcessor()
-        self.text_processor = edge_text_processor if edge_text_processor is not None else EdgeTextProcessor()
+        self.shape_processor = edge_shape_processor
+        self.text_processor = edge_text_processor
         self.vertex_processor = vertex_processor
         self.template = "\"{v1_id}\" -- \"{v2_id}\" [{attributes}];"
 
@@ -383,22 +387,57 @@ class EdgeProcessor(object):
 
         :type label_format: Union[str, LabelFormat]
         """
-        v1_id = self.vertex_processor.get_vertex_id(vertex=edge.vertex1)
-        v2_id = self.vertex_processor.get_vertex_id(vertex=edge.vertex2)
+        v1_id = self.vertex_processor.get_vertex_id(vertex=self.get_vertex_1(edge))
+        v2_id = self.vertex_processor.get_vertex_id(vertex=self.get_vertex_2(edge))
+        attributes = self.shape_processor.get_attributes_string_list(entry=edge)
+        if len(self.text_processor.get_text(entry=edge)) > 2:
+            attributes.extend(self.text_processor.get_attributes_string_list(entry=edge, label_format=label_format))
+        return [self.template.format(v1_id=v1_id, v2_id=v2_id, attributes=", ".join(attributes))]
+
+    def get_vertex_1(self, edge):
+        return edge[0]
+
+    def get_vertex_2(self, edge):
+        return edge[1]
+
+
+class BGEdgeProcessor(EdgeProcessor):
+    def __init__(self, vertex_processor, edge_shape_processor=None, edge_text_processor=None, color_source=None):
+        super().__init__(vertex_processor=vertex_processor, edge_shape_processor=edge_shape_processor, edge_text_processor=edge_text_processor)
+        if color_source is None:
+            color_source = ColorSource()
+        if self.shape_processor is None:
+            self.shape_processor = BGEdgeShapeProcessor(color_source=color_source)
+        if self.text_processor is None:
+            self.text_processor = BGEdgeTextProcessor(color_source=color_source)
+
+    def export_edge_as_dot(self, edge, label_format=LabelFormat.plain):
+        """
+
+        :type label_format: Union[str, LabelFormat]
+        """
+        v1_id = self.vertex_processor.get_vertex_id(vertex=self.get_vertex_1(edge))
+        v2_id = self.vertex_processor.get_vertex_id(vertex=self.get_vertex_2(edge))
         result = []
         for color in edge.multicolor.multicolors.elements():
-            tmp_edge = BGEdge(vertex1=edge.vertex1, vertex2=edge.vertex2, multicolor=Multicolor(color), data=edge.data)
+            tmp_edge = BGEdge(vertex1=self.get_vertex_1(edge=edge), vertex2=self.get_vertex_2(edge=edge), multicolor=Multicolor(color), data=edge.data)
             attributes = self.shape_processor.get_attributes_string_list(entry=tmp_edge)
             if len(self.text_processor.get_text(entry=tmp_edge)) > 2:
                 attributes.extend(self.text_processor.get_attributes_string_list(entry=tmp_edge, label_format=label_format))
             result.append(self.template.format(v1_id=v1_id, v2_id=v2_id, attributes=", ".join(attributes)))
         return result
 
+    def get_vertex_1(self, edge):
+        return edge.vertex1
+
+    def get_vertex_2(self, edge):
+        return edge.vertex2
+
 
 class GraphProcessor(object):
     def __init__(self, vertex_processor=None, edge_processor=None):
         self.vertex_processor = vertex_processor if vertex_processor is not None else BGVertexProcessor()
-        self.edge_processor = edge_processor if edge_processor is not None else EdgeProcessor(vertex_processor=self.vertex_processor)
+        self.edge_processor = edge_processor if edge_processor is not None else BGEdgeProcessor(vertex_processor=self.vertex_processor)
         self.template = "graph {{\n{edges}\n{vertices}\n}}"
 
     def export_vertices_as_dot(self, graph: BreakpointGraph, label_format="plain"):
@@ -476,10 +515,14 @@ class TreeVertexTextProcessor(TextProcessor):
 
 
 class TreeVertexProcessor(VertexProcessor):
-    def __init__(self, shape_processor=None, text_processor=None):
+    def __init__(self, shape_processor=None, text_processor=None, color_source=None):
         super().__init__(shape_processor=shape_processor, text_processor=text_processor)
-        self.shape_processor = shape_processor if shape_processor is not None else TreeVertexShapeProcessor()
-        self.text_processor = text_processor if text_processor is not None else TreeVertexTextProcessor()
+        if color_source is None:
+            color_source = ColorSource()
+        if self.shape_processor is None:
+            self.shape_processor = TreeVertexShapeProcessor(color_source=color_source)
+        if self.text_processor is None:
+            self.text_processor = TreeVertexTextProcessor(color_source=color_source)
 
     def get_vertex_id(self, vertex):
         return super().get_vertex_id(vertex=vertex)
@@ -524,3 +567,13 @@ class TreeEdgeTextProcessor(TextProcessor):
         super().__init__(color=color, size=size, font_name=font_name, color_source=color_source)
 
 
+class TreeEdgeProcessor(EdgeProcessor):
+    def __init__(self, vertex_processor, edge_shape_processor=None, edge_text_processor=None, color_source=None):
+        super().__init__(vertex_processor=vertex_processor, edge_shape_processor=edge_shape_processor, edge_text_processor=edge_text_processor)
+        self.vertex_processor = vertex_processor
+        if color_source is None:
+            color_source = ColorSource()
+        if self.shape_processor is None:
+            self.shape_processor = TreeEdgeShapeProcessor(color_source=color_source)
+        if self.text_processor is None:
+            self.text_processor = TreeEdgeTextProcessor(color_source=color_source)
