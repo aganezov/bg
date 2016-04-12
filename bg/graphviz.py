@@ -146,6 +146,13 @@ class ShapeProcessor:
     def get_color_as_string(self, entry):
         return self.color_source.get_color_as_string(entry=entry)
 
+    def get_attributes_string_list(self, entry):
+        return [
+            self.color_attrib_template.format(color=self.get_color_as_string(entry=entry)),
+            self.style_attrib_template.format(style=self.get_style(entry=entry)),
+            self.pen_width_attrib_template.format(pen_width=self.get_pen_width(entry=entry))
+        ]
+
 
 class TextProcessor:
     def __init__(self, color=Colors.black, size=12, font_name="Arial"):
@@ -413,9 +420,10 @@ class GraphProcessor(object):
 
 class TreeVertexShapeProcessor(VertexShapeProcessor):
     def __init__(self, color=Colors.black, style="solid", internal_node_pen_width=1, leaf_node_pen_width=3, shape="oval", color_source=None,
-                 vertex_data_wrapper=BGGenome):
+                 vertex_data_wrapper=BGGenome, leaf_wrapper=None):
         super().__init__(color=color, style=style, pen_width=internal_node_pen_width, shape=shape, color_source=color_source)
         self.leaf_node_pen_width = leaf_node_pen_width
+        self.__leaf_wrapper = lambda node: BGGenome(node.name) if leaf_wrapper is None else leaf_wrapper
         self.internal_node_pen_width = internal_node_pen_width
         self.vertex_data_wrapper = vertex_data_wrapper
 
@@ -427,28 +435,33 @@ class TreeVertexShapeProcessor(VertexShapeProcessor):
         else:
             return self.internal_node_pen_width
 
-    def get_color_as_string(self, entry):
+    def get_color_as_string(self, entry, leaf_wrapper=None):
+        if leaf_wrapper is None:
+            self.__leaf_wrapper = self.__leaf_wrapper
         if not isinstance(entry, TreeNode):
             return super().get_color_as_string(entry=entry)
         if entry.is_leaf():
-            entry = entry.name
+            entry = self.__leaf_wrapper(entry)
         else:
-            entry = None
+            entry = "non_leaf_tree_node"
         return super().get_color_as_string(entry=entry)
 
 
 class TreeVertexTextProcessor(TextProcessor):
-    def __init__(self, color=Colors.black, size=12, font_name="Arial", color_source=None):
+    def __init__(self, color=Colors.black, size=12, font_name="Arial", color_source=None, leaf_wrapper=None):
         super().__init__(color=color, size=size, font_name=font_name)
         self.color_source = color_source if color_source is not None else ColorSource()
+        self.__leaf_wrapper = lambda node: BGGenome(node.name) if leaf_wrapper is None else leaf_wrapper
 
-    def get_text_color(self, entry=None):
+    def get_text_color(self, entry=None, leaf_wrapper=None):
+        if leaf_wrapper is None:
+            leaf_wrapper = self.__leaf_wrapper
         if entry is None or not isinstance(entry, TreeNode):
             return super().get_text_color(entry=entry)
         if entry.is_leaf():
-            entry = entry.name
+            entry = leaf_wrapper(entry)
         else:
-            entry = ""
+            entry = "non_leaf_tree_node"
         return self.color_source.get_color_as_string(entry=entry)
 
     def get_text(self, entry=None, label_format=LabelFormat.plain):
@@ -481,5 +494,29 @@ class TreeVertexProcessor(VertexProcessor):
 
 
 class TreeEdgeShapeProcessor(ShapeProcessor):
-    def __init__(self, pen_width=1, color=Colors.black, color_source=None, style="solid"):
-        super().__init__(pen_width=pen_width, color=color, color_source=color_source, style=style)
+    def __init__(self, non_leaf_pen_width=1, leaf_pen_width=3, color=Colors.black, color_source=None, style="solid"):
+        super().__init__(pen_width=non_leaf_pen_width, color=color, color_source=color_source, style=style)
+        self.leaf_branch_pen_width = leaf_pen_width
+        self.non_leaf_branch_pen_width = non_leaf_pen_width
+
+    def _is_leaf_branch(self, edge):
+        return not (isinstance(edge[0], TreeNode) and isinstance(edge[1], TreeNode))
+
+    def get_color_as_string(self, entry):
+        if not isinstance(entry, tuple):
+            return super().get_attributes_string_list(entry=entry)
+        if not self._is_leaf_branch(edge=entry):
+            entry = None
+        else:
+            non_tree_node_instance = entry[0] if not isinstance(entry[0], TreeNode) else entry[1]
+            entry = non_tree_node_instance
+        return super().get_color_as_string(entry=entry)
+
+    def get_pen_width(self, entry=None):
+        if self._is_leaf_branch(edge=entry):
+            return self.leaf_branch_pen_width
+        else:
+            return self.non_leaf_branch_pen_width
+
+
+

@@ -6,7 +6,8 @@ import collections
 from bg import BGGenome
 from bg.edge import BGEdge
 from bg.multicolor import Multicolor
-from bg.graphviz import BGVertexShapeProcessor, BGVertexTextProcessor, BGVertexProcessor, EdgeShapeProcessor, EdgeProcessor, EdgeTextProcessor, \
+from bg.graphviz import BGVertexShapeProcessor, BGVertexTextProcessor, BGVertexProcessor, EdgeShapeProcessor, EdgeProcessor, \
+    EdgeTextProcessor, \
     GraphProcessor, LabelFormat, Colors, TreeVertexShapeProcessor, TreeVertexTextProcessor, TreeVertexProcessor, TreeEdgeShapeProcessor
 from bg.vertices import TaggedBlockVertex, TaggedInfinityVertex, BlockVertex, InfinityVertex
 from bg.breakpoint_graph import BreakpointGraph
@@ -817,10 +818,14 @@ class TreeTestCase(unittest.TestCase):
         self.non_leaf_nodes_binary_tree = [node for node in self.binary_tree.nodes() if not node.is_leaf()]
         self.leaf_nodes_non_binary_tree = [node for node in self.non_binary_tree.nodes() if node.is_leaf()]
         self.non_leaf_nodes_non_binary_tree = [node for node in self.non_binary_tree.nodes() if not node.is_leaf()]
-        self.leaf_branches_binary_tree = [edge for edge in self.binary_tree.edges() if isinstance(edge[0], BGGenome) or isinstance(edge[1], BGGenome)]
-        self.non_leaf_branches_binary_tree = [edge for edge in self.binary_tree.edges() if not isinstance(edge[0], BGGenome) and not isinstance(edge[1], BGGenome)]
-        self.leaf_branches_non_binary_tree = [edge for edge in self.non_binary_tree.edges() if isinstance(edge[0], BGGenome) or isinstance(edge[1], BGGenome)]
-        self.non_leaf_branches_non_binary_tree = [edge for edge in self.non_binary_tree.edges() if not isinstance(edge[0], BGGenome) and not isinstance(edge[1], BGGenome)]
+        self.leaf_branches_binary_tree = [edge for edge in self.binary_tree.edges() if
+                                          isinstance(edge[0], BGGenome) or isinstance(edge[1], BGGenome)]
+        self.non_leaf_branches_binary_tree = [edge for edge in self.binary_tree.edges() if
+                                              not isinstance(edge[0], BGGenome) and not isinstance(edge[1], BGGenome)]
+        self.leaf_branches_non_binary_tree = [edge for edge in self.non_binary_tree.edges() if
+                                              isinstance(edge[0], BGGenome) or isinstance(edge[1], BGGenome)]
+        self.non_leaf_branches_non_binary_tree = [edge for edge in self.non_binary_tree.edges() if
+                                                  not isinstance(edge[0], BGGenome) and not isinstance(edge[1], BGGenome)]
         self.genome1 = BGGenome("a")
         self.genome2 = BGGenome("b")
         self.genome3 = BGGenome("c")
@@ -883,11 +888,14 @@ class TreeVertexShapeProcessorTestCase(TreeTestCase):
             self.assertEqual("solid", self.default_tree_vertex_shape_processor.get_style(entry=node))
 
     def test_get_color_no_color_source(self):
-        leaf_nodes_colors = [self.default_tree_vertex_shape_processor.get_color_as_string(entry=node) for node in self.leaf_nodes_binary_tree_sorted]
-        genomes_colors = [self.default_tree_vertex_shape_processor.color_source.get_color_as_string(entry=genome.name) for genome in self.sorted_genomes]
+        leaf_nodes_colors = [self.default_tree_vertex_shape_processor.get_color_as_string(entry=node) for node in
+                             self.leaf_nodes_binary_tree_sorted]
+        genomes_colors = [self.default_tree_vertex_shape_processor.color_source.get_color_as_string(entry=genome) for genome in
+                          self.sorted_genomes]
         for genome_color, node_color in zip(genomes_colors, leaf_nodes_colors):
             self.assertEqual(genome_color, node_color)
-        non_leaf_nodes_colors = [self.default_tree_vertex_shape_processor.get_color_as_string(entry=node) for node in self.non_leaf_nodes_non_binary_tree]
+        non_leaf_nodes_colors = [self.default_tree_vertex_shape_processor.get_color_as_string(entry=node) for node in
+                                 self.non_leaf_nodes_non_binary_tree]
         self.assertEqual(len(set(non_leaf_nodes_colors)), 1)
         for non_leaf_node_color in non_leaf_nodes_colors:
             self.assertNotIn(non_leaf_node_color, leaf_nodes_colors)
@@ -895,12 +903,14 @@ class TreeVertexShapeProcessorTestCase(TreeTestCase):
 
     def test_get_color_with_color_source(self):
         vsp = BGVertexShapeProcessor()
-        genomes_colors = [vsp.get_color_as_string(genome.name) for genome in [BGGenome("x"), BGGenome("y"), BGGenome("z")] + self.sorted_genomes]
+        genomes_colors = [vsp.get_color_as_string(genome) for genome in
+                          [BGGenome("x"), BGGenome("y"), BGGenome("z")] + self.sorted_genomes]
         tree_vertex_shape_processor = TreeVertexShapeProcessor(color_source=vsp.color_source)
         leaf_colors = [tree_vertex_shape_processor.get_color_as_string(entry=node) for node in self.leaf_nodes_binary_tree_sorted]
         for genome_color, leaf_color in zip(genomes_colors[3:], leaf_colors):
             self.assertEqual(genome_color, leaf_color)
-        non_leaf_nodes_colors = [tree_vertex_shape_processor.get_color_as_string(entry=node) for node in self.non_leaf_nodes_non_binary_tree]
+        non_leaf_nodes_colors = [tree_vertex_shape_processor.get_color_as_string(entry=node) for node in
+                                 self.non_leaf_nodes_non_binary_tree]
         self.assertEqual(len(set(non_leaf_nodes_colors)), 1)
         for non_leaf_node_color in non_leaf_nodes_colors:
             self.assertNotIn(non_leaf_node_color, leaf_colors)
@@ -912,7 +922,8 @@ class TreeVertexShapeProcessorTestCase(TreeTestCase):
                             set(self.default_tree_vertex_shape_processor.get_attributes_string_list(entry=self.leaf_nodes_binary_tree[0])))
         color_str2 = self.default_tree_vertex_shape_processor.get_color_as_string(entry=self.non_leaf_nodes_binary_tree[0])
         self.assertSetEqual({"shape=\"oval\"", "style=\"solid\"", "penwidth=\"1\"", "color=\"" + color_str2 + "\""},
-                            set(self.default_tree_vertex_shape_processor.get_attributes_string_list(entry=self.non_leaf_nodes_binary_tree[0])))
+                            set(self.default_tree_vertex_shape_processor.get_attributes_string_list(
+                                entry=self.non_leaf_nodes_binary_tree[0])))
 
 
 class TreeVertexTextProcessorTestCase(TreeTestCase):
@@ -933,7 +944,8 @@ class TreeVertexTextProcessorTestCase(TreeTestCase):
         self.assertEqual(12, self.default_tree_vertex_text_processor.get_text_size(entry=self.non_leaf_nodes_binary_tree[0]))
 
     def test_get_text_color_no_color_source(self):
-        genome_colors = [self.default_tree_vertex_text_processor.color_source.get_color_as_string(entry=genome.name) for genome in self.sorted_genomes]
+        genome_colors = [self.default_tree_vertex_text_processor.color_source.get_color_as_string(entry=genome) for genome in
+                         self.sorted_genomes]
         leaf_colors = [self.default_tree_vertex_text_processor.get_text_color(entry=node) for node in self.leaf_nodes_binary_tree_sorted]
         self.assertEqual(len(leaf_colors), 5)
         self.assertEqual(len(set(leaf_colors)), 5)
@@ -948,7 +960,8 @@ class TreeVertexTextProcessorTestCase(TreeTestCase):
 
     def test_get_text_color_with_color_source(self):
         vsp = BGVertexShapeProcessor()
-        genome_colors = [vsp.get_color_as_string(genome.name) for genome in [BGGenome("x"), BGGenome("y"), BGGenome("z")] + self.sorted_genomes]
+        genome_colors = [vsp.get_color_as_string(genome) for genome in
+                         [BGGenome("x"), BGGenome("y"), BGGenome("z")] + self.sorted_genomes]
         tree_vertex_text_processor = TreeVertexTextProcessor(color_source=vsp.color_source)
         leaf_colors = [tree_vertex_text_processor.get_text_color(entry=node) for node in self.leaf_nodes_binary_tree_sorted]
         self.assertEqual(len(leaf_colors), 5)
@@ -986,27 +999,33 @@ class TreeVertexTextProcessorTestCase(TreeTestCase):
         color1_str = self.default_tree_vertex_text_processor.get_text_color(entry=self.leaf_nodes_binary_tree_sorted[0])
         color2_str = self.default_tree_vertex_text_processor.get_text_color(entry=self.leaf_nodes_binary_tree_sorted[1])
         self.assertSetEqual({"fontcolor=\"" + color1_str + "\"", "fontsize=\"12\"", "fontname=\"Arial\"", "label=\"a\""},
-                            set(self.default_tree_vertex_text_processor.get_attributes_string_list(entry=self.leaf_nodes_binary_tree_sorted[0])))
+                            set(self.default_tree_vertex_text_processor.get_attributes_string_list(
+                                entry=self.leaf_nodes_binary_tree_sorted[0])))
         self.assertSetEqual({"fontcolor=\"" + color2_str + "\"", "fontsize=\"12\"", "fontname=\"Arial\"", "label=\"b\""},
-                            set(self.default_tree_vertex_text_processor.get_attributes_string_list(entry=self.leaf_nodes_binary_tree_sorted[1])))
+                            set(self.default_tree_vertex_text_processor.get_attributes_string_list(
+                                entry=self.leaf_nodes_binary_tree_sorted[1])))
 
     def test_get_attributes_string_list_leaf_node_html(self):
         color1_str = self.default_tree_vertex_text_processor.get_text_color(entry=self.leaf_nodes_binary_tree_sorted[0])
         color2_str = self.default_tree_vertex_text_processor.get_text_color(entry=self.leaf_nodes_binary_tree_sorted[1])
         self.assertSetEqual({"fontcolor=\"" + color1_str + "\"", "fontsize=\"12\"", "fontname=\"Arial\"", "label=<a>"},
-                            set(self.default_tree_vertex_text_processor.get_attributes_string_list(entry=self.leaf_nodes_binary_tree_sorted[0],
-                                                                                                   label_format=LabelFormat.html)))
+                            set(self.default_tree_vertex_text_processor.get_attributes_string_list(
+                                entry=self.leaf_nodes_binary_tree_sorted[0],
+                                label_format=LabelFormat.html)))
         self.assertSetEqual({"fontcolor=\"" + color2_str + "\"", "fontsize=\"12\"", "fontname=\"Arial\"", "label=<b>"},
-                            set(self.default_tree_vertex_text_processor.get_attributes_string_list(entry=self.leaf_nodes_binary_tree_sorted[1],
-                                                                                                   label_format=LabelFormat.html)))
+                            set(self.default_tree_vertex_text_processor.get_attributes_string_list(
+                                entry=self.leaf_nodes_binary_tree_sorted[1],
+                                label_format=LabelFormat.html)))
 
     def test_get_attributes_string_list_non_leaf_node_plain(self):
         color1_str = self.default_tree_vertex_text_processor.get_text_color(entry=self.non_leaf_nodes_non_binary_tree[0])
         color2_str = self.default_tree_vertex_text_processor.get_text_color(entry=self.non_leaf_nodes_binary_tree[1])
         self.assertSetEqual({"fontcolor=\"" + color1_str + "\"", "fontsize=\"12\"", "fontname=\"Arial\"", "label=\"\""},
-                            set(self.default_tree_vertex_text_processor.get_attributes_string_list(entry=self.non_leaf_nodes_binary_tree[0])))
+                            set(self.default_tree_vertex_text_processor.get_attributes_string_list(
+                                entry=self.non_leaf_nodes_binary_tree[0])))
         self.assertSetEqual({"fontcolor=\"" + color2_str + "\"", "fontsize=\"12\"", "fontname=\"Arial\"", "label=\"\""},
-                            set(self.default_tree_vertex_text_processor.get_attributes_string_list(entry=self.non_leaf_nodes_binary_tree[1])))
+                            set(self.default_tree_vertex_text_processor.get_attributes_string_list(
+                                entry=self.non_leaf_nodes_binary_tree[1])))
 
     def test_get_attributes_string_list_non_leaf_node_html(self):
         color1_str = self.default_tree_vertex_text_processor.get_text_color(entry=self.non_leaf_nodes_non_binary_tree[0])
@@ -1100,6 +1119,73 @@ class TreeEdgeShapeProcessorTestCase(TreeTestCase):
 
     def test_pen_width_attrib_template(self):
         self.assertEqual("penwidth=\"{pen_width}\"", self.default_tree_edge_shape_processor.pen_width_attrib_template)
+
+    def test_get_color_non_leaf_branch(self):
+        non_leaf_branches_colors = [self.default_tree_edge_shape_processor.get_color_as_string(entry=edge) for edge in
+                                    self.non_leaf_branches_binary_tree]
+        self.assertEqual(len(non_leaf_branches_colors), 3)
+        self.assertEqual(len(set(non_leaf_branches_colors)), 1)
+
+    def test_get_color_leaf_branch_no_color_source(self):
+        leaf_branches_colors = [self.default_tree_edge_shape_processor.get_color_as_string(entry=edge) for edge in
+                                self.non_leaf_branches_binary_tree]
+        self.assertEqual(len(leaf_branches_colors), 3)
+        self.assertEqual(len(set(leaf_branches_colors)), 1)
+
+    def test_get_color_leaf_branch_with_color_source(self):
+        vsp = BGVertexShapeProcessor()
+        genome_colors = []
+        for cnt, genome in enumerate([BGGenome("x"), BGGenome("y"), BGGenome("z")] + self.sorted_genomes):
+            if cnt > 2:
+                genome_colors.append(vsp.get_color_as_string(entry=genome))
+        tree_shape_processor = TreeEdgeShapeProcessor(color_source=vsp.color_source)
+        leaf_branch_colors = [tree_shape_processor.get_color_as_string(entry=edge) for edge in self.leaf_branches_binary_tree]
+        self.assertEqual(len(leaf_branch_colors), 5)
+        self.assertEqual(len(set(leaf_branch_colors)), 5)
+        for genome_color in genome_colors:
+            self.assertIn(genome_color, leaf_branch_colors)
+        for leaf_branch_color in leaf_branch_colors:
+            self.assertIn(leaf_branch_color, genome_colors)
+
+    def test_get_color_for_all_branches_in_tree_no_source(self):
+        non_leaf_branches_colors = [self.default_tree_edge_shape_processor.get_color_as_string(entry=edge) for edge in
+                                    self.non_leaf_branches_binary_tree]
+        leaf_branches_colors = [self.default_tree_edge_shape_processor.get_color_as_string(entry=edge) for edge in
+                                self.leaf_branches_binary_tree]
+        self.assertEqual(len(leaf_branches_colors), 5)
+        self.assertEqual(len(set(leaf_branches_colors)), 5)
+        self.assertEqual(len(non_leaf_branches_colors), 3)
+        self.assertEqual(len(set(non_leaf_branches_colors)), 1)
+        for non_leaf_branch_color in non_leaf_branches_colors:
+            self.assertNotIn(non_leaf_branch_color, leaf_branches_colors)
+        for leaf_branches_color in leaf_branches_colors:
+            self.assertNotIn(leaf_branches_color, non_leaf_branches_colors)
+
+    def test_get_color_for_all_branches_in_tree_with_color_source(self):
+        pass
+
+    def test_get_pen_width_non_leaf_branch(self):
+        self.assertEqual(1, self.default_tree_edge_shape_processor.get_pen_width(entry=self.non_leaf_branches_binary_tree[0]))
+
+    def test_get_pen_width_leaf_branch(self):
+        self.assertEqual(3, self.default_tree_edge_shape_processor.get_pen_width(entry=self.leaf_branches_binary_tree[0]))
+
+    def test_get_style_non_leaf_branch(self):
+        self.assertEqual("solid", self.default_tree_edge_shape_processor.get_style(entry=self.non_leaf_branches_binary_tree[0]))
+
+    def test_get_style_leaf_branch(self):
+        self.assertEqual("solid", self.default_tree_edge_shape_processor.get_style(entry=self.leaf_branches_binary_tree[0]))
+
+    def test_get_attributes_string_list_non_leaf_branch(self):
+        color_str = self.default_tree_edge_shape_processor.get_color_as_string(entry=self.non_leaf_branches_binary_tree[0])
+        self.assertSetEqual({"color=\"" + color_str + "\"", "style=\"solid\"", "penwidth=\"1\""},
+                            set(self.default_tree_edge_shape_processor.get_attributes_string_list(entry=self.non_leaf_branches_binary_tree[0])))
+
+    def test_get_attribute_string_list_leaf_branch(self):
+        color_str = self.default_tree_edge_shape_processor.get_color_as_string(entry=self.leaf_branches_binary_tree[0])
+        self.assertSetEqual({"color=\"" + color_str + "\"", "style=\"solid\"", "penwidth=\"3\""},
+                            set(self.default_tree_edge_shape_processor.get_attributes_string_list(entry=self.leaf_branches_binary_tree[0])))
+
 
 if __name__ == '__main__':
     unittest.main()
