@@ -4,7 +4,7 @@ from enum import Enum
 
 from ete3 import TreeNode
 
-from bg import Multicolor, BGEdge
+from bg import Multicolor
 from bg.breakpoint_graph import BreakpointGraph
 from bg.edge import BGEdge
 from bg.genome import BGGenome
@@ -436,29 +436,40 @@ class BGEdgeProcessor(EdgeProcessor):
 
 class GraphProcessor(object):
     def __init__(self, vertex_processor=None, edge_processor=None):
-        self.vertex_processor = vertex_processor if vertex_processor is not None else BGVertexProcessor()
-        self.edge_processor = edge_processor if edge_processor is not None else BGEdgeProcessor(vertex_processor=self.vertex_processor)
+        self.vertex_processor = vertex_processor
+        self.edge_processor = edge_processor
         self.template = "graph {{\n{edges}\n{vertices}\n}}"
 
-    def export_vertices_as_dot(self, graph: BreakpointGraph, label_format="plain"):
+    def export_vertices_as_dot(self, graph, label_format=LabelFormat.plain):
         result = []
         for vertex in graph.nodes():
             result.append(self.vertex_processor.export_vertex_as_dot(vertex=vertex, label_format=label_format))
         return result
 
-    def export_edges_as_dot(self, graph: BreakpointGraph, label_format="plain"):
+    def export_edges_as_dot(self, graph, label_format=LabelFormat.plain):
         result = []
         for edge in graph.edges():
             result.extend(self.edge_processor.export_edge_as_dot(edge=edge, label_format=label_format))
         return result
 
-    def export_graph_as_dot(self, graph, label_format="plain"):
+    def export_graph_as_dot(self, graph, label_format=LabelFormat.plain):
         vertices_entries = self.export_vertices_as_dot(graph=graph, label_format=label_format)
         edges_entries = self.export_edges_as_dot(graph=graph, label_format=label_format)
         return self.template.format(edges="\n".join(edges_entries), vertices="\n".join(vertices_entries))
 
 
-class TreeVertexShapeProcessor(VertexShapeProcessor):
+class BreakpointGraphProcessor(GraphProcessor):
+    def __init__(self, vertex_processor=None, edge_processor=None, color_source=None):
+        super().__init__(vertex_processor=vertex_processor, edge_processor=edge_processor)
+        if color_source is None:
+            color_source = ColorSource()
+        if self.vertex_processor is None:
+            self.vertex_processor = BGVertexProcessor(color_source=color_source)
+        if self.edge_processor is None:
+            self.edge_processor = BGEdgeProcessor(vertex_processor=self.vertex_processor, color_source=color_source)
+
+
+class BGTreeVertexShapeProcessor(VertexShapeProcessor):
     def __init__(self, color=Colors.black, style="solid", internal_node_pen_width=1, leaf_node_pen_width=3, shape="oval", color_source=None,
                  vertex_data_wrapper=BGGenome, leaf_wrapper=None):
         super().__init__(color=color, style=style, pen_width=internal_node_pen_width, shape=shape, color_source=color_source)
@@ -487,7 +498,7 @@ class TreeVertexShapeProcessor(VertexShapeProcessor):
         return super().get_color_as_string(entry=entry)
 
 
-class TreeVertexTextProcessor(TextProcessor):
+class BGTreeVertexTextProcessor(TextProcessor):
     def __init__(self, color=Colors.black, size=12, font_name="Arial", color_source=None, leaf_wrapper=None):
         super().__init__(color=color, size=size, font_name=font_name, color_source=color_source)
         self.__leaf_wrapper = lambda node: BGGenome(node.name) if leaf_wrapper is None else leaf_wrapper
@@ -514,15 +525,15 @@ class TreeVertexTextProcessor(TextProcessor):
         return "\"" + text + "\""
 
 
-class TreeVertexProcessor(VertexProcessor):
+class BGTreeVertexProcessor(VertexProcessor):
     def __init__(self, shape_processor=None, text_processor=None, color_source=None):
         super().__init__(shape_processor=shape_processor, text_processor=text_processor)
         if color_source is None:
             color_source = ColorSource()
         if self.shape_processor is None:
-            self.shape_processor = TreeVertexShapeProcessor(color_source=color_source)
+            self.shape_processor = BGTreeVertexShapeProcessor(color_source=color_source)
         if self.text_processor is None:
-            self.text_processor = TreeVertexTextProcessor(color_source=color_source)
+            self.text_processor = BGTreeVertexTextProcessor(color_source=color_source)
 
     def get_vertex_id(self, vertex):
         return super().get_vertex_id(vertex=vertex)
@@ -536,7 +547,7 @@ class TreeVertexProcessor(VertexProcessor):
         return self.template.format(v_id=vertex_id, attributes=", ".join(attributes))
 
 
-class TreeEdgeShapeProcessor(ShapeProcessor):
+class BGTreeEdgeShapeProcessor(ShapeProcessor):
     def __init__(self, non_leaf_pen_width=1, leaf_pen_width=3, color=Colors.black, color_source=None, style="solid"):
         super().__init__(pen_width=non_leaf_pen_width, color=color, color_source=color_source, style=style)
         self.leaf_branch_pen_width = leaf_pen_width
@@ -562,18 +573,29 @@ class TreeEdgeShapeProcessor(ShapeProcessor):
             return self.non_leaf_branch_pen_width
 
 
-class TreeEdgeTextProcessor(TextProcessor):
+class BGTreeEdgeTextProcessor(TextProcessor):
     def __init__(self, font_name="Arial", size=7, color=Colors.black, color_source=None):
         super().__init__(color=color, size=size, font_name=font_name, color_source=color_source)
 
 
-class TreeEdgeProcessor(EdgeProcessor):
+class BGTreeEdgeProcessor(EdgeProcessor):
     def __init__(self, vertex_processor, edge_shape_processor=None, edge_text_processor=None, color_source=None):
         super().__init__(vertex_processor=vertex_processor, edge_shape_processor=edge_shape_processor, edge_text_processor=edge_text_processor)
         self.vertex_processor = vertex_processor
         if color_source is None:
             color_source = ColorSource()
         if self.shape_processor is None:
-            self.shape_processor = TreeEdgeShapeProcessor(color_source=color_source)
+            self.shape_processor = BGTreeEdgeShapeProcessor(color_source=color_source)
         if self.text_processor is None:
-            self.text_processor = TreeEdgeTextProcessor(color_source=color_source)
+            self.text_processor = BGTreeEdgeTextProcessor(color_source=color_source)
+
+
+class BGTreeProcessor(GraphProcessor):
+    def __init__(self, vertex_processor=None, edge_processor=None, color_source=None):
+        super().__init__(vertex_processor=vertex_processor, edge_processor=edge_processor)
+        if color_source is None:
+            color_source = ColorSource()
+        if self.vertex_processor is None:
+            self.vertex_processor = BGTreeVertexProcessor(color_source=color_source)
+        if self.edge_processor is None:
+            self.edge_processor = BGTreeEdgeProcessor(vertex_processor=self.vertex_processor, color_source=color_source)
