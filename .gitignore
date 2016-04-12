@@ -58,6 +58,10 @@ target/
 # .idea/Pycharm
 .idea/
 
+tests/**/*.svg
+tests/**/*.dot
+tests/**/*.pdf
+
 # virtualenv
 venv/
 
