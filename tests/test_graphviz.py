@@ -17,7 +17,7 @@ from bg.breakpoint_graph import BreakpointGraph
 from bg.tree import BGTree
 
 
-class VertexShapeProcessorTestCase(unittest.TestCase):
+class BGVertexShapeProcessorTestCase(unittest.TestCase):
     def setUp(self):
         self.defaultVertexShapeProcessor = BGVertexShapeProcessor()
 
@@ -54,7 +54,7 @@ class VertexShapeProcessorTestCase(unittest.TestCase):
                             set(self.defaultVertexShapeProcessor.get_attributes_string_list(entry=vertex)))
 
 
-class VertexTextProcessorTestCase(unittest.TestCase):
+class BGVertexTextProcessorTestCase(unittest.TestCase):
     def setUp(self):
         self.defaultVertexTextProcessor = BGVertexTextProcessor()
 
@@ -119,7 +119,7 @@ class VertexTextProcessorTestCase(unittest.TestCase):
                             set(self.defaultVertexTextProcessor.get_attributes_string_list(entry=vertex, label_format="plain")))
 
 
-class VertexProcessorTestCase(unittest.TestCase):
+class BGVertexProcessorTestCase(unittest.TestCase):
     def setUp(self):
         self.defaultVertexProcessor = BGVertexProcessor()
 
@@ -206,7 +206,7 @@ class VertexProcessorTestCase(unittest.TestCase):
                          self.defaultVertexProcessor.export_vertex_as_dot(vertex=vertex, label_format="html"))
 
 
-class EdgeShapeProcessorTestCase(unittest.TestCase):
+class BGEdgeShapeProcessorTestCase(unittest.TestCase):
     def setUp(self):
         self.defaultEdgeShapeProcessor = BGEdgeShapeProcessor()
         self.regular_vertex = TaggedBlockVertex(1)
@@ -334,7 +334,7 @@ class EdgeShapeProcessorTestCase(unittest.TestCase):
             self.defaultEdgeShapeProcessor.get_attributes_string_list(entry=multiedge)
 
 
-class EdgeTextProcessorTestCase(unittest.TestCase):
+class BGEdgeTextProcessorTestCase(unittest.TestCase):
     def setUp(self):
         self.defaultEdgeTextProcessor = BGEdgeTextProcessor()
         self.regular_edge = BGEdge(vertex1=TaggedBlockVertex("10t"), vertex2=TaggedBlockVertex("11h"), multicolor=Multicolor())
@@ -425,7 +425,7 @@ class EdgeTextProcessorTestCase(unittest.TestCase):
                                                                                          label_format="html")))
 
 
-class EdgeProcessorTestCase(unittest.TestCase):
+class BGEdgeProcessorTestCase(unittest.TestCase):
     def setUp(self):
         self.vertex_processor = BGVertexProcessor()
         self.defaultEdgeProcessor = BGEdgeProcessor(vertex_processor=self.vertex_processor)
@@ -676,7 +676,7 @@ class EdgeProcessorTestCase(unittest.TestCase):
             self.assertIn(entry, [re2_expected_entry1_html, re2_expected_entry2_html])
 
 
-class GraphProcessorTestCase(unittest.TestCase):
+class BreakpointGraphProcessorTestCase(unittest.TestCase):
     def setUp(self):
         self.vertex_processor = BGVertexProcessor()
         self.edge_processor = BGEdgeProcessor(vertex_processor=self.vertex_processor)
@@ -812,7 +812,7 @@ class GraphProcessorTestCase(unittest.TestCase):
         self.assertIn(graph_graphviz_entry, [expected_v1, expected_v2, expected_v3, expected_v4])
 
 
-class TreeTestCase(unittest.TestCase):
+class BGTreeTestCase(unittest.TestCase):
     def setUp(self):
         self.binary_tree = BGTree("((a, b), (c, (d, e)));")
         self.non_binary_tree = BGTree("((a, b, c), (d, e, (f, g, h)));")
@@ -837,7 +837,7 @@ class TreeTestCase(unittest.TestCase):
         self.sorted_genomes = [self.genome1, self.genome2, self.genome3, self.genome4, self.genome5]
 
 
-class TreeVertexShapeProcessorTestCase(TreeTestCase):
+class BGTreeVertexShapeProcessorTestCase(BGTreeTestCase):
     def setUp(self):
         super().setUp()
         self.default_tree_vertex_shape_processor = BGTreeVertexShapeProcessor()
@@ -929,7 +929,7 @@ class TreeVertexShapeProcessorTestCase(TreeTestCase):
                                 entry=self.non_leaf_nodes_binary_tree[0])))
 
 
-class TreeVertexTextProcessorTestCase(TreeTestCase):
+class BGTreeVertexTextProcessorTestCase(BGTreeTestCase):
     def setUp(self):
         super().setUp()
         self.default_tree_vertex_text_processor = BGTreeVertexTextProcessor()
@@ -1041,7 +1041,7 @@ class TreeVertexTextProcessorTestCase(TreeTestCase):
                                                                                                    label_format=LabelFormat.html)))
 
 
-class TreeVertexProcessorTestCase(TreeTestCase):
+class BGTreeVertexProcessorTestCase(BGTreeTestCase):
     def setUp(self):
         super().setUp()
         self.default_tree_vertex_shape_processor = BGTreeVertexShapeProcessor()
@@ -1109,7 +1109,7 @@ class TreeVertexProcessorTestCase(TreeTestCase):
         self.assertEqual(self.default_tree_vertex_processor.export_vertex_as_dot(vertex=v, label_format="html"), expected)
 
 
-class TreeEdgeShapeProcessorTestCase(TreeTestCase):
+class BGTreeEdgeShapeProcessorTestCase(BGTreeTestCase):
     def setUp(self):
         super().setUp()
         self.default_tree_edge_shape_processor = BGTreeEdgeShapeProcessor()
@@ -1191,7 +1191,7 @@ class TreeEdgeShapeProcessorTestCase(TreeTestCase):
                             set(self.default_tree_edge_shape_processor.get_attributes_string_list(entry=self.leaf_branches_binary_tree[0])))
 
 
-class TreeEdgeTextProcessorTestCase(TreeTestCase):
+class BGTreeEdgeTextProcessorTestCase(BGTreeTestCase):
     def setUp(self):
         super().setUp()
         self.default_tree_edge_text_processor = BGTreeEdgeTextProcessor()
@@ -1276,7 +1276,7 @@ class TreeEdgeTextProcessorTestCase(TreeTestCase):
                                                                                                  label_format=LabelFormat.html)))
 
 
-class TreeEdgeProcessorTestCase(TreeTestCase):
+class BGTreeEdgeProcessorTestCase(BGTreeTestCase):
     def setUp(self):
         super().setUp()
         self.default_tree_edge_shape_processor = BGTreeEdgeShapeProcessor()
@@ -1442,7 +1442,7 @@ class TreeEdgeProcessorTestCase(TreeTestCase):
             self.assertIn(entry, genome_colors)
 
 
-class TreeProcessorTestCase(TreeTestCase):
+class BGTreeProcessorTestCase(BGTreeTestCase):
     def setUp(self):
         super().setUp()
         self.default_tree_vertex_processor = BGTreeVertexProcessor()
