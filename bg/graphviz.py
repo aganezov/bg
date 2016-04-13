@@ -293,8 +293,8 @@ class BGEdgeShapeProcessor(ShapeProcessor):
         self.irregular_edge_style = "dotted"
         self.repeat_edge_style = "dashed"
         self.regular_edge_pen_width = 1
-        self.irregular_edge_pen_with = .1
-        self.repeat_edge_pen_width = .5
+        self.irregular_edge_pen_with = .7
+        self.repeat_edge_pen_width = .7
 
     def get_style(self, entry=None):
         if entry is None or not isinstance(entry, BGEdge):

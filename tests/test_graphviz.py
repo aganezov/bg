@@ -245,10 +245,10 @@ class BGEdgeShapeProcessorTestCase(unittest.TestCase):
         self.assertEqual(1, self.defaultEdgeShapeProcessor.get_pen_width(self.edge))
 
     def test_default_irregular_edge_pen_width(self):
-        self.assertEqual(.1, self.defaultEdgeShapeProcessor.get_pen_width(self.ir_edge))
+        self.assertEqual(.7, self.defaultEdgeShapeProcessor.get_pen_width(self.ir_edge))
 
     def test_default_repeat_edge_pen_width(self):
-        self.assertEqual(.5, self.defaultEdgeShapeProcessor.get_pen_width(self.r_edge))
+        self.assertEqual(.7, self.defaultEdgeShapeProcessor.get_pen_width(self.r_edge))
 
     def test_get_dot_colors_for_multicolor_single_color(self):
         mc = Multicolor(BGGenome("genome1"))
@@ -317,12 +317,12 @@ class BGEdgeShapeProcessorTestCase(unittest.TestCase):
 
     def test_get_all_attributes_as_list_of_strings_irregular_edge(self):
         color = self.defaultEdgeShapeProcessor.get_dot_colors(multicolor=Multicolor(self.color1))[0]
-        self.assertSetEqual({"color=\"" + color.value + "\"", "style=\"dotted\"", "penwidth=\"0.1\""},
+        self.assertSetEqual({"color=\"" + color.value + "\"", "style=\"dotted\"", "penwidth=\"0.7\""},
                             set(self.defaultEdgeShapeProcessor.get_attributes_string_list(entry=self.ir_edge)))
 
     def test_get_all_attributes_as_list_of_strings_repeat_edge(self):
         color = self.defaultEdgeShapeProcessor.get_dot_colors(multicolor=Multicolor(self.color1))[0]
-        self.assertSetEqual({"color=\"" + color.value + "\"", "style=\"dashed\"", "penwidth=\"0.5\""},
+        self.assertSetEqual({"color=\"" + color.value + "\"", "style=\"dashed\"", "penwidth=\"0.7\""},
                             set(self.defaultEdgeShapeProcessor.get_attributes_string_list(entry=self.r_edge)))
 
     def test_get_all_attribute_as_list_of_strings_multiedge_error(self):
@@ -520,7 +520,7 @@ class BGEdgeProcessorTestCase(unittest.TestCase):
         v2_id = self.vertex_processor.get_vertex_id(self.ir_edge.vertex2)
         str_color1 = self.defaultEdgeProcessor.shape_processor.get_dot_colors(multicolor=self.ir_edge.multicolor)[0].value
         expected_entry = "\"" + str(v1_id) + "\" -- \"" + str(
-            v2_id) + "\" [color=\"" + str_color1 + "\", style=\"dotted\", penwidth=\"0.1\"];"
+            v2_id) + "\" [color=\"" + str_color1 + "\", style=\"dotted\", penwidth=\"0.7\"];"
         graphviz_entries = self.defaultEdgeProcessor.export_edge_as_dot(edge=self.ir_edge)
         self.assertIsInstance(graphviz_entries, list)
         for entry in graphviz_entries:
@@ -535,9 +535,9 @@ class BGEdgeProcessorTestCase(unittest.TestCase):
         str_color2 = self.defaultEdgeProcessor.shape_processor.get_dot_colors(multicolor=Multicolor(self.color2))[0].value
         self.ir_edge.multicolor = Multicolor(self.color1, self.color2)
         expected_entry1 = "\"" + str(v1_id) + "\" -- \"" + str(
-            v2_id) + "\" [color=\"" + str_color1 + "\", style=\"dotted\", penwidth=\"0.1\"];"
+            v2_id) + "\" [color=\"" + str_color1 + "\", style=\"dotted\", penwidth=\"0.7\"];"
         expected_entry2 = "\"" + str(v1_id) + "\" -- \"" + str(
-            v2_id) + "\" [color=\"" + str_color2 + "\", style=\"dotted\", penwidth=\"0.1\"];"
+            v2_id) + "\" [color=\"" + str_color2 + "\", style=\"dotted\", penwidth=\"0.7\"];"
         graphviz_entries = self.defaultEdgeProcessor.export_edge_as_dot(edge=self.ir_edge)
         self.assertIsInstance(graphviz_entries, list)
         for entry in graphviz_entries:
@@ -551,7 +551,7 @@ class BGEdgeProcessorTestCase(unittest.TestCase):
         v2_id = self.vertex_processor.get_vertex_id(self.ir_edge.vertex2)
         str_color1 = self.defaultEdgeProcessor.shape_processor.get_dot_colors(multicolor=Multicolor(self.color1))[0].value
         expected_entry = "\"" + str(v1_id) + "\" -- \"" + str(
-            v2_id) + "\" [color=\"" + str_color1 + "\", style=\"dotted\", penwidth=\"0.1\"];"
+            v2_id) + "\" [color=\"" + str_color1 + "\", style=\"dotted\", penwidth=\"0.7\"];"
         self.ir_edge.multicolor = Multicolor(self.color1, self.color1, self.color1)
         graphviz_entries = self.defaultEdgeProcessor.export_edge_as_dot(edge=self.ir_edge)
         self.assertIsInstance(graphviz_entries, list)
@@ -569,11 +569,11 @@ class BGEdgeProcessorTestCase(unittest.TestCase):
         str_color3 = self.defaultEdgeProcessor.shape_processor.get_dot_colors(multicolor=Multicolor(self.color3))[0].value
         self.ir_edge.multicolor = Multicolor(self.color1, self.color1, self.color1, self.color2, self.color2, self.color3)
         expected_entry1 = "\"" + str(v1_id) + "\" -- \"" + str(
-            v2_id) + "\" [color=\"" + str_color1 + "\", style=\"dotted\", penwidth=\"0.1\"];"
+            v2_id) + "\" [color=\"" + str_color1 + "\", style=\"dotted\", penwidth=\"0.7\"];"
         expected_entry2 = "\"" + str(v1_id) + "\" -- \"" + str(
-            v2_id) + "\" [color=\"" + str_color2 + "\", style=\"dotted\", penwidth=\"0.1\"];"
+            v2_id) + "\" [color=\"" + str_color2 + "\", style=\"dotted\", penwidth=\"0.7\"];"
         expected_entry3 = "\"" + str(v1_id) + "\" -- \"" + str(
-            v2_id) + "\" [color=\"" + str_color3 + "\", style=\"dotted\", penwidth=\"0.1\"];"
+            v2_id) + "\" [color=\"" + str_color3 + "\", style=\"dotted\", penwidth=\"0.7\"];"
         graphviz_entries = self.defaultEdgeProcessor.export_edge_as_dot(edge=self.ir_edge)
         self.assertIsInstance(graphviz_entries, list)
         for entry in graphviz_entries:
@@ -591,11 +591,11 @@ class BGEdgeProcessorTestCase(unittest.TestCase):
         self.assertEqual(v2_id, v4_id)
         str_color1 = self.defaultEdgeProcessor.shape_processor.get_dot_colors(multicolor=Multicolor(self.color1))[0].value
         expected_entry1 = "\"" + str(v1_id) + "\" -- \"" + str(
-            v2_id) + "\" [color=\"" + str_color1 + "\", style=\"dotted\", penwidth=\"0.1\"];"
+            v2_id) + "\" [color=\"" + str_color1 + "\", style=\"dotted\", penwidth=\"0.7\"];"
         expected_entry2_plain = "\"" + str(v3_id) + "\" -- \"" + str(
-            v2_id) + "\" [color=\"" + str_color1 + "\", style=\"dashed\", penwidth=\"0.5\", label=\"r:LLC1h\", fontname=\"Arial\", fontsize=\"7\", fontcolor=\"black\"];"
+            v2_id) + "\" [color=\"" + str_color1 + "\", style=\"dashed\", penwidth=\"0.7\", label=\"r:LLC1h\", fontname=\"Arial\", fontsize=\"7\", fontcolor=\"black\"];"
         expected_entry2_html = "\"" + str(v3_id) + "\" -- \"" + str(
-            v2_id) + "\" [color=\"" + str_color1 + "\", style=\"dashed\", penwidth=\"0.5\", label=<r:LLC1<SUP>h</SUP>>, fontname=\"Arial\", fontsize=\"7\", fontcolor=\"black\"];"
+            v2_id) + "\" [color=\"" + str_color1 + "\", style=\"dashed\", penwidth=\"0.7\", label=<r:LLC1<SUP>h</SUP>>, fontname=\"Arial\", fontsize=\"7\", fontcolor=\"black\"];"
         ir_edge_graphviz_entries = self.defaultEdgeProcessor.export_edge_as_dot(edge=self.ir_edge)
         r_edge_graphviz_entries_plain = self.defaultEdgeProcessor.export_edge_as_dot(edge=self.r_edge)
         r_edge_graphviz_entries_html = self.defaultEdgeProcessor.export_edge_as_dot(edge=self.r_edge, label_format="html")
@@ -624,23 +624,23 @@ class BGEdgeProcessorTestCase(unittest.TestCase):
         str_color2 = self.defaultEdgeProcessor.shape_processor.get_dot_colors(multicolor=Multicolor(self.color2))[0].value
         str_color3 = self.defaultEdgeProcessor.shape_processor.get_dot_colors(multicolor=Multicolor(self.color3))[0].value
         ie_expected_entry1 = "\"" + str(v1_id) + "\" -- \"" + str(
-            v2_id) + "\" [color=\"" + str_color1 + "\", style=\"dotted\", penwidth=\"0.1\"];"
+            v2_id) + "\" [color=\"" + str_color1 + "\", style=\"dotted\", penwidth=\"0.7\"];"
         ie_expected_entry2 = "\"" + str(v1_id) + "\" -- \"" + str(
-            v2_id) + "\" [color=\"" + str_color2 + "\", style=\"dotted\", penwidth=\"0.1\"];"
+            v2_id) + "\" [color=\"" + str_color2 + "\", style=\"dotted\", penwidth=\"0.7\"];"
         ie_expected_entry3 = "\"" + str(v1_id) + "\" -- \"" + str(
-            v2_id) + "\" [color=\"" + str_color3 + "\", style=\"dotted\", penwidth=\"0.1\"];"
+            v2_id) + "\" [color=\"" + str_color3 + "\", style=\"dotted\", penwidth=\"0.7\"];"
         re1_expected_entry1_plain = "\"" + str(v1_id) + "\" -- \"" + str(
-            v2_id) + "\" [color=\"" + str_color1 + "\", style=\"dashed\", penwidth=\"0.5\", label=\"r:LLC1h\", fontname=\"Arial\", fontsize=\"7\", fontcolor=\"black\"];"
+            v2_id) + "\" [color=\"" + str_color1 + "\", style=\"dashed\", penwidth=\"0.7\", label=\"r:LLC1h\", fontname=\"Arial\", fontsize=\"7\", fontcolor=\"black\"];"
         re1_expected_entry1_html = "\"" + str(v1_id) + "\" -- \"" + str(
-            v2_id) + "\" [color=\"" + str_color1 + "\", style=\"dashed\", penwidth=\"0.5\", label=<r:LLC1<SUP>h</SUP>>, fontname=\"Arial\", fontsize=\"7\", fontcolor=\"black\"];"
+            v2_id) + "\" [color=\"" + str_color1 + "\", style=\"dashed\", penwidth=\"0.7\", label=<r:LLC1<SUP>h</SUP>>, fontname=\"Arial\", fontsize=\"7\", fontcolor=\"black\"];"
         re2_expected_entry1_plain = "\"" + str(v1_id) + "\" -- \"" + str(
-            v2_id) + "\" [color=\"" + str_color1 + "\", style=\"dashed\", penwidth=\"0.5\", label=\"r:LLC2h\", fontname=\"Arial\", fontsize=\"7\", fontcolor=\"black\"];"
+            v2_id) + "\" [color=\"" + str_color1 + "\", style=\"dashed\", penwidth=\"0.7\", label=\"r:LLC2h\", fontname=\"Arial\", fontsize=\"7\", fontcolor=\"black\"];"
         re2_expected_entry1_html = "\"" + str(v1_id) + "\" -- \"" + str(
-            v2_id) + "\" [color=\"" + str_color1 + "\", style=\"dashed\", penwidth=\"0.5\", label=<r:LLC2<SUP>h</SUP>>, fontname=\"Arial\", fontsize=\"7\", fontcolor=\"black\"];"
+            v2_id) + "\" [color=\"" + str_color1 + "\", style=\"dashed\", penwidth=\"0.7\", label=<r:LLC2<SUP>h</SUP>>, fontname=\"Arial\", fontsize=\"7\", fontcolor=\"black\"];"
         re2_expected_entry2_plain = "\"" + str(v1_id) + "\" -- \"" + str(
-            v2_id) + "\" [color=\"" + str_color2 + "\", style=\"dashed\", penwidth=\"0.5\", label=\"r:LLC2h\", fontname=\"Arial\", fontsize=\"7\", fontcolor=\"black\"];"
+            v2_id) + "\" [color=\"" + str_color2 + "\", style=\"dashed\", penwidth=\"0.7\", label=\"r:LLC2h\", fontname=\"Arial\", fontsize=\"7\", fontcolor=\"black\"];"
         re2_expected_entry2_html = "\"" + str(v1_id) + "\" -- \"" + str(
-            v2_id) + "\" [color=\"" + str_color2 + "\", style=\"dashed\", penwidth=\"0.5\", label=<r:LLC2<SUP>h</SUP>>, fontname=\"Arial\", fontsize=\"7\", fontcolor=\"black\"];"
+            v2_id) + "\" [color=\"" + str_color2 + "\", style=\"dashed\", penwidth=\"0.7\", label=<r:LLC2<SUP>h</SUP>>, fontname=\"Arial\", fontsize=\"7\", fontcolor=\"black\"];"
         self.ir_edge.multicolor = mc3
         self.r_edge.multicolor = mc1
         self.r_edge2.multicolor = mc2
