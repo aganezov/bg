@@ -224,7 +224,7 @@ class BGVertexTextProcessor(TextProcessor):
     def __init__(self, color=Colors.black, size=12, font_name="Arial", color_source=None):
         super().__init__(color=color, size=size, font_name=font_name, color_source=color_source)
 
-    def get_text(self, entry=None, label_format=LabelFormat.plain, separator=" "):
+    def get_text(self, entry=None, label_format=LabelFormat.plain, separator="\n"):
         if entry is None:
             return super().get_text(entry=entry, label_format=label_format)
         if label_format == LabelFormat.plain.value or label_format == LabelFormat.plain:

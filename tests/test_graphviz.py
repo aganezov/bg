@@ -100,15 +100,15 @@ class BGVertexTextProcessorTestCase(unittest.TestCase):
         tagged_vertex = TaggedBlockVertex(name="namet")
         tagged_vertex.add_tag("tag1", 10)
         tagged_vertex.add_tag("tag2", 20)
-        self.assertEqual("\"namet (tag1:10) (tag2:20)\"", self.defaultVertexTextProcessor.get_text(entry=tagged_vertex))
-        self.assertEqual("\"namet (tag1:10) (tag2:20)\"",
+        self.assertEqual("\"namet\n(tag1:10)\n(tag2:20)\"", self.defaultVertexTextProcessor.get_text(entry=tagged_vertex))
+        self.assertEqual("\"namet\n(tag1:10)\n(tag2:20)\"",
                          self.defaultVertexTextProcessor.get_text(entry=tagged_vertex, label_format="plain"))
 
     def test_tagged_vertex_name_html(self):
         tagged_vertex = TaggedBlockVertex(name="namet")
         tagged_vertex.add_tag("tag1", 10)
         tagged_vertex.add_tag("tag2", 20)
-        self.assertEqual("<name<SUP>t</SUP> (tag1:10) (tag2:20)>",
+        self.assertEqual("<name<SUP>t</SUP>\n(tag1:10)\n(tag2:20)>",
                          self.defaultVertexTextProcessor.get_text(entry=tagged_vertex, label_format="html"))
 
     def test_get_all_attributes_as_list_of_strings_regular_vertex(self):
@@ -193,10 +193,10 @@ class BGVertexProcessorTestCase(unittest.TestCase):
         vertex.add_tag("tag1", 1)
         vertex.add_tag("tag2", 2)
         self.assertEqual(
-            "\"1\" [label=\"10t (tag1:1) (tag2:2)\", fontname=\"Arial\", fontsize=\"12\", fontcolor=\"black\", shape=\"oval\", penwidth=\"1\"];",
+            "\"1\" [label=\"10t\n(tag1:1)\n(tag2:2)\", fontname=\"Arial\", fontsize=\"12\", fontcolor=\"black\", shape=\"oval\", penwidth=\"1\"];",
             self.defaultVertexProcessor.export_vertex_as_dot(vertex=vertex))
         self.assertEqual(
-            "\"1\" [label=<10<SUP>t</SUP> (tag1:1) (tag2:2)>, fontname=\"Arial\", fontsize=\"12\", fontcolor=\"black\", shape=\"oval\", penwidth=\"1\"];",
+            "\"1\" [label=<10<SUP>t</SUP>\n(tag1:1)\n(tag2:2)>, fontname=\"Arial\", fontsize=\"12\", fontcolor=\"black\", shape=\"oval\", penwidth=\"1\"];",
             self.defaultVertexProcessor.export_vertex_as_dot(vertex=vertex, label_format="html"))
 
     def test_full_irregular_vertex_graphviz_entry_all_default(self):
