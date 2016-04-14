@@ -16,7 +16,7 @@ from bg.graphviz import BGVertexShapeProcessor, BGVertexTextProcessor, BGVertexP
 from bg.vertices import TaggedBlockVertex, TaggedInfinityVertex, BlockVertex, InfinityVertex
 from bg.breakpoint_graph import BreakpointGraph
 from bg.tree import BGTree
-from utils import add_to_dict_with_path
+from bg.utils import add_to_dict_with_path
 
 
 class BGVertexShapeProcessorTestCase(unittest.TestCase):
