@@ -9,6 +9,7 @@ from bg.breakpoint_graph import BreakpointGraph
 from bg.edge import BGEdge
 from bg.genome import BGGenome
 from bg.vertices import BGVertex, InfinityVertex, TaggedInfinityVertex
+from utils import get_from_dict_with_path
 
 
 def vertex_as_a_sting(vertex, separator=" "):
@@ -334,7 +335,11 @@ class BGEdgeTextProcessor(TextProcessor):
     def __init__(self, size=7, font_name="Arial", color=Colors.black, color_source=None):
         super().__init__(size=size, font_name=font_name, color=color, color_source=color_source)
 
-    def get_text(self, entry=None, label_format=LabelFormat.plain, tag_key_processor=None, tag_value_processor=None):
+    def get_text(self, entry=None, label_format=LabelFormat.plain,
+                 edge_attributes_to_be_displayed=None,
+                 tag_key_processor=None, tag_value_processor=None,
+                 edge_key_value_separator=":",
+                 entries_separator="\n"):
         """
 
         :type label_format: Union[str, LabelFormat]
@@ -345,18 +350,34 @@ class BGEdgeTextProcessor(TextProcessor):
             tag_key_processor = self._tag_key_processor
         if tag_value_processor is None:
             tag_value_processor = self._tag_value_processor
+        if edge_attributes_to_be_displayed is None:
+            edge_attributes_to_be_displayed = []
         text = ""
+        entries = []
+        for path, key in edge_attributes_to_be_displayed:
+            value = get_from_dict_with_path(source_dict=entry.data, key=key, path=path)
+            if value is None:
+                continue
+            entries.append(tag_key_processor(key=key, label_format=label_format) + \
+                           edge_key_value_separator + \
+                           tag_value_processor(value=value, label_format=label_format))
+        text += entries_separator.join(entries)
         if isinstance(entry.vertex1, TaggedInfinityVertex):
+            entries = []
+            starting = "" if len(text) == 0 else entries_separator
             for tag, value in entry.vertex1.tags:
-                text += tag_key_processor(tag, label_format=label_format) + \
-                        entry.vertex1.TAG_SEPARATOR + \
-                        tag_value_processor(value, label_format=label_format)
+                entries.append(tag_key_processor(tag, label_format=label_format) + \
+                               entry.vertex1.TAG_SEPARATOR + \
+                               tag_value_processor(value, label_format=label_format))
+            text += starting + entries_separator.join(entries)
         if isinstance(entry.vertex2, TaggedInfinityVertex):
+            entries = []
+            starting = "" if len(text) == 0 else entries_separator
             for tag, value in entry.vertex2.tags:
-                text += " " if len(text) > 0 else ""
-                text += tag_key_processor(tag, label_format=label_format) + \
-                        entry.vertex1.TAG_SEPARATOR + \
-                        tag_value_processor(value, label_format=label_format)
+                entries.append(tag_key_processor(tag, label_format=label_format) + \
+                               entry.vertex1.TAG_SEPARATOR + \
+                               tag_value_processor(value, label_format=label_format))
+            text += starting + entries_separator.join(entries)
         if label_format == LabelFormat.plain.value or label_format == LabelFormat.plain:
             return "\"" + text + "\""
         elif label_format == LabelFormat.html.value or label_format == LabelFormat.html:
@@ -373,6 +394,18 @@ class BGEdgeTextProcessor(TextProcessor):
         if str(value).endswith(("h", "t")) and (label_format == LabelFormat.html.value or label_format == LabelFormat.html):
             return str(value)[:-1] + "<SUP>" + str(value)[-1] + "</SUP>"
         return str(value)
+
+    def get_attributes_string_list(self, entry, label_format=LabelFormat.plain, edge_attributes_to_be_displayed=None,
+                                   tag_key_processor=None, tag_value_processor=None, edge_key_value_separator=":",
+                                   entries_separator="\n"):
+        return [self.label_attrib_template.format(label=self.get_text(entry=entry, label_format=label_format,
+                                                                      edge_attributes_to_be_displayed=edge_attributes_to_be_displayed,
+                                                                      tag_key_processor=tag_key_processor, tag_value_processor=tag_value_processor,
+                                                                      edge_key_value_separator=edge_key_value_separator,
+                                                                      entries_separator=entries_separator)),
+                self.font_attrib_template.format(font=self.text_font_name),
+                self.size_attrib_template.format(size=self.text_size),
+                self.color_attrib_template.format(color=self.get_text_color(entry=entry))]
 
 
 class EdgeProcessor(object):
@@ -403,7 +436,8 @@ class EdgeProcessor(object):
 
 class BGEdgeProcessor(EdgeProcessor):
     def __init__(self, vertex_processor, edge_shape_processor=None, edge_text_processor=None, color_source=None):
-        super().__init__(vertex_processor=vertex_processor, edge_shape_processor=edge_shape_processor, edge_text_processor=edge_text_processor)
+        super().__init__(vertex_processor=vertex_processor, edge_shape_processor=edge_shape_processor,
+                         edge_text_processor=edge_text_processor)
         if color_source is None:
             color_source = ColorSource()
         if self.shape_processor is None:
@@ -420,7 +454,8 @@ class BGEdgeProcessor(EdgeProcessor):
         v2_id = self.vertex_processor.get_vertex_id(vertex=self.get_vertex_2(edge))
         result = []
         for color in edge.multicolor.multicolors.elements():
-            tmp_edge = BGEdge(vertex1=self.get_vertex_1(edge=edge), vertex2=self.get_vertex_2(edge=edge), multicolor=Multicolor(color), data=edge.data)
+            tmp_edge = BGEdge(vertex1=self.get_vertex_1(edge=edge), vertex2=self.get_vertex_2(edge=edge), multicolor=Multicolor(color),
+                              data=edge.data)
             attributes = self.shape_processor.get_attributes_string_list(entry=tmp_edge)
             if len(self.text_processor.get_text(entry=tmp_edge)) > 2:
                 attributes.extend(self.text_processor.get_attributes_string_list(entry=tmp_edge, label_format=label_format))
@@ -580,7 +615,8 @@ class BGTreeEdgeTextProcessor(TextProcessor):
 
 class BGTreeEdgeProcessor(EdgeProcessor):
     def __init__(self, vertex_processor, edge_shape_processor=None, edge_text_processor=None, color_source=None):
-        super().__init__(vertex_processor=vertex_processor, edge_shape_processor=edge_shape_processor, edge_text_processor=edge_text_processor)
+        super().__init__(vertex_processor=vertex_processor, edge_shape_processor=edge_shape_processor,
+                         edge_text_processor=edge_text_processor)
         self.vertex_processor = vertex_processor
         if color_source is None:
             color_source = ColorSource()
