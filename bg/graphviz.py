@@ -570,11 +570,15 @@ class BGTreeVertexProcessor(VertexProcessor):
         if self.text_processor is None:
             self.text_processor = BGTreeVertexTextProcessor(color_source=color_source)
 
-    def get_vertex_id(self, vertex):
-        return super().get_vertex_id(vertex=vertex)
+    def get_vertex_id(self, vertex, leaf_wrapper=BGGenome):
+        if isinstance(vertex, TreeNode) and vertex.is_leaf():
+            vertex_for_id = leaf_wrapper(vertex.name)
+        else:
+            vertex_for_id = vertex
+        return super().get_vertex_id(vertex=vertex_for_id)
 
-    def export_vertex_as_dot(self, vertex, label_format=LabelFormat.plain):
-        vertex_id = self.get_vertex_id(vertex=vertex)
+    def export_vertex_as_dot(self, vertex, label_format=LabelFormat.plain, leaf_wrapper=BGGenome):
+        vertex_id = self.get_vertex_id(vertex=vertex, leaf_wrapper=leaf_wrapper)
         attributes = []
         if isinstance(vertex, TreeNode) and vertex.is_leaf():
             attributes.extend(self.text_processor.get_attributes_string_list(entry=vertex, label_format=label_format))
