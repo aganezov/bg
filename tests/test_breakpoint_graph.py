@@ -5,7 +5,7 @@ from collections import Counter
 from unittest.mock import Mock
 
 from bg.grimm import GRIMMReader
-from bg.breakpoint_graph import BreakpointGraph
+from bg.breakpoint_graph import BreakpointGraph, BGConnectedComponentFilter
 from bg.edge import BGEdge
 from bg.genome import BGGenome
 from bg.kbreak import KBreak
@@ -2910,6 +2910,19 @@ class BreakpointGraphTestCase(unittest.TestCase):
         bg.add_edge(vertex1=v1, vertex2=v2, multicolor=mc3, merge=False)
         reference = BGEdge(vertex1=v1, vertex2=v2, multicolor=mc1 + mc2 + mc3)
         self.assertEqual(bg.get_condensed_edge(vertex1=v1, vertex2=v2), reference)
+
+
+class BGConnectedComponentFilterTestCase(unittest.TestCase):
+    def setUp(self):
+        self.default_BG_connected_component_filter = BGConnectedComponentFilter()
+
+    def test_accept_connected_component_method(self):
+        self.assertTrue(hasattr(self.default_BG_connected_component_filter, "accept_connected_component"))
+        self.assertTrue(callable(self.default_BG_connected_component_filter.accept_connected_component))
+
+    def test_accept_connect_component_default_return(self):
+        cc = BreakpointGraph()
+        self.assertTrue(self.default_BG_connected_component_filter.accept_connected_component(cc=cc))
 
 
 if __name__ == '__main__':  # pragma: no cover

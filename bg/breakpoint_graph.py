@@ -1149,3 +1149,8 @@ class BreakpointGraph(object):
             else:
                 result.append("-" if entry == "+" else "+")
         return result
+
+
+class BGConnectedComponentFilter(object):
+    def accept_connected_component(self, cc):
+        return True
