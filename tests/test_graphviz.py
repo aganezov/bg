@@ -1106,7 +1106,9 @@ class BGTreeVertexProcessorTestCase(BGTreeTestCase):
         v = self.non_leaf_nodes_binary_tree[0]
         str_color = self.default_tree_vertex_shape_processor.get_color_as_string(entry=v)
         v_id = self.default_tree_vertex_processor.get_vertex_id(vertex=v)
-        expected = "\"" + str(v_id) + "\" [shape=\"oval\", penwidth=\"1\", style=\"solid\", color=\"" + str_color + "\"];"
+        expected = "\"" + str(v_id) + "\" [label=\"\", fontname=\"Arial\", " \
+                                      "fontsize=\"12\", fontcolor=\"" + str_color + "\", " \
+                                                                                    "shape=\"oval\", penwidth=\"1\", style=\"solid\", color=\"" + str_color + "\"];"
         self.assertEqual(self.default_tree_vertex_processor.export_vertex_as_dot(vertex=v), expected)
         self.assertEqual(self.default_tree_vertex_processor.export_vertex_as_dot(vertex=v, label_format=LabelFormat.plain), expected)
         self.assertEqual(self.default_tree_vertex_processor.export_vertex_as_dot(vertex=v, label_format="plain"), expected)
@@ -1115,7 +1117,9 @@ class BGTreeVertexProcessorTestCase(BGTreeTestCase):
         v = self.non_leaf_nodes_binary_tree[0]
         str_color = self.default_tree_vertex_shape_processor.get_color_as_string(entry=v)
         v_id = self.default_tree_vertex_processor.get_vertex_id(vertex=v)
-        expected = "\"" + str(v_id) + "\" [shape=\"oval\", penwidth=\"1\", style=\"solid\", color=\"" + str_color + "\"];"
+        expected = "\"" + str(v_id) + "\" [label=<>, fontname=\"Arial\", " \
+                                      "fontsize=\"12\", fontcolor=\"" + str_color + "\", " \
+                                                                                    "shape=\"oval\", penwidth=\"1\", style=\"solid\", color=\"" + str_color + "\"];"
         self.assertEqual(self.default_tree_vertex_processor.export_vertex_as_dot(vertex=v, label_format=LabelFormat.html), expected)
         self.assertEqual(self.default_tree_vertex_processor.export_vertex_as_dot(vertex=v, label_format="html"), expected)
 

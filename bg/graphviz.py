@@ -580,8 +580,7 @@ class BGTreeVertexProcessor(VertexProcessor):
     def export_vertex_as_dot(self, vertex, label_format=LabelFormat.plain, leaf_wrapper=BGGenome):
         vertex_id = self.get_vertex_id(vertex=vertex, leaf_wrapper=leaf_wrapper)
         attributes = []
-        if isinstance(vertex, TreeNode) and vertex.is_leaf():
-            attributes.extend(self.text_processor.get_attributes_string_list(entry=vertex, label_format=label_format))
+        attributes.extend(self.text_processor.get_attributes_string_list(entry=vertex, label_format=label_format))
         attributes.extend(self.shape_processor.get_attributes_string_list(entry=vertex))
         return self.template.format(v_id=vertex_id, attributes=", ".join(attributes))
 
