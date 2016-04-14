@@ -11,26 +11,26 @@ from bg.genome import BGGenome
 from bg.vertices import BGVertex, InfinityVertex, TaggedInfinityVertex
 
 
-def vertex_as_a_sting(vertex):
+def vertex_as_a_sting(vertex, separator=" "):
     result = ""
     if isinstance(vertex, BGVertex):
         orientation = "t" if vertex.is_tail_vertex else "h"
         result += vertex.block_name + orientation
         if vertex.is_tagged_vertex and len(vertex.tags) > 0:
-            result += " " + " ".join(map(lambda entry: "(" + entry + ")", vertex.get_tags_as_list_of_strings()))
+            result += separator + separator.join(map(lambda entry: "(" + entry + ")", vertex.get_tags_as_list_of_strings()))
     else:
         result = str(vertex)
     return "{string}".format(string=result)
 
 
-def vertex_as_html(vertex):
+def vertex_as_html(vertex, separator=" "):
     result = ""
     if isinstance(vertex, BGVertex):
         if vertex.is_block_vertex:
             orientation = "t" if vertex.is_tail_vertex else "h"
             result += vertex.block_name + "<SUP>" + orientation + "</SUP>"
         if vertex.is_tagged_vertex and len(vertex.tags) > 0:
-            result += " " + " ".join(map(lambda entry: "(" + entry + ")", vertex.get_tags_as_list_of_strings()))
+            result += separator + separator.join(map(lambda entry: "(" + entry + ")", vertex.get_tags_as_list_of_strings()))
     else:
         result = str(vertex)
     return "<" + result + ">"
@@ -224,13 +224,13 @@ class BGVertexTextProcessor(TextProcessor):
     def __init__(self, color=Colors.black, size=12, font_name="Arial", color_source=None):
         super().__init__(color=color, size=size, font_name=font_name, color_source=color_source)
 
-    def get_text(self, entry=None, label_format=LabelFormat.plain):
+    def get_text(self, entry=None, label_format=LabelFormat.plain, separator=" "):
         if entry is None:
             return super().get_text(entry=entry, label_format=label_format)
         if label_format == LabelFormat.plain.value or label_format == LabelFormat.plain:
-            return "\"" + vertex_as_a_sting(vertex=entry) + "\""
+            return "\"" + vertex_as_a_sting(vertex=entry, separator=separator) + "\""
         elif label_format == LabelFormat.html.value or label_format == LabelFormat.html:
-            return vertex_as_html(vertex=entry)
+            return vertex_as_html(vertex=entry, separator=separator)
 
 
 class VertexProcessor(object):
