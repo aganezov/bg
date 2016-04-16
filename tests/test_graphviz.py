@@ -729,6 +729,17 @@ class BreakpointGraphProcessorTestCase(unittest.TestCase):
                          "{vertices}\n"
                          "}}", self.defaultGraphProcessor.template)
 
+    def test_cc_filters_field(self):
+        self.assertIsInstance(self.defaultGraphProcessor.cc_filters, list)
+        self.assertEqual(len(self.defaultGraphProcessor.cc_filters), 0)
+
+    def test_cc_filter_template(self):
+        self.assertEqual("{filter_name}: {filtered_cnt}", self.defaultGraphProcessor.cc_filter_template)
+
+    def test_overall_cc_filters_template(self):
+        self.assertEqual("\"cc_filters\" [shape=\"square\", penwidth=\"5\", fontname=\"Arial\", fontsize=\"15\", label=\"{overall_filters_info}\"];",
+                         self.defaultGraphProcessor.cc_filters_template)
+
     def test_get_vertices_graphviz_entries_plain(self):
         vertices_entries = self.defaultGraphProcessor.export_vertices_as_dot(graph=self.graph)
         expected = [self.vertex_processor.export_vertex_as_dot(vertex=v) for v in

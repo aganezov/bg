@@ -400,7 +400,8 @@ class BGEdgeTextProcessor(TextProcessor):
                                    entries_separator="\n"):
         return [self.label_attrib_template.format(label=self.get_text(entry=entry, label_format=label_format,
                                                                       edge_attributes_to_be_displayed=edge_attributes_to_be_displayed,
-                                                                      tag_key_processor=tag_key_processor, tag_value_processor=tag_value_processor,
+                                                                      tag_key_processor=tag_key_processor,
+                                                                      tag_value_processor=tag_value_processor,
                                                                       edge_key_value_separator=edge_key_value_separator,
                                                                       entries_separator=entries_separator)),
                 self.font_attrib_template.format(font=self.text_font_name),
@@ -494,7 +495,7 @@ class GraphProcessor(object):
 
 
 class BreakpointGraphProcessor(GraphProcessor):
-    def __init__(self, vertex_processor=None, edge_processor=None, color_source=None):
+    def __init__(self, vertex_processor=None, edge_processor=None, color_source=None, cc_filters=None):
         super().__init__(vertex_processor=vertex_processor, edge_processor=edge_processor)
         if color_source is None:
             color_source = ColorSource()
@@ -502,6 +503,13 @@ class BreakpointGraphProcessor(GraphProcessor):
             self.vertex_processor = BGVertexProcessor(color_source=color_source)
         if self.edge_processor is None:
             self.edge_processor = BGEdgeProcessor(vertex_processor=self.vertex_processor, color_source=color_source)
+        if cc_filters is None:
+            cc_filters = []
+        self.cc_filters = cc_filters
+        self.cc_filter_template = "{filter_name}: {filtered_cnt}"
+        self.cc_filters_template = "\"cc_filters\" [shape=\"square\", penwidth=\"5\"," \
+                                   " fontname=\"Arial\", fontsize=\"15\", " \
+                                   "label=\"{overall_filters_info}\"];"
 
 
 class BGTreeVertexShapeProcessor(VertexShapeProcessor):
