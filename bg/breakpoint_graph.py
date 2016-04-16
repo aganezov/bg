@@ -1155,7 +1155,7 @@ class BGConnectedComponentFilter(object):
     def __init__(self):
         self.name = None
 
-    def accept_connected_component(self, cc):
+    def accept_connected_component(self, cc, breakpoint_graph=None):
         return True
 
 
@@ -1166,12 +1166,10 @@ class CompleteMultiEdgeConnectedComponentFilter(BGConnectedComponentFilter):
 
     def accept_connected_component(self, cc, breakpoint_graph=None):
         if len(list(cc.nodes())) != 2:
-            return False
-        genomes_cnt = len(cc.get_overall_set_of_colors())
-        edges_genomes_cnt = len({color for edge in breakpoint_graph.edges() for color in edge.multicolor.colors})
-        if genomes_cnt == edges_genomes_cnt:
             return True
-        return False
+        genomes_cnt = len(breakpoint_graph.get_overall_set_of_colors())
+        edges_genomes_cnt = len({color for edge in cc.edges() for color in edge.multicolor.colors})
+        return genomes_cnt != edges_genomes_cnt
 
 
 class TwoNodeConnectedComponentFilter(BGConnectedComponentFilter):
@@ -1179,5 +1177,5 @@ class TwoNodeConnectedComponentFilter(BGConnectedComponentFilter):
         super().__init__()
         self.name = "Two node filter"
 
-    def accept_connected_component(self, cc):
-        return len(list(cc.nodes())) == 2
+    def accept_connected_component(self, cc, breakpoint_graph=None):
+        return len(list(cc.nodes())) != 2

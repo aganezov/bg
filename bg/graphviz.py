@@ -10,6 +10,7 @@ from bg.edge import BGEdge
 from bg.genome import BGGenome
 from bg.vertices import BGVertex, InfinityVertex, TaggedInfinityVertex
 from bg.utils import get_from_dict_with_path
+from collections import defaultdict
 
 
 def vertex_as_a_sting(vertex, separator=" "):
@@ -510,6 +511,27 @@ class BreakpointGraphProcessor(GraphProcessor):
         self.cc_filters_template = "\"cc_filters\" [shape=\"square\", penwidth=\"5\"," \
                                    " fontname=\"Arial\", fontsize=\"15\", " \
                                    "label=\"{overall_filters_info}\"];"
+
+    def export_graph_as_dot(self, graph, label_format=LabelFormat.plain):
+        vertices_entries = []
+        edges_entries = []
+        filters_results = defaultdict(int)
+        for cc in graph.connected_components_subgraphs(copy=False):
+            for cc_filter in self.cc_filters:
+                if not cc_filter.accept_connected_component(cc=cc, breakpoint_graph=graph):
+                    filters_results[cc_filter.name] += 1
+                    break
+            else:
+                vertices_entries.extend(self.export_vertices_as_dot(graph=cc, label_format=label_format))
+                edges_entries.extend(self.export_edges_as_dot(graph=cc, label_format=label_format))
+        invoked_filters = {key: value for key, value in filters_results.items() if value > 0}
+        if len(invoked_filters) > 0:
+            entries = []
+            for key, value in invoked_filters.items():
+                entries.append(self.cc_filter_template.format(filter_name=key, filtered_cnt=value))
+            label = "\n".join(entries)
+            vertices_entries.append(self.cc_filters_template.format(overall_filters_info=label))
+        return self.template.format(edges="\n".join(edges_entries), vertices="\n".join(vertices_entries))
 
 
 class BGTreeVertexShapeProcessor(VertexShapeProcessor):

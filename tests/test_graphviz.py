@@ -17,7 +17,7 @@ from bg.vertices import TaggedBlockVertex, TaggedInfinityVertex, BlockVertex, In
 from bg.breakpoint_graph import BreakpointGraph
 from bg.tree import BGTree
 from bg.utils import add_to_dict_with_path
-
+from breakpoint_graph import CompleteMultiEdgeConnectedComponentFilter
 
 
 class BGVertexShapeProcessorTestCase(unittest.TestCase):
@@ -737,8 +737,9 @@ class BreakpointGraphProcessorTestCase(unittest.TestCase):
         self.assertEqual("{filter_name}: {filtered_cnt}", self.defaultGraphProcessor.cc_filter_template)
 
     def test_overall_cc_filters_template(self):
-        self.assertEqual("\"cc_filters\" [shape=\"square\", penwidth=\"5\", fontname=\"Arial\", fontsize=\"15\", label=\"{overall_filters_info}\"];",
-                         self.defaultGraphProcessor.cc_filters_template)
+        self.assertEqual(
+            "\"cc_filters\" [shape=\"square\", penwidth=\"5\", fontname=\"Arial\", fontsize=\"15\", label=\"{overall_filters_info}\"];",
+            self.defaultGraphProcessor.cc_filters_template)
 
     def test_get_vertices_graphviz_entries_plain(self):
         vertices_entries = self.defaultGraphProcessor.export_vertices_as_dot(graph=self.graph)
@@ -830,6 +831,42 @@ class BreakpointGraphProcessorTestCase(unittest.TestCase):
                       "\n".join(self.edge_processor.export_edge_as_dot(edge=bg_edge_v2, label_format="html")) + "\n" + \
                       self.vertex_processor.export_vertex_as_dot(vertex=self.v2, label_format="html") + "\n" + \
                       self.vertex_processor.export_vertex_as_dot(vertex=self.v1, label_format="html") + "\n" + "}"
+        graph_graphviz_entry = self.defaultGraphProcessor.export_graph_as_dot(graph=graph, label_format="html")
+        self.assertIsInstance(graph_graphviz_entry, str)
+        self.assertIn(graph_graphviz_entry, [expected_v1, expected_v2, expected_v3, expected_v4])
+
+    def test_export_graph_CME_cc_filter_as_dot_plain(self):
+        graph = BreakpointGraph()
+        bg_edge_1 = BGEdge(vertex1=self.v1, vertex2=self.v2, multicolor=self.mc1)
+        bg_edge_1_r = BGEdge(vertex1=self.v2, vertex2=self.v1, multicolor=self.mc1)
+        bg_edge_2 = BGEdge(vertex1=self.v3, vertex2=self.v4, multicolor=self.mc2)
+        graph.add_bgedge(bgedge=bg_edge_1)
+        graph.add_bgedge(bgedge=bg_edge_2)
+        self.defaultGraphProcessor.cc_filters.append(CompleteMultiEdgeConnectedComponentFilter())
+        expected_v1 = "graph {\n" + \
+                      "\n".join(self.edge_processor.export_edge_as_dot(edge=bg_edge_1, label_format="html")) + "\n" + \
+                      self.vertex_processor.export_vertex_as_dot(vertex=self.v1, label_format="html") + "\n" + \
+                      self.vertex_processor.export_vertex_as_dot(vertex=self.v2, label_format="html") + "\n" + \
+                      "\"cc_filters\" [shape=\"square\", penwidth=\"5\", fontname=\"Arial\", fontsize=\"15\", label=\"Complete ME filter: 1\"];" + "\n" + \
+                      "}"
+        expected_v2 = "graph {\n" + \
+                      "\n".join(self.edge_processor.export_edge_as_dot(edge=bg_edge_1, label_format="html")) + "\n" + \
+                      self.vertex_processor.export_vertex_as_dot(vertex=self.v2, label_format="html") + "\n" + \
+                      self.vertex_processor.export_vertex_as_dot(vertex=self.v1, label_format="html") + "\n" + \
+                      "\"cc_filters\" [shape=\"square\", penwidth=\"5\", fontname=\"Arial\", fontsize=\"15\", label=\"Complete ME filter: 1\"];" + "\n" + \
+                      "}"
+        expected_v3 = "graph {\n" + \
+                      "\n".join(self.edge_processor.export_edge_as_dot(edge=bg_edge_1_r, label_format="html")) + "\n" + \
+                      self.vertex_processor.export_vertex_as_dot(vertex=self.v1, label_format="html") + "\n" + \
+                      self.vertex_processor.export_vertex_as_dot(vertex=self.v2, label_format="html") + "\n" + \
+                      "\"cc_filters\" [shape=\"square\", penwidth=\"5\", fontname=\"Arial\", fontsize=\"15\", label=\"Complete ME filter: 1\"];" + "\n" + \
+                      "}"
+        expected_v4 = "graph {\n" + \
+                      "\n".join(self.edge_processor.export_edge_as_dot(edge=bg_edge_1_r, label_format="html")) + "\n" + \
+                      self.vertex_processor.export_vertex_as_dot(vertex=self.v2, label_format="html") + "\n" + \
+                      self.vertex_processor.export_vertex_as_dot(vertex=self.v1, label_format="html") + "\n" + \
+                      "\"cc_filters\" [shape=\"square\", penwidth=\"5\", fontname=\"Arial\", fontsize=\"15\", label=\"Complete ME filter: 1\"];" + "\n" + \
+                      "}"
         graph_graphviz_entry = self.defaultGraphProcessor.export_graph_as_dot(graph=graph, label_format="html")
         self.assertIsInstance(graph_graphviz_entry, str)
         self.assertIn(graph_graphviz_entry, [expected_v1, expected_v2, expected_v3, expected_v4])

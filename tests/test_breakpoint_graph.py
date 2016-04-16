@@ -2957,7 +2957,7 @@ class CompleteMultiEdgeConnectedComponentFilterTestCase(CCFilterTestCase):
         bg.add_edge(vertex1=self.v1, vertex2=self.v2, multicolor=self.mc1)
         bg.add_edge(vertex1=self.v3, vertex2=self.v4, multicolor=self.mc2)
         for cc in bg.connected_components_subgraphs(copy=False):
-            if cc.has_edge(vertex1=self.v1, vertex2=self.v2):
+            if cc.has_edge(vertex1=self.v3, vertex2=self.v4):
                 self.assertTrue(self.complete_me_cc_filter.accept_connected_component(cc=cc, breakpoint_graph=bg))
 
     def test_name(self):
@@ -2968,7 +2968,7 @@ class CompleteMultiEdgeConnectedComponentFilterTestCase(CCFilterTestCase):
         bg.add_edge(vertex1=self.v1, vertex2=self.v2, multicolor=self.mc1)
         bg.add_edge(vertex1=self.v3, vertex2=self.v4, multicolor=self.mc2)
         for cc in bg.connected_components_subgraphs(copy=False):
-            if cc.has_edge(vertex1=self.v3, vertex2=self.v4):
+            if cc.has_edge(vertex1=self.v1, vertex2=self.v2):
                 self.assertFalse(self.complete_me_cc_filter.accept_connected_component(cc=cc, breakpoint_graph=bg))
 
     def test_true_no_filter_complete_but_non_two_vertices_cc(self):
@@ -2977,7 +2977,7 @@ class CompleteMultiEdgeConnectedComponentFilterTestCase(CCFilterTestCase):
         bg.add_edge(vertex1=self.v3, vertex2=self.v4, multicolor=self.mc2)
         bg.add_edge(vertex1=self.v2, vertex2=self.v3, multicolor=self.mc3)
         for cc in bg.connected_components_subgraphs(copy=False):
-            self.assertFalse(self.complete_me_cc_filter.accept_connected_component(cc=cc, breakpoint_graph=bg))
+            self.assertTrue(self.complete_me_cc_filter.accept_connected_component(cc=cc, breakpoint_graph=bg))
 
 
 class TwoNodeConnectedComponentFilterTestCase(CCFilterTestCase):
@@ -2993,14 +2993,14 @@ class TwoNodeConnectedComponentFilterTestCase(CCFilterTestCase):
             bg = BreakpointGraph()
             bg.add_edge(vertex1=self.v1, vertex2=self.v2, multicolor=mc)
             for cc in bg.connected_components_subgraphs(copy=False):
-                self.assertTrue(self.two_node_cc_filter.accept_connected_component(cc=cc))
+                self.assertFalse(self.two_node_cc_filter.accept_connected_component(cc=cc))
 
     def test_triple_nodes_cc(self):
         bg = BreakpointGraph()
         bg.add_edge(vertex1=self.v1, vertex2=self.v2, multicolor=self.mc1)
         bg.add_edge(vertex1=self.v2, vertex2=self.v3, multicolor=self.mc2)
         for cc in bg.connected_components_subgraphs(copy=False):
-            self.assertFalse(self.two_node_cc_filter.accept_connected_component(cc=cc))
+            self.assertTrue(self.two_node_cc_filter.accept_connected_component(cc=cc))
 
 
 if __name__ == '__main__':  # pragma: no cover
