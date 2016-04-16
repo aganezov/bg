@@ -2,10 +2,10 @@ API documentation
 =================
 
 
-bg_io.py
+grimm.py
 ~~~~~~~~
 
-.. automodule:: bg.bg_io
+.. automodule:: bg.grimm
    :members:
    :private-members:
    :special-members:
@@ -17,6 +17,16 @@ breakpoint_graph.py
 ~~~~~~~~~~~~~~~~~~~
 
 .. automodule:: bg.breakpoint_graph
+   :members:
+   :private-members:
+   :special-members:
+   :exclude-members: __dict__, __weakref__
+   :show-inheritance:
+
+
+tree.py
+~~~~~~~
+.. automodule:: bg.tree
    :members:
    :private-members:
    :special-members:
@@ -54,10 +64,40 @@ edge.py
    :exclude-members: __dict__, __weakref__
    :show-inheritance:
 
-vertex.py
+vertices.py
+~~~~~~~~~~~
+
+.. automodule:: bg.vertices
+   :members:
+   :private-members:
+   :special-members:
+   :exclude-members: __dict__, __weakref__
+   :show-inheritance:
+
+genome.py
 ~~~~~~~~~
 
-.. automodule:: bg.vertex
+.. automodule:: bg.genome
+   :members:
+   :private-members:
+   :special-members:
+   :exclude-members: __dict__, __weakref__
+   :show-inheritance:
+
+distances.py
+~~~~~~~~~~~~
+
+.. automodule:: bg.distances
+   :members:
+   :private-members:
+   :special-members:
+   :exclude-members: __dict__, __weakref__
+   :show-inheritance:
+
+util.py
+~~~~~~~
+
+.. automodule:: bg.utils
    :members:
    :private-members:
    :special-members:

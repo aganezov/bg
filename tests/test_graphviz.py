@@ -19,6 +19,7 @@ from bg.tree import BGTree
 from bg.utils import add_to_dict_with_path
 
 
+
 class BGVertexShapeProcessorTestCase(unittest.TestCase):
     def setUp(self):
         self.defaultVertexShapeProcessor = BGVertexShapeProcessor()
