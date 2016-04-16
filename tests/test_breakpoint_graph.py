@@ -2943,6 +2943,9 @@ class CCFilterTestCase(unittest.TestCase):
         self.iv1 = TaggedInfinityVertex("v1")
         self.iv2 = TaggedInfinityVertex("v2")
 
+    def test_default_name(self):
+        self.assertIsNone(BGConnectedComponentFilter().name)
+
 
 class CompleteMultiEdgeConnectedComponentFilterTestCase(CCFilterTestCase):
     def setUp(self):
@@ -2956,6 +2959,9 @@ class CompleteMultiEdgeConnectedComponentFilterTestCase(CCFilterTestCase):
         for cc in bg.connected_components_subgraphs(copy=False):
             if cc.has_edge(vertex1=self.v1, vertex2=self.v2):
                 self.assertTrue(self.complete_me_cc_filter.accept_connected_component(cc=cc, breakpoint_graph=bg))
+
+    def test_name(self):
+        self.assertEqual("Complete ME filter", self.complete_me_cc_filter.name)
 
     def test_true_no_filter_non_complete_multiedge_multicolor(self):
         bg = BreakpointGraph()
@@ -2978,6 +2984,9 @@ class TwoNodeConnectedComponentFilterTestCase(CCFilterTestCase):
     def setUp(self):
         super().setUp()
         self.two_node_cc_filter = TwoNodeConnectedComponentFilter()
+
+    def test_name(self):
+        self.assertEqual("Two node filter", self.two_node_cc_filter.name)
 
     def test_true_filter_two_node_cc(self):
         for mc in [self.mc1, self.mc2, self.mc3, self.mc4]:

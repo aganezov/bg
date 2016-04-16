@@ -1152,11 +1152,18 @@ class BreakpointGraph(object):
 
 
 class BGConnectedComponentFilter(object):
+    def __init__(self):
+        self.name = None
+
     def accept_connected_component(self, cc):
         return True
 
 
 class CompleteMultiEdgeConnectedComponentFilter(BGConnectedComponentFilter):
+    def __init__(self):
+        super().__init__()
+        self.name = "Complete ME filter"
+
     def accept_connected_component(self, cc, breakpoint_graph=None):
         if len(list(cc.nodes())) != 2:
             return False
@@ -1168,5 +1175,9 @@ class CompleteMultiEdgeConnectedComponentFilter(BGConnectedComponentFilter):
 
 
 class TwoNodeConnectedComponentFilter(BGConnectedComponentFilter):
+    def __init__(self):
+        super().__init__()
+        self.name = "Two node filter"
+
     def accept_connected_component(self, cc):
         return len(list(cc.nodes())) == 2
