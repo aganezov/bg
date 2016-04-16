@@ -9,7 +9,7 @@ from bg.breakpoint_graph import BreakpointGraph
 from bg.edge import BGEdge
 from bg.genome import BGGenome
 from bg.vertices import BGVertex, InfinityVertex, TaggedInfinityVertex
-from utils import get_from_dict_with_path
+from bg.utils import get_from_dict_with_path
 
 
 def vertex_as_a_sting(vertex, separator=" "):
