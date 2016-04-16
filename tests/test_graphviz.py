@@ -17,7 +17,7 @@ from bg.vertices import TaggedBlockVertex, TaggedInfinityVertex, BlockVertex, In
 from bg.breakpoint_graph import BreakpointGraph
 from bg.tree import BGTree
 from bg.utils import add_to_dict_with_path
-from breakpoint_graph import CompleteMultiEdgeConnectedComponentFilter
+from bg.breakpoint_graph import CompleteMultiEdgeConnectedComponentFilter
 
 
 class BGVertexShapeProcessorTestCase(unittest.TestCase):
