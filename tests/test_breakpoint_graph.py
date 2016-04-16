@@ -5,7 +5,8 @@ from collections import Counter
 from unittest.mock import Mock
 
 from bg.grimm import GRIMMReader
-from bg.breakpoint_graph import BreakpointGraph, BGConnectedComponentFilter
+from bg.breakpoint_graph import BreakpointGraph, BGConnectedComponentFilter, CompleteMultiEdgeConnectedComponentFilter, \
+    TwoNodeConnectedComponentFilter
 from bg.edge import BGEdge
 from bg.genome import BGGenome
 from bg.kbreak import KBreak
@@ -2923,6 +2924,74 @@ class BGConnectedComponentFilterTestCase(unittest.TestCase):
     def test_accept_connect_component_default_return(self):
         cc = BreakpointGraph()
         self.assertTrue(self.default_BG_connected_component_filter.accept_connected_component(cc=cc))
+
+
+class CCFilterTestCase(unittest.TestCase):
+    def setUp(self):
+        self.genome1 = BGGenome("genome1")
+        self.genome2 = BGGenome("genome2")
+        self.genome3 = BGGenome("genome3")
+        self.genome4 = BGGenome("genome4")
+        self.mc1 = Multicolor(self.genome1, self.genome2, self.genome3, self.genome4)
+        self.mc2 = Multicolor(self.genome1, self.genome2, self.genome3)
+        self.mc3 = Multicolor(self.genome1, self.genome2)
+        self.mc4 = Multicolor(self.genome1)
+        self.v1 = TaggedBlockVertex("v1")
+        self.v2 = TaggedBlockVertex("v2")
+        self.v3 = TaggedBlockVertex("v3")
+        self.v4 = TaggedBlockVertex("v4")
+        self.iv1 = TaggedInfinityVertex("v1")
+        self.iv2 = TaggedInfinityVertex("v2")
+
+
+class CompleteMultiEdgeConnectedComponentFilterTestCase(CCFilterTestCase):
+    def setUp(self):
+        super().setUp()
+        self.complete_me_cc_filter = CompleteMultiEdgeConnectedComponentFilter()
+
+    def test_true_filter_complete_multiedge_multicolor(self):
+        bg = BreakpointGraph()
+        bg.add_edge(vertex1=self.v1, vertex2=self.v2, multicolor=self.mc1)
+        bg.add_edge(vertex1=self.v3, vertex2=self.v4, multicolor=self.mc2)
+        for cc in bg.connected_components_subgraphs(copy=False):
+            if cc.has_edge(vertex1=self.v1, vertex2=self.v2):
+                self.assertTrue(self.complete_me_cc_filter.accept_connected_component(cc=cc, breakpoint_graph=bg))
+
+    def test_true_no_filter_non_complete_multiedge_multicolor(self):
+        bg = BreakpointGraph()
+        bg.add_edge(vertex1=self.v1, vertex2=self.v2, multicolor=self.mc1)
+        bg.add_edge(vertex1=self.v3, vertex2=self.v4, multicolor=self.mc2)
+        for cc in bg.connected_components_subgraphs(copy=False):
+            if cc.has_edge(vertex1=self.v3, vertex2=self.v4):
+                self.assertFalse(self.complete_me_cc_filter.accept_connected_component(cc=cc, breakpoint_graph=bg))
+
+    def test_true_no_filter_complete_but_non_two_vertices_cc(self):
+        bg = BreakpointGraph()
+        bg.add_edge(vertex1=self.v1, vertex2=self.v2, multicolor=self.mc1)
+        bg.add_edge(vertex1=self.v3, vertex2=self.v4, multicolor=self.mc2)
+        bg.add_edge(vertex1=self.v2, vertex2=self.v3, multicolor=self.mc3)
+        for cc in bg.connected_components_subgraphs(copy=False):
+            self.assertFalse(self.complete_me_cc_filter.accept_connected_component(cc=cc, breakpoint_graph=bg))
+
+
+class TwoNodeConnectedComponentFilterTestCase(CCFilterTestCase):
+    def setUp(self):
+        super().setUp()
+        self.two_node_cc_filter = TwoNodeConnectedComponentFilter()
+
+    def test_true_filter_two_node_cc(self):
+        for mc in [self.mc1, self.mc2, self.mc3, self.mc4]:
+            bg = BreakpointGraph()
+            bg.add_edge(vertex1=self.v1, vertex2=self.v2, multicolor=mc)
+            for cc in bg.connected_components_subgraphs(copy=False):
+                self.assertTrue(self.two_node_cc_filter.accept_connected_component(cc=cc))
+
+    def test_triple_nodes_cc(self):
+        bg = BreakpointGraph()
+        bg.add_edge(vertex1=self.v1, vertex2=self.v2, multicolor=self.mc1)
+        bg.add_edge(vertex1=self.v2, vertex2=self.v3, multicolor=self.mc2)
+        for cc in bg.connected_components_subgraphs(copy=False):
+            self.assertFalse(self.two_node_cc_filter.accept_connected_component(cc=cc))
 
 
 if __name__ == '__main__':  # pragma: no cover
