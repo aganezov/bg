@@ -5,7 +5,6 @@ from enum import Enum
 from ete3 import TreeNode
 
 from bg import Multicolor
-from bg.breakpoint_graph import BreakpointGraph
 from bg.edge import BGEdge
 from bg.genome import BGGenome
 from bg.vertices import BGVertex, InfinityVertex, TaggedInfinityVertex
@@ -44,37 +43,28 @@ class LabelFormat(Enum):
 
 
 class Colors(Enum):
-    black = "black"  # 0
-    red = "red"  # 1
-    green = "lawngreen"  # 2
-    teal = "teal"  # 3
-    navy = "navy"  # 4
-    aqua = "aqua"  # 5
-    magenta = "magenta"  # 6
-    chocolate = "chocolate"  # 7
-    wheat = "wheat"  # 8
-    violet = "violet"  # 9
-    orange = "orange"  # 10
-    lightpink = "lightpink"  # 11
-    aliceblue = "aliceblue"  # 12
-    antiquewhite = "antiquewhite"  # 13
-    aquamarine = "aquamarine"  # 14
-    brown = "brown"  # 15
-    darkcyan = "darkcyan"  # 16
-    deepskyblue = "deepskyblue"  # 17
-    gold = "gold"  # 18
-    lightcoral = "lightcoral"  # 19
-    mediumpurple = "mediumpurple"  # 20
-    mediumslateblue = "mediumslateblue"  # 21
-    mediumturquoise = "mediumturquoise"  # 22
-    navajowhite = "navajowhite"  # 23
-    palegoldenrod = "palegoldenrod"  # 24
-    silver = "silver"  # 25
-    yellowgreen = "yellowgreen"  # 26
-    rosybrown = "rosybrown"  # 27
-    slateblue = "slateblue"  # 28
-    forestgreen = "forestgreen"  # 29
-    snow = "snow"  # 30
+    black = "black"
+    blue = "blue"
+    red = "red"
+    green = "green"
+    orange = "orange"
+    aquamarine = "aquamarine"
+    bisque = "bisque"
+    cyan = "cyan"
+    gold = "gold"
+    gray = "gray"
+    # 10
+    khaki = "khaki"
+    magenta = "magenta"
+    maroon = "maroon"
+    pink = "pink"
+    orchid = "orchid"
+    sandybrown = "sandybrown"
+    cadetblue = "cadetblue"
+    dimgrey = "dimgrey"
+    plum = "plum"
+    wheat = "wheat"
+    # 20
 
 
 def ids_generator(start=1, step=1):
@@ -88,36 +78,26 @@ class ColorSource(object):
         self.color_to_dot_color = {}
         self.unused_colors = deque([
             Colors.black,
+            Colors.blue,
             Colors.red,
             Colors.green,
-            Colors.teal,
-            Colors.navy,
-            Colors.aqua,
-            Colors.magenta,
-            Colors.chocolate,
-            Colors.wheat,
-            Colors.violet,
             Colors.orange,
-            Colors.lightpink,
-            Colors.aliceblue,
-            Colors.antiquewhite,
             Colors.aquamarine,
-            Colors.brown,
-            Colors.darkcyan,
-            Colors.deepskyblue,
+            Colors.bisque,
+            Colors.cyan,
             Colors.gold,
-            Colors.lightcoral,
-            Colors.mediumpurple,
-            Colors.mediumslateblue,
-            Colors.mediumturquoise,
-            Colors.navajowhite,
-            Colors.palegoldenrod,
-            Colors.silver,
-            Colors.yellowgreen,
-            Colors.rosybrown,
-            Colors.slateblue,
-            Colors.forestgreen,
-            Colors.snow
+            Colors.gray,
+            Colors.khaki,
+            Colors.magenta,
+            Colors.maroon,
+            Colors.pink,
+            Colors.orchid,
+            Colors.sandybrown,
+            Colors.cadetblue,
+            Colors.dimgrey,
+            Colors.plum,
+            Colors.wheat,
+
         ])
 
     def get_unused_color(self, entry):
