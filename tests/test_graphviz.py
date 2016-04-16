@@ -1,23 +1,22 @@
+import collections
 import unittest
 from unittest.mock import *
-
-import collections
 
 from ete3 import TreeNode
 
 from bg import BGGenome
+from bg.breakpoint_graph import BreakpointGraph
+from bg.breakpoint_graph import CompleteMultiEdgeConnectedComponentFilter
 from bg.edge import BGEdge
-from bg.multicolor import Multicolor
 from bg.graphviz import BGVertexShapeProcessor, BGVertexTextProcessor, BGVertexProcessor, BGEdgeShapeProcessor, BGEdgeProcessor, \
     BGEdgeTextProcessor, \
     BreakpointGraphProcessor, LabelFormat, Colors, BGTreeVertexShapeProcessor, BGTreeVertexTextProcessor, BGTreeVertexProcessor, \
     BGTreeEdgeShapeProcessor, \
     BGTreeEdgeTextProcessor, BGTreeEdgeProcessor, ShapeProcessor, TextProcessor, ColorSource, BGTreeProcessor
-from bg.vertices import TaggedBlockVertex, TaggedInfinityVertex, BlockVertex, InfinityVertex
-from bg.breakpoint_graph import BreakpointGraph
+from bg.multicolor import Multicolor
 from bg.tree import BGTree
 from bg.utils import add_to_dict_with_path
-from bg.breakpoint_graph import CompleteMultiEdgeConnectedComponentFilter
+from bg.vertices import TaggedBlockVertex, TaggedInfinityVertex, BlockVertex, InfinityVertex
 
 
 class BGVertexShapeProcessorTestCase(unittest.TestCase):
