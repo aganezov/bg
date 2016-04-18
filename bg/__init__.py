@@ -3,7 +3,7 @@ __author__ = "Sergey Aganezov"
 __email__ = "aganezov(at)gwu.edu"
 __status__ = "production"
 
-version = "1.6.1"
+version = "1.7.0b"
 
 __all__ = ["bg_io",
            "breakpoint_graph",
@@ -15,13 +15,4 @@ __all__ = ["bg_io",
            "vertices",
            "utils",
            "distances"]
-
-from bg.breakpoint_graph import BreakpointGraph
-from bg.vertices import BGVertex, BlockVertex, InfinityVertex, TaggedBlockVertex, TaggedInfinityVertex
-from bg.edge import BGEdge
-from bg.multicolor import Multicolor
-from bg.grimm import GRIMMReader
-from bg.genome import BGGenome
-from bg.kbreak import KBreak
-from bg.tree import BGTree
 
