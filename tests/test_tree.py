@@ -1,11 +1,11 @@
 # -*- coding: utf-8 -*-
-from unittest.mock import Mock
 
 from ete3 import TreeNode
 
-from bg import Multicolor, BGEdge
+from bg.edge import BGEdge
 from bg.genome import BGGenome
-from bg.tree import BGTree, DEFAULT_EDGE_LENGTH
+from bg.multicolor import Multicolor
+from bg.tree import BGTree
 
 __author__ = "Sergey Aganezov"
 __email__ = "aganezov(at)gwu.edu"

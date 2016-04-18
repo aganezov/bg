@@ -1,6 +1,10 @@
 # -*- coding: utf-8 -*-
-from copy import deepcopy
 import itertools
+from copy import deepcopy
+
+import networkx as nx
+from networkx import MultiGraph
+
 from bg.edge import BGEdge, BGEdge_JSON_SCHEMA_JSON_KEY
 from bg.genome import BGGenome, BGGenome_JSON_SCHEMA_JSON_KEY
 from bg.kbreak import KBreak
@@ -8,8 +12,6 @@ from bg.multicolor import Multicolor
 from bg.utils import get_from_dict_with_path, merge_fragment_edge_data, recursive_dict_update
 from bg.vertices import BGVertex_JSON_SCHEMA_JSON_KEY, BlockVertex, BGVertex, InfinityVertex, TaggedInfinityVertex, \
     TaggedBlockVertex, TaggedVertex
-from networkx import MultiGraph
-import networkx as nx
 
 __author__ = "Sergey Aganezov"
 __email__ = "aganezov(at)gwu.edu"
@@ -68,6 +70,8 @@ class BreakpointGraph(object):
         :param graph: is supplied, :class:`BreakpointGraph` is initialized with supplied or brand new (empty) instance of NetworkX MultiGraph.
         :type graph: instance of NetworkX MultiGraph is expected.
         """
+        self.cache = {}
+        self.cache_valid = {}
         if graph is None:
             self.bg = MultiGraph()
         else:
@@ -149,6 +153,7 @@ class BreakpointGraph(object):
         else:
             self.bg.add_edge(u=bgedge.vertex1, v=bgedge.vertex2, attr_dict={"multicolor": deepcopy(bgedge.multicolor),
                                                                             "data": bgedge.data})
+        self.cache_valid["overall_set_of_colors"] = False
 
     def add_bgedge(self, bgedge, merge=True):
         """ Adds supplied :class:`bg.edge.BGEdge` object to current instance of :class:`BreakpointGraph`.
@@ -384,6 +389,7 @@ class BreakpointGraph(object):
                     if keep_vertices:
                         self.bg.add_node(bgedge.vertex1)
                         self.bg.add_node(bgedge.vertex2)
+        self.cache_valid["overall_set_of_colors"] = False
 
     def __determine_most_suitable_edge_for_deletion(self, bgedge):
         candidate_id = None
@@ -935,7 +941,10 @@ class BreakpointGraph(object):
         return result
 
     def get_overall_set_of_colors(self):
-        return {color for bg_edge in self.edges() for color in bg_edge.multicolor.colors}
+        if "overall_set_of_colors" not in self.cache_valid or not self.cache_valid["overall_set_of_colors"]:
+            self.cache["overall_set_of_colors"] = {color for bg_edge in self.edges() for color in bg_edge.multicolor.colors}
+            self.cache_valid["overall_set_of_colors"] = True
+        return self.cache["overall_set_of_colors"]
 
     def get_genome_graph(self, color):
         result = BreakpointGraph()

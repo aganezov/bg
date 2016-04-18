@@ -2,9 +2,11 @@ import io
 import os
 from collections import Counter
 
-from bg import BreakpointGraph, Multicolor, KBreak
-from bg.grimm import GRIMMReader, GRIMMWriter
+from bg.breakpoint_graph import BreakpointGraph
 from bg.genome import BGGenome
+from bg.grimm import GRIMMReader, GRIMMWriter
+from bg.kbreak import KBreak
+from bg.multicolor import Multicolor
 from bg.vertices import TaggedBlockVertex, TaggedInfinityVertex
 
 __author__ = 'Sergey Aganezov'

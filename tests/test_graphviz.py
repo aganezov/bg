@@ -4,10 +4,10 @@ from unittest.mock import *
 
 from ete3 import TreeNode
 
-from bg import BGGenome
 from bg.breakpoint_graph import BreakpointGraph
 from bg.breakpoint_graph import CompleteMultiEdgeConnectedComponentFilter
 from bg.edge import BGEdge
+from bg.genome import BGGenome
 from bg.graphviz import BGVertexShapeProcessor, BGVertexTextProcessor, BGVertexProcessor, BGEdgeShapeProcessor, BGEdgeProcessor, \
     BGEdgeTextProcessor, \
     BreakpointGraphProcessor, LabelFormat, Colors, BGTreeVertexShapeProcessor, BGTreeVertexTextProcessor, BGTreeVertexProcessor, \

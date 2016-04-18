@@ -4,14 +4,14 @@ import unittest
 from collections import Counter
 from unittest.mock import Mock
 
-from bg.grimm import GRIMMReader
 from bg.breakpoint_graph import BreakpointGraph, BGConnectedComponentFilter, CompleteMultiEdgeConnectedComponentFilter, \
     TwoNodeConnectedComponentFilter
 from bg.edge import BGEdge
 from bg.genome import BGGenome
+from bg.grimm import GRIMMReader
 from bg.kbreak import KBreak
 from bg.multicolor import Multicolor
-from bg.vertices import BlockVertex, TaggedBlockVertex, TaggedInfinityVertex, BGVertex
+from bg.vertices import BlockVertex, TaggedBlockVertex, TaggedInfinityVertex
 
 __author__ = "Sergey Aganezov"
 __email__ = "aganezov(at)gwu.edu"
@@ -2500,6 +2500,38 @@ class BreakpointGraphTestCase(unittest.TestCase):
         self.assertIn(BGGenome("genome_1"), result)
         self.assertIn(BGGenome("genome_2"), result)
         self.assertIn(BGGenome("genome_3"), result)
+
+    def test_get_overall_set_of_colors_with_cache_no_changes(self):
+        data = [""
+                ">genome_1",
+                "1 2 3 $",
+                ">genome_2",
+                "2 3 4 $",
+                ">genome_3",
+                "3 4 5 $"]
+        bg = GRIMMReader.get_breakpoint_graph(stream=data, merge_edges=False)
+        bg.add_edge(vertex1=TaggedBlockVertex("v1h"), vertex2=TaggedBlockVertex("v1t"), multicolor=Multicolor("genomex"))
+        overall_colors = bg.get_overall_set_of_colors()
+        self.assertEqual(len(overall_colors), 4)
+        self.assertIs(overall_colors, bg.get_overall_set_of_colors())
+
+    def test_get_overall_set_of_colors_with_cache_with_changes_add_edge(self):
+        data = [""
+                ">genome_1",
+                "1 2 3 $",
+                ">genome_2",
+                "2 3 4 $",
+                ">genome_3",
+                "3 4 5 $"]
+
+        bg = GRIMMReader.get_breakpoint_graph(stream=data, merge_edges=False)
+
+        bg.add_edge(vertex1=TaggedBlockVertex("v1h"), vertex2=TaggedBlockVertex("v1t"), multicolor=Multicolor("genome_1"))
+        overall_colors = bg.get_overall_set_of_colors()
+        self.assertIs(overall_colors, bg.get_overall_set_of_colors())
+        bg.add_edge(vertex1=TaggedBlockVertex("v2h"), vertex2=TaggedBlockVertex("v2t"), multicolor=Multicolor("genome_1"))
+        self.assertSetEqual(overall_colors, bg.get_overall_set_of_colors())
+        self.assertIsNot(overall_colors, bg.get_overall_set_of_colors())
 
     def _populate_bg_in_genome_graph_test(self):
         data = [

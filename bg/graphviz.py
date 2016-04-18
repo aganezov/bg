@@ -1,15 +1,15 @@
 # -*- coding: utf-8 -*-
+from collections import defaultdict
 from collections import deque
 from enum import Enum
 
 from ete3 import TreeNode
 
-from bg import Multicolor
 from bg.edge import BGEdge
 from bg.genome import BGGenome
-from bg.vertices import BGVertex, InfinityVertex, TaggedInfinityVertex
+from bg.multicolor import Multicolor
 from bg.utils import get_from_dict_with_path
-from collections import defaultdict
+from bg.vertices import BGVertex, InfinityVertex, TaggedInfinityVertex
 
 
 def vertex_as_a_sting(vertex, separator=" "):
