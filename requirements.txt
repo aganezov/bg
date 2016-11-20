@@ -9,3 +9,4 @@ six
 mock
 enum34
 pytest
+scipy
