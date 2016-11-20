@@ -3,6 +3,7 @@
 if [ "$TRAVIS_OS_NAME" = 'osx' ]; then
     brew update
     brew tap homebrew/science
+    brew install gcc
     brew install pyenv
     brew install mercurial
     case "$PYTHON" in
