@@ -3,6 +3,7 @@ __email__ = "aganezov(at)gwu.edu"
 __status__ = "production"
 
 import unittest
+
 from bg.genome import BGGenome, BGGenome_JSON_SCHEMA_JSON_KEY
 
 
@@ -79,7 +80,7 @@ class BGGenomeTestCase(unittest.TestCase):
             def make_object(self, data):
                 if "name" not in data:
                     data["name"] = "default_name"
-                return super().make_object(data=data)
+                return super(BGGenomeJSONSchemaNameOptional, self).make_object(data=data)
         self.assertEqual(BGGenome.from_json(data={}, json_schema_class=BGGenomeJSONSchemaNameOptional).name, "default_name")
 
     def test__lt__(self):

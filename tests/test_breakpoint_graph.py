@@ -1,8 +1,14 @@
 # -*- coding: utf-8 -*-
+from __future__ import unicode_literals
+
 import io
 import unittest
 from collections import Counter
-from unittest.mock import Mock
+
+try:
+    from unittest.mock import Mock
+except ImportError:
+    from mock import Mock
 
 from bg.breakpoint_graph import BreakpointGraph, BGConnectedComponentFilter, CompleteMultiEdgeConnectedComponentFilter, \
     TwoNodeConnectedComponentFilter
@@ -2376,7 +2382,7 @@ class BreakpointGraphTestCase(unittest.TestCase):
 
         class BlockVertexJSONShcemaWithSpecialAttribute(TaggedBlockVertex.TaggedBlockVertexJSONSchema):
             def make_object(self, data):
-                new_vertex = super().make_object(data=data)
+                new_vertex = super(BlockVertexJSONShcemaWithSpecialAttribute, self).make_object(data=data)
                 new_vertex.special_attribute = "special_attribute"
                 return new_vertex
 
@@ -2403,7 +2409,7 @@ class BreakpointGraphTestCase(unittest.TestCase):
                 self.assertEqual(vertex.special_attribute, "special_attribute")
             self.assertTrue(vertex in [v1, v2, v3])
         for bgedge in new_bg.edges():
-            self.assertTrue(bgedge in [bgedge1, bgedge2, bgedge3])
+            self.assertIn(bgedge, [bgedge1, bgedge2, bgedge3])
 
     def test_deserialization_incorrect_no_vertices(self):
         # when vertices are not specified in json object, deserialization can not be performed and a ValueError is raised
@@ -2981,7 +2987,7 @@ class CCFilterTestCase(unittest.TestCase):
 
 class CompleteMultiEdgeConnectedComponentFilterTestCase(CCFilterTestCase):
     def setUp(self):
-        super().setUp()
+        super(CompleteMultiEdgeConnectedComponentFilterTestCase, self).setUp()
         self.complete_me_cc_filter = CompleteMultiEdgeConnectedComponentFilter()
 
     def test_true_filter_complete_multiedge_multicolor(self):
@@ -3014,7 +3020,7 @@ class CompleteMultiEdgeConnectedComponentFilterTestCase(CCFilterTestCase):
 
 class TwoNodeConnectedComponentFilterTestCase(CCFilterTestCase):
     def setUp(self):
-        super().setUp()
+        super(TwoNodeConnectedComponentFilterTestCase, self).setUp()
         self.two_node_cc_filter = TwoNodeConnectedComponentFilter()
 
     def test_name(self):

@@ -220,7 +220,7 @@ class Multicolor(object):
             #
             ###############################################################################################
             splitting_multicolor = Multicolor(*multicolor.colors)
-            colors_guidance = [Multicolor(*multicolor.colors) for multicolor in guidance]
+            colors_guidance = [Multicolor(*tmp_multicolor.colors) for tmp_multicolor in guidance]
             ###############################################################################################
             #
             # since there might be different multicolors, with the same colors content

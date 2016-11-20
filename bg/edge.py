@@ -128,7 +128,7 @@ class BGEdge(object):
             if getattr(self.vertex1, vertex_lookup) or getattr(self.vertex2, vertex_lookup):
                 return True
             return False
-        return super().__getattribute__(item)
+        return super(BGEdge, self).__getattribute__(item)
 
     @property
     def json_schema_name(self):

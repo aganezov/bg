@@ -1,13 +1,17 @@
 # -*- coding: utf-8 -*-
-from unittest.mock import Mock
+try:
+    from unittest.mock import Mock
+except ImportError:
+    from mock import Mock
 
 __author__ = "Sergey Aganezov"
 __email__ = "aganezov(at)gwu.edu"
 __status__ = "production"
 
 import unittest
-from bg.multicolor import Multicolor
+
 from bg.genome import BGGenome
+from bg.multicolor import Multicolor
 
 
 class MulticolorTestCase(unittest.TestCase):

@@ -1,10 +1,12 @@
 # -*- coding: utf-8 -*-
+from __future__ import print_function
+
 from copy import deepcopy
 
 from bg.breakpoint_graph import BreakpointGraph
-from bg.multicolor import Multicolor
 from bg.edge import BGEdge
 from bg.genome import BGGenome
+from bg.multicolor import Multicolor
 from bg.utils import add_to_dict_with_path
 from bg.vertices import BlockVertex, TaggedVertex, TaggedBlockVertex, TaggedInfinityVertex, BGVertex
 
@@ -168,7 +170,8 @@ class GRIMMReader(object):
         :rtype: ``(str, str)``
         """
         sign, name = block
-        root_name, *data = name.split(BlockVertex.NAME_SEPARATOR)
+        data = name.split(BlockVertex.NAME_SEPARATOR)
+        root_name, data = data[0], data[1:]
         tags = [entry.split(TaggedVertex.TAG_SEPARATOR) for entry in data]
         for tag_entry in tags:
             if len(tag_entry) == 1:
@@ -317,13 +320,14 @@ class GRIMMReader(object):
         split_result = s.split(cls.COMMENT_DATA_STRING_SEPARATOR)
         if len(split_result) < 2:
             return False
-        specification, *_ = split_result
+        specification = split_result[0]
         return comment_string & ("data" == specification.strip())
 
     @classmethod
     def parse_comment_data_string(cls, comment_data_string):
-        _, *entries = map(lambda string: string.strip(), comment_data_string.split(cls.COMMENT_DATA_STRING_SEPARATOR))
-        *path, key_value_entry = map(lambda string: string.strip(), entries[0].split(cls.PATH_SEPARATOR_STRING))
+        entries = list(map(lambda string: string.strip(), comment_data_string.split(cls.COMMENT_DATA_STRING_SEPARATOR)))[1:]
+        data = list(map(lambda string: string.strip(), entries[0].split(cls.PATH_SEPARATOR_STRING)))
+        path, key_value_entry = data[:-1], data[-1]
         key_value_entry_split = list(map(lambda string: string.strip(), key_value_entry.split("=")))
         if len(key_value_entry_split) < 2:
             key = ""

@@ -4,6 +4,7 @@ __email__ = "aganezov(at)gwu.edu"
 __status__ = "production"
 
 import unittest
+
 from bg.vertices import BGVertex_JSON_SCHEMA_JSON_KEY, BGVertex, BlockVertex, InfinityVertex, TaggedVertex, TaggedBlockVertex, \
     TaggedInfinityVertex
 
@@ -153,7 +154,7 @@ class BlockVertexTestCase(BGVertexTestCase):
     """ Update vertex_class to call BlockVertex rather than BGVertex, and update overwritten portions of the class """
 
     def setUp(self):
-        super().setUp()
+        super(BlockVertexTestCase, self).setUp()
         self.vertex_class = BlockVertex
 
     def test_inheritance(self):
@@ -197,7 +198,7 @@ class InfinityVertexTestCase(BGVertexTestCase):
     """ Update vertex_class to call InfinityVertex rather than BGVertex, and update overwritten portions of the class """
 
     def setUp(self):
-        super().setUp()
+        super(InfinityVertexTestCase, self).setUp()
         self.vertex_class = InfinityVertex
         self.block_vertex = BlockVertex(self.str_name1)
 
@@ -295,7 +296,7 @@ class TaggedVertexTestCase(BGVertexTestCase):
     """ Update vertex_class to call InfinityVertex rather than BGVertex, and update overwritten portions of the class """
 
     def setUp(self):
-        super().setUp()
+        super(TaggedVertexTestCase, self).setUp()
         self.vertex_class = TaggedVertex
         self.tagged_vertex = TaggedVertex(self.str_name1)
 
@@ -406,7 +407,7 @@ class TaggedVertexTestCase(BGVertexTestCase):
 
 class TaggedBlockVertexTestCase(TaggedVertexTestCase, BlockVertexTestCase):
     def setUp(self):
-        super().setUp()
+        super(TaggedBlockVertexTestCase, self).setUp()
         self.vertex_class = TaggedBlockVertex
         self.tagged_block_vertex = TaggedBlockVertex(self.str_name1)
 
@@ -435,7 +436,7 @@ class TaggedBlockVertexTestCase(TaggedVertexTestCase, BlockVertexTestCase):
 
 class TaggedInfinityVertexTestCase(TaggedVertexTestCase, InfinityVertexTestCase):
     def setUp(self):
-        super().setUp()
+        super(TaggedInfinityVertexTestCase, self).setUp()
         self.vertex_class = TaggedInfinityVertex
         self.tagged_infinity_vertex = TaggedInfinityVertex(self.str_name1)
 

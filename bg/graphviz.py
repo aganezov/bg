@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 from collections import defaultdict
 from collections import deque
-from enum import Enum
 
+from enum import Enum
 from ete3 import TreeNode
 
 from bg.edge import BGEdge
@@ -109,7 +109,7 @@ class ColorSource(object):
         return self.get_unused_color(entry=entry).value
 
 
-class ShapeProcessor:
+class ShapeProcessor(object):
     def __init__(self, pen_width=1, style="solid", color=Colors.black, color_source=None):
         self.style_attrib_template = "style=\"{style}\""
         self.color_attrib_template = "color=\"{color}\""
@@ -136,7 +136,7 @@ class ShapeProcessor:
         ]
 
 
-class TextProcessor:
+class TextProcessor(object):
     def __init__(self, color=Colors.black, size=12, font_name="Arial", color_source=None):
         self.color_source = color_source if color_source is not None else ColorSource()
         self.color = color
@@ -171,7 +171,7 @@ class TextProcessor:
 
 class VertexShapeProcessor(ShapeProcessor):
     def __init__(self, pen_width=1, style="solid", color=Colors.black, shape="oval", color_source=None):
-        super().__init__(pen_width=pen_width, style=style, color=color, color_source=color_source)
+        super(VertexShapeProcessor, self).__init__(pen_width=pen_width, style=style, color=color, color_source=color_source)
         self.shape_attrib_template = "shape=\"{shape}\""
         self.shape = shape
 
@@ -188,14 +188,14 @@ class VertexShapeProcessor(ShapeProcessor):
 class BGVertexShapeProcessor(VertexShapeProcessor):
     def __init__(self, pen_width=1, style="solid", color=Colors.black, color_source=None,
                  regular_vertex_shape="oval", irregular_vertex_shape="point", non_bg_vertex_shape="oval"):
-        super().__init__(pen_width=pen_width, style=style, color=color, shape=non_bg_vertex_shape, color_source=color_source)
+        super(BGVertexShapeProcessor, self).__init__(pen_width=pen_width, style=style, color=color, shape=non_bg_vertex_shape, color_source=color_source)
         self.regular_vertex_shape = regular_vertex_shape
         self.irregular_vertex_shape = irregular_vertex_shape
 
     def get_shape(self, entry=None):
         if isinstance(entry, BGVertex):
             return self.regular_vertex_shape if entry.is_regular_vertex else self.irregular_vertex_shape
-        return super().get_shape(entry=entry)
+        return super(BGVertexShapeProcessor, self).get_shape(entry=entry)
 
     def get_attributes_string_list(self, entry):
         return [self.shape_attrib_template.format(shape=self.get_shape(entry=entry)),
@@ -204,11 +204,11 @@ class BGVertexShapeProcessor(VertexShapeProcessor):
 
 class BGVertexTextProcessor(TextProcessor):
     def __init__(self, color=Colors.black, size=12, font_name="Arial", color_source=None):
-        super().__init__(color=color, size=size, font_name=font_name, color_source=color_source)
+        super(BGVertexTextProcessor, self).__init__(color=color, size=size, font_name=font_name, color_source=color_source)
 
     def get_text(self, entry=None, label_format=LabelFormat.plain, separator="\n"):
         if entry is None:
-            return super().get_text(entry=entry, label_format=label_format)
+            return super(BGVertexTextProcessor, self).get_text(entry=entry, label_format=label_format)
         if label_format == LabelFormat.plain.value or label_format == LabelFormat.plain:
             return "\"" + vertex_as_a_sting(vertex=entry, separator=separator) + "\""
         elif label_format == LabelFormat.html.value or label_format == LabelFormat.html:
@@ -242,7 +242,7 @@ class VertexProcessor(object):
 
 class BGVertexProcessor(VertexProcessor):
     def __init__(self, shape_processor=None, text_processor=None, color_source=None):
-        super().__init__(shape_processor=shape_processor, text_processor=text_processor)
+        super(BGVertexProcessor, self).__init__(shape_processor=shape_processor, text_processor=text_processor)
         if color_source is None:
             color_source = ColorSource()
         if self.shape_processor is None:
@@ -253,7 +253,7 @@ class BGVertexProcessor(VertexProcessor):
     def get_vertex_id(self, vertex):
         if isinstance(vertex, InfinityVertex):
             vertex = BGVertex.get_vertex_name_root(vertex.name)
-        return super().get_vertex_id(vertex=vertex)
+        return super(BGVertexProcessor, self).get_vertex_id(vertex=vertex)
 
     def export_vertex_as_dot(self, vertex, label_format=LabelFormat.plain):
         """
@@ -270,7 +270,7 @@ class BGVertexProcessor(VertexProcessor):
 
 class BGEdgeShapeProcessor(ShapeProcessor):
     def __init__(self, pen_width=1, style="solid", color=Colors.black, color_source=None):
-        super().__init__(pen_width=pen_width, style=style, color=color, color_source=color_source)
+        super(BGEdgeShapeProcessor, self).__init__(pen_width=pen_width, style=style, color=color, color_source=color_source)
         self.regular_edge_style = "solid"
         self.irregular_edge_style = "dotted"
         self.repeat_edge_style = "dashed"
@@ -314,7 +314,7 @@ class BGEdgeShapeProcessor(ShapeProcessor):
 
 class BGEdgeTextProcessor(TextProcessor):
     def __init__(self, size=7, font_name="Arial", color=Colors.black, color_source=None):
-        super().__init__(size=size, font_name=font_name, color=color, color_source=color_source)
+        super(BGEdgeTextProcessor, self).__init__(size=size, font_name=font_name, color=color, color_source=color_source)
 
     def get_text(self, entry=None, label_format=LabelFormat.plain,
                  edge_attributes_to_be_displayed=None,
@@ -326,7 +326,7 @@ class BGEdgeTextProcessor(TextProcessor):
         :type label_format: Union[str, LabelFormat]
         """
         if entry is None or not isinstance(entry, BGEdge):
-            return super().get_text(entry=entry, label_format=label_format)
+            return super(BGEdgeTextProcessor, self).get_text(entry=entry, label_format=label_format)
         if tag_key_processor is None:
             tag_key_processor = self._tag_key_processor
         if tag_value_processor is None:
@@ -418,8 +418,8 @@ class EdgeProcessor(object):
 
 class BGEdgeProcessor(EdgeProcessor):
     def __init__(self, vertex_processor, edge_shape_processor=None, edge_text_processor=None, color_source=None):
-        super().__init__(vertex_processor=vertex_processor, edge_shape_processor=edge_shape_processor,
-                         edge_text_processor=edge_text_processor)
+        super(BGEdgeProcessor, self).__init__(vertex_processor=vertex_processor, edge_shape_processor=edge_shape_processor,
+                                              edge_text_processor=edge_text_processor)
         if color_source is None:
             color_source = ColorSource()
         if self.shape_processor is None:
@@ -477,7 +477,7 @@ class GraphProcessor(object):
 
 class BreakpointGraphProcessor(GraphProcessor):
     def __init__(self, vertex_processor=None, edge_processor=None, color_source=None, cc_filters=None):
-        super().__init__(vertex_processor=vertex_processor, edge_processor=edge_processor)
+        super(BreakpointGraphProcessor, self).__init__(vertex_processor=vertex_processor, edge_processor=edge_processor)
         if color_source is None:
             color_source = ColorSource()
         if self.vertex_processor is None:
@@ -517,7 +517,7 @@ class BreakpointGraphProcessor(GraphProcessor):
 class BGTreeVertexShapeProcessor(VertexShapeProcessor):
     def __init__(self, color=Colors.black, style="solid", internal_node_pen_width=1, leaf_node_pen_width=3, shape="oval", color_source=None,
                  vertex_data_wrapper=BGGenome, leaf_wrapper=None):
-        super().__init__(color=color, style=style, pen_width=internal_node_pen_width, shape=shape, color_source=color_source)
+        super(BGTreeVertexShapeProcessor, self).__init__(color=color, style=style, pen_width=internal_node_pen_width, shape=shape, color_source=color_source)
         self.leaf_node_pen_width = leaf_node_pen_width
         self.__leaf_wrapper = lambda node: BGGenome(node.name) if leaf_wrapper is None else leaf_wrapper
         self.internal_node_pen_width = internal_node_pen_width
@@ -525,7 +525,7 @@ class BGTreeVertexShapeProcessor(VertexShapeProcessor):
 
     def get_pen_width(self, entry=None):
         if not isinstance(entry, TreeNode):
-            return super().get_pen_width(entry=entry)
+            return super(BGTreeVertexShapeProcessor, self).get_pen_width(entry=entry)
         if entry.is_leaf():
             return self.leaf_node_pen_width
         else:
@@ -535,24 +535,24 @@ class BGTreeVertexShapeProcessor(VertexShapeProcessor):
         if leaf_wrapper is None:
             self.__leaf_wrapper = self.__leaf_wrapper
         if not isinstance(entry, TreeNode):
-            return super().get_color_as_string(entry=entry)
+            return super(BGTreeVertexShapeProcessor, self).get_color_as_string(entry=entry)
         if entry.is_leaf():
             entry = self.__leaf_wrapper(entry)
         else:
             entry = "non_leaf_tree_node"
-        return super().get_color_as_string(entry=entry)
+        return super(BGTreeVertexShapeProcessor, self).get_color_as_string(entry=entry)
 
 
 class BGTreeVertexTextProcessor(TextProcessor):
     def __init__(self, color=Colors.black, size=12, font_name="Arial", color_source=None, leaf_wrapper=None):
-        super().__init__(color=color, size=size, font_name=font_name, color_source=color_source)
+        super(BGTreeVertexTextProcessor, self).__init__(color=color, size=size, font_name=font_name, color_source=color_source)
         self.__leaf_wrapper = lambda node: BGGenome(node.name) if leaf_wrapper is None else leaf_wrapper
 
     def get_text_color(self, entry=None, leaf_wrapper=None):
         if leaf_wrapper is None:
             leaf_wrapper = self.__leaf_wrapper
         if entry is None or not isinstance(entry, TreeNode):
-            return super().get_text_color(entry=entry)
+            return super(BGTreeVertexTextProcessor, self).get_text_color(entry=entry)
         if entry.is_leaf():
             entry = leaf_wrapper(entry)
         else:
@@ -561,7 +561,7 @@ class BGTreeVertexTextProcessor(TextProcessor):
 
     def get_text(self, entry=None, label_format=LabelFormat.plain):
         if entry is None or not isinstance(entry, TreeNode):
-            return super().get_text(entry=entry, label_format=label_format)
+            return super(BGTreeVertexTextProcessor, self).get_text(entry=entry, label_format=label_format)
         text = ""
         if entry.is_leaf():
             text += entry.name
@@ -572,7 +572,7 @@ class BGTreeVertexTextProcessor(TextProcessor):
 
 class BGTreeVertexProcessor(VertexProcessor):
     def __init__(self, shape_processor=None, text_processor=None, color_source=None):
-        super().__init__(shape_processor=shape_processor, text_processor=text_processor)
+        super(BGTreeVertexProcessor, self).__init__(shape_processor=shape_processor, text_processor=text_processor)
         if color_source is None:
             color_source = ColorSource()
         if self.shape_processor is None:
@@ -585,7 +585,7 @@ class BGTreeVertexProcessor(VertexProcessor):
             vertex_for_id = leaf_wrapper(vertex.name)
         else:
             vertex_for_id = vertex
-        return super().get_vertex_id(vertex=vertex_for_id)
+        return super(BGTreeVertexProcessor, self).get_vertex_id(vertex=vertex_for_id)
 
     def export_vertex_as_dot(self, vertex, label_format=LabelFormat.plain, leaf_wrapper=BGGenome):
         vertex_id = self.get_vertex_id(vertex=vertex, leaf_wrapper=leaf_wrapper)
@@ -597,7 +597,7 @@ class BGTreeVertexProcessor(VertexProcessor):
 
 class BGTreeEdgeShapeProcessor(ShapeProcessor):
     def __init__(self, non_leaf_pen_width=1, leaf_pen_width=3, color=Colors.black, color_source=None, style="solid"):
-        super().__init__(pen_width=non_leaf_pen_width, color=color, color_source=color_source, style=style)
+        super(BGTreeEdgeShapeProcessor, self).__init__(pen_width=non_leaf_pen_width, color=color, color_source=color_source, style=style)
         self.leaf_branch_pen_width = leaf_pen_width
         self.non_leaf_branch_pen_width = non_leaf_pen_width
 
@@ -606,13 +606,13 @@ class BGTreeEdgeShapeProcessor(ShapeProcessor):
 
     def get_color_as_string(self, entry):
         if not isinstance(entry, tuple):
-            return super().get_attributes_string_list(entry=entry)
+            return super(BGTreeEdgeShapeProcessor, self).get_attributes_string_list(entry=entry)
         if not self._is_leaf_branch(edge=entry):
             entry = None
         else:
             non_tree_node_instance = entry[0] if not isinstance(entry[0], TreeNode) else entry[1]
             entry = non_tree_node_instance
-        return super().get_color_as_string(entry=entry)
+        return super(BGTreeEdgeShapeProcessor, self).get_color_as_string(entry=entry)
 
     def get_pen_width(self, entry=None):
         if self._is_leaf_branch(edge=entry):
@@ -623,13 +623,13 @@ class BGTreeEdgeShapeProcessor(ShapeProcessor):
 
 class BGTreeEdgeTextProcessor(TextProcessor):
     def __init__(self, font_name="Arial", size=7, color=Colors.black, color_source=None):
-        super().__init__(color=color, size=size, font_name=font_name, color_source=color_source)
+        super(BGTreeEdgeTextProcessor, self).__init__(color=color, size=size, font_name=font_name, color_source=color_source)
 
 
 class BGTreeEdgeProcessor(EdgeProcessor):
     def __init__(self, vertex_processor, edge_shape_processor=None, edge_text_processor=None, color_source=None):
-        super().__init__(vertex_processor=vertex_processor, edge_shape_processor=edge_shape_processor,
-                         edge_text_processor=edge_text_processor)
+        super(BGTreeEdgeProcessor, self).__init__(vertex_processor=vertex_processor, edge_shape_processor=edge_shape_processor,
+                                                  edge_text_processor=edge_text_processor)
         self.vertex_processor = vertex_processor
         if color_source is None:
             color_source = ColorSource()
@@ -641,7 +641,7 @@ class BGTreeEdgeProcessor(EdgeProcessor):
 
 class BGTreeProcessor(GraphProcessor):
     def __init__(self, vertex_processor=None, edge_processor=None, color_source=None):
-        super().__init__(vertex_processor=vertex_processor, edge_processor=edge_processor)
+        super(BGTreeProcessor, self).__init__(vertex_processor=vertex_processor, edge_processor=edge_processor)
         if color_source is None:
             color_source = ColorSource()
         if self.vertex_processor is None:

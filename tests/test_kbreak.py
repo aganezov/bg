@@ -1,8 +1,10 @@
 # -*- coding: utf-8 -*-
-from unittest.mock import Mock
-from bg.edge import BGEdge
-from bg.multicolor import Multicolor
+try:
+    from unittest.mock import Mock
+except ImportError:
+    from mock import Mock
 from bg.kbreak import KBreak
+from bg.multicolor import Multicolor
 from bg.vertices import BlockVertex, InfinityVertex
 
 __author__ = "Sergey Aganezov"

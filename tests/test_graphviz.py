@@ -1,6 +1,10 @@
 import collections
 import unittest
-from unittest.mock import *
+
+try:
+    from unittest.mock import *
+except ImportError:
+    from mock import *
 
 from ete3 import TreeNode
 
@@ -898,7 +902,7 @@ class BGTreeTestCase(unittest.TestCase):
 
 class BGTreeVertexShapeProcessorTestCase(BGTreeTestCase):
     def setUp(self):
-        super().setUp()
+        super(BGTreeVertexShapeProcessorTestCase, self).setUp()
         self.default_tree_vertex_shape_processor = BGTreeVertexShapeProcessor()
 
     def test_shape_attrib_template(self):
@@ -990,7 +994,7 @@ class BGTreeVertexShapeProcessorTestCase(BGTreeTestCase):
 
 class BGTreeVertexTextProcessorTestCase(BGTreeTestCase):
     def setUp(self):
-        super().setUp()
+        super(BGTreeVertexTextProcessorTestCase, self).setUp()
         self.default_tree_vertex_text_processor = BGTreeVertexTextProcessor()
 
     def test_get_text_font_name_leaf_node(self):
@@ -1102,7 +1106,7 @@ class BGTreeVertexTextProcessorTestCase(BGTreeTestCase):
 
 class BGTreeVertexProcessorTestCase(BGTreeTestCase):
     def setUp(self):
-        super().setUp()
+        super(BGTreeVertexProcessorTestCase, self).setUp()
         self.default_tree_vertex_shape_processor = BGTreeVertexShapeProcessor()
         self.default_tree_vertex_text_processor = BGTreeVertexTextProcessor()
         self.default_tree_vertex_processor = BGTreeVertexProcessor(shape_processor=self.default_tree_vertex_shape_processor,
@@ -1174,7 +1178,7 @@ class BGTreeVertexProcessorTestCase(BGTreeTestCase):
 
 class BGTreeEdgeShapeProcessorTestCase(BGTreeTestCase):
     def setUp(self):
-        super().setUp()
+        super(BGTreeEdgeShapeProcessorTestCase, self).setUp()
         self.default_tree_edge_shape_processor = BGTreeEdgeShapeProcessor()
 
     def test_color_attrib_template(self):
@@ -1256,7 +1260,7 @@ class BGTreeEdgeShapeProcessorTestCase(BGTreeTestCase):
 
 class BGTreeEdgeTextProcessorTestCase(BGTreeTestCase):
     def setUp(self):
-        super().setUp()
+        super(BGTreeEdgeTextProcessorTestCase, self).setUp()
         self.default_tree_edge_text_processor = BGTreeEdgeTextProcessor()
 
     def test_font_name_attrib_template(self):
@@ -1341,7 +1345,7 @@ class BGTreeEdgeTextProcessorTestCase(BGTreeTestCase):
 
 class BGTreeEdgeProcessorTestCase(BGTreeTestCase):
     def setUp(self):
-        super().setUp()
+        super(BGTreeEdgeProcessorTestCase, self).setUp()
         self.default_tree_edge_shape_processor = BGTreeEdgeShapeProcessor()
         self.default_tree_edge_text_processor = BGTreeEdgeTextProcessor()
         self.default_vertex_processor = BGTreeVertexProcessor()
@@ -1508,7 +1512,7 @@ class BGTreeEdgeProcessorTestCase(BGTreeTestCase):
 
 class BGTreeProcessorTestCase(BGTreeTestCase):
     def setUp(self):
-        super().setUp()
+        super(BGTreeProcessorTestCase, self).setUp()
         self.default_tree_vertex_processor = BGTreeVertexProcessor()
         self.default_tree_edge_processor = BGTreeEdgeProcessor(vertex_processor=self.default_tree_vertex_processor)
         self.default_tree_processor = BGTreeProcessor(vertex_processor=self.default_tree_vertex_processor,

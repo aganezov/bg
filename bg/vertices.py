@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 from bisect import bisect_left
+
 from marshmallow import Schema, fields
 
 __author__ = "Sergey Aganezov"
@@ -63,13 +64,16 @@ class BGVertex(object):
             return False
         return hash(self) == hash(other)
 
+    def __ne__(self, other):
+        return not self.__eq__(other=other)
+
     def __getattr__(self, item):
         # this class serves as a stopper for all calls in form is_*_vertex, which is designed to test some combinatorial propoerties of vertex
         # base class does not belong to any specific group and thus answers `False` for all such calls
         # the rest of lookups is forwarded to the "next in mro chain"
         if item.startswith("is_") and item.endswith("_vertex"):
             return False
-        return super().__getattribute__(item)
+        return super(BGVertex, self).__getattribute__(item)
 
     def __str__(self):
         return self.name
@@ -140,7 +144,7 @@ class BlockVertex(BGVertex):
     json_schema = BlockVertexJSONSchema()
 
     def __init__(self, name, mate_vertex=None):
-        super().__init__(name=name)
+        super(BlockVertex, self).__init__(name=name)
         self.mate_vertex = mate_vertex
 
     @property
@@ -173,7 +177,7 @@ class BlockVertex(BGVertex):
     def from_json(cls, data, json_schema_class=None):
         """ This class overwrites the from_json method thus, making sure, that if `from_json` is called from this class instance, it will provide its JSON schema as a default one """
         json_schema = cls.json_schema if json_schema_class is None else json_schema_class()
-        return super().from_json(data=data, json_schema_class=json_schema.__class__)
+        return super(BlockVertex, cls).from_json(data=data, json_schema_class=json_schema.__class__)
 
 
 class InfinityVertex(BGVertex):
@@ -199,12 +203,12 @@ class InfinityVertex(BGVertex):
     def __init__(self, name):
         # current class allows for a standard access to the `name` attribute, but performs transparent computation behind the scenes
         # so the name is stored in a private variable __name, and property `name` is implemented
-        super().__init__(name=name)
+        super(InfinityVertex, self).__init__(name=name)
 
     @property
     def name(self):
         """ access to classic name attribute is hidden by this property """
-        return self.NAME_SEPARATOR.join([super().name, self.NAME_SUFFIX])
+        return self.NAME_SEPARATOR.join([super(InfinityVertex, self).name, self.NAME_SUFFIX])
 
     @name.setter
     def name(self, value):
@@ -225,7 +229,7 @@ class InfinityVertex(BGVertex):
     def from_json(cls, data, json_schema_class=None):
         """ This class overwrites the from_json method, thus making sure that if `from_json` is called from this class instance, it will provide its JSON schema as a default one"""
         schema = cls.json_schema if json_schema_class is None else json_schema_class()
-        return super().from_json(data=data, json_schema_class=schema.__class__)
+        return super(InfinityVertex, cls).from_json(data=data, json_schema_class=schema.__class__)
 
 
 class TaggedVertex(BGVertex):
@@ -252,7 +256,7 @@ class TaggedVertex(BGVertex):
 
     def __init__(self, name):
         self.tags = []
-        super().__init__(name=name)
+        super(TaggedVertex, self).__init__(name=name)
 
     @property
     def is_tagged_vertex(self):
@@ -261,7 +265,7 @@ class TaggedVertex(BGVertex):
     @property
     def name(self):
         """ access to classic name attribute is hidden by this property """
-        return self.NAME_SEPARATOR.join([super().name] + self.get_tags_as_list_of_strings())
+        return self.NAME_SEPARATOR.join([super(TaggedVertex, self).name] + self.get_tags_as_list_of_strings())
 
     def get_tags_as_list_of_strings(self):
         return [self.TAG_SEPARATOR.join([str(tag), str(value)]) for tag, value in self.tags]
@@ -289,7 +293,7 @@ class TaggedVertex(BGVertex):
             index = bisect_left([tag_name for tag_name, _ in self.tags], tag)
             if index < len(self.tags):
                 return self.tags[index][0] == tag
-        return super().__getattr__(item)
+        return super(TaggedVertex, self).__getattr__(item)
 
     def remove_tag(self, tag, value, silent_fail=False):
         """ we try to remove supplied pair tag -- value, and if does not exist outcome depends on the silent_fail flag """
@@ -303,14 +307,14 @@ class TaggedVertex(BGVertex):
     def from_json(cls, data, json_schema_class=None):
         """ This class overwrites the from_json method, thus making sure that if `from_json` is called from this class instance, it will provide its JSON schema as a default one"""
         schema = cls.json_schema if json_schema_class is None else json_schema_class()
-        return super().from_json(data=data, json_schema_class=schema.__class__)
+        return super(TaggedVertex, cls).from_json(data=data, json_schema_class=schema.__class__)
 
 
 class TaggedBlockVertex(BlockVertex, TaggedVertex):
     class TaggedBlockVertexJSONSchema(TaggedVertex.TaggedVertexJSONSchema, BlockVertex.BlockVertexJSONSchema):
         def make_object(self, data):
             setattr(self, "object_class", TaggedBlockVertex)
-            return super().make_object(data)
+            return super(TaggedBlockVertex.TaggedBlockVertexJSONSchema, self).make_object(data)
 
     json_schema = TaggedBlockVertexJSONSchema()
 
@@ -319,6 +323,6 @@ class TaggedInfinityVertex(InfinityVertex, TaggedVertex):
     class TaggedInfinityVertexJSONSchema(TaggedVertex.TaggedVertexJSONSchema, InfinityVertex.InfinityVertexJSONSchema):
         def make_object(self, data):
             setattr(self, "object_class", TaggedInfinityVertex)
-            return super().make_object(data)
+            return super(TaggedInfinityVertex.TaggedInfinityVertexJSONSchema, self).make_object(data)
 
     json_schema = TaggedInfinityVertexJSONSchema()

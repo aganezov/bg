@@ -108,7 +108,8 @@ class BreakpointGraph(object):
         :return: generator over edges in current :class:`BreakpointGraph`
         :rtype: ``generator``
         """
-        yield from self.__edges(nbunch=nbunch, keys=keys)
+        for entry in self.__edges(nbunch=nbunch, keys=keys):
+            yield entry
 
     def nodes(self):
         """ Iterates over nodes in current :class:`BreakpointGraph` instance.
@@ -116,7 +117,8 @@ class BreakpointGraph(object):
         :return:  generator over nodes (vertices) in current :class:`BreakpointGraph` instance.
         :rtype: ``generator``
         """
-        yield from self.bg.nodes_iter()
+        for entry in self.bg.nodes_iter():
+            yield entry
 
     def add_edge(self, vertex1, vertex2, multicolor, merge=True, data=None):
         """ Creates a new :class:`bg.edge.BGEdge` object from supplied information and adds it to current instance of :class:`BreakpointGraph`.
@@ -178,7 +180,8 @@ class BreakpointGraph(object):
         :return: vertex with supplied label if present in current :class:`BreakpointGraph`, ``None`` otherwise
         """
         vertex_class = BGVertex.get_vertex_class_from_vertex_name(vertex_name)
-        root_name, *data = vertex_name.split(BlockVertex.NAME_SEPARATOR)
+        data = vertex_name.split(BlockVertex.NAME_SEPARATOR)
+        root_name, data = data[0], data[1:]
         if issubclass(vertex_class, TaggedVertex):
             tags = [entry.split(TaggedVertex.TAG_SEPARATOR) for entry in data]
             for tag_entry in tags:
@@ -272,7 +275,6 @@ class BreakpointGraph(object):
                         yield bg_edge, key
                     else:
                         yield bg_edge
-        return None
 
     def get_edges_by_vertex(self, vertex, keys=False):
         """ Iterates over edges that are incident to supplied vertex argument in current :class:`BreakpointGraph`
@@ -286,7 +288,8 @@ class BreakpointGraph(object):
         :return: generator over edges (tuples ``edge, edge_id`` if keys specified) in current :class:`BreakpointGraph` wrapped in :class:`bg.vertex.BGEVertex`
         :rtype: ``generator``
         """
-        yield from self.__get_edges_by_vertex(vertex=vertex, keys=keys)
+        for entry in self.__get_edges_by_vertex(vertex=vertex, keys=keys):
+            yield entry
 
     def __edges_between_two_vertices(self, vertex1, vertex2, keys=False):
         """ Iterates over edges between two supplied vertices in current :class:`BreakpointGraph`
@@ -328,7 +331,8 @@ class BreakpointGraph(object):
         :return: generator over edges (tuples ``edge, edge_id`` if keys specified) between two supplied vertices in current :class:`BreakpointGraph` wrapped in :class:`bg.vertex.BGVertex`
         :rtype: ``generator``
         """
-        yield from self.__edges_between_two_vertices(vertex1=vertex1, vertex2=vertex2, keys=keys)
+        for entry in self.__edges_between_two_vertices(vertex1=vertex1, vertex2=vertex2, keys=keys):
+            yield entry
 
     def connected_components_subgraphs(self, copy=True):
         """ Iterates over connected components in current :class:`BreakpointGraph` object, and yields new instances of :class:`BreakpointGraph` with respective information deep-copied by default (week reference is possible of specified in method call).
@@ -1170,7 +1174,7 @@ class BGConnectedComponentFilter(object):
 
 class CompleteMultiEdgeConnectedComponentFilter(BGConnectedComponentFilter):
     def __init__(self):
-        super().__init__()
+        super(CompleteMultiEdgeConnectedComponentFilter, self).__init__()
         self.name = "Complete ME filter"
 
     def accept_connected_component(self, cc, breakpoint_graph=None):
@@ -1183,7 +1187,7 @@ class CompleteMultiEdgeConnectedComponentFilter(BGConnectedComponentFilter):
 
 class TwoNodeConnectedComponentFilter(BGConnectedComponentFilter):
     def __init__(self):
-        super().__init__()
+        super(TwoNodeConnectedComponentFilter, self).__init__()
         self.name = "Two node filter"
 
     def accept_connected_component(self, cc, breakpoint_graph=None):

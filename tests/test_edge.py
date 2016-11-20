@@ -1,6 +1,10 @@
 # -*- coding: utf-8 -*-
 from collections import Counter
-from unittest.mock import Mock
+
+try:
+    from unittest.mock import Mock
+except ImportError:
+    from mock import Mock
 
 from bg.genome import BGGenome
 from bg.multicolor import Multicolor
@@ -290,7 +294,7 @@ class BGEdgeTestCase(unittest.TestCase):
             def make_object(self, data):
                 if "vertex1_json_id" not in data:
                     data["vertex1_json_id"] = 1
-                return super().make_object(data)
+                return super(BGEdgeJSONSchemeDefaultVertex1, self).make_object(data)
 
         json_object = {
             "vertex1_id": 1,

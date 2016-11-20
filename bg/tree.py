@@ -1,9 +1,11 @@
 # -*- coding: utf-8 -*-
 from collections import deque
 from copy import deepcopy
-from ete3 import Tree, TreeNode
-from bg.multicolor import Multicolor
+
+from ete3 import Tree
+
 from bg.genome import BGGenome
+from bg.multicolor import Multicolor
 
 __author__ = "Sergey Aganezov"
 __email__ = "aganezov(at)gwu.edu"
@@ -42,7 +44,8 @@ class BGTree(object):
         :rtype: iterator
         """
         yield self.__root
-        yield from self.__root.iter_descendants()
+        for entry in self.__root.iter_descendants():
+            yield entry
 
     def edges(self):
         """
@@ -86,18 +89,19 @@ class BGTree(object):
         """ Proxies the call to the __get_node_by_name method """
         return self.__get_node_by_name(name=name)
 
-    def __get_node_by_name(self, name: str) -> TreeNode:
+    def __get_node_by_name(self, name):
         """ Returns a first TreeNode object, which name matches the specified argument
 
         :raises: ValueError (if no node with specified name is present in the tree)
         """
         try:
-            return next(filter(lambda x: x.name == name, self.nodes()))
+            for entry in filter(lambda x: x.name == name, self.nodes()):
+                return entry
         except StopIteration:
             raise ValueError("Attempted to retrieve a non-existing tree node with name: {name}"
                              "".format(name=name))
 
-    def __has_edge(self, node1_name: str, node2_name: str, account_for_direction=True) -> TreeNode:
+    def __has_edge(self, node1_name, node2_name, account_for_direction=True):
         """ Returns a boolean flag, telling if a tree has an edge with two nodes, specified by their names as arguments
 
         If a account_for_direction is specified as True, the order of specified node names has to relate to parent - child relation,
@@ -118,15 +122,12 @@ class BGTree(object):
         """ Proxies a call to the __has_edge method """
         return self.__has_edge(node1_name=node1_name, node2_name=node2_name, account_for_direction=account_for_direction)
 
-    def __has_node(self, name: str):
+    def __has_node(self, name):
         """ Check is the current Tree has a node, matching by name to the specified argument """
-        try:
-            self.__get_node_by_name(name=name)
-            return True
-        except ValueError:
-            return False
+        result = self.__get_node_by_name(name=name)
+        return result is not None
 
-    def has_node(self, name: str):
+    def has_node(self, name):
         """ Proxies a call to __has_node method """
         return self.__has_node(name=name)
 
@@ -135,7 +136,7 @@ class BGTree(object):
         """ A property based call for the root pointer in current tree """
         return self.__root
 
-    def get_distance(self, node1_name: str, node2_name: str):
+    def get_distance(self, node1_name, node2_name):
         """ Returns a length of an edge / path, if exists, from the current tree
 
         :param node1_name: a first node name in current tree
@@ -146,7 +147,7 @@ class BGTree(object):
         """
         return self.__root.get_distance(target=node1_name, target2=node2_name)
 
-    def __vertex_is_leaf(self, node_name: str):
+    def __vertex_is_leaf(self, node_name):
         """ Checks if a node specified by its name as an argument is a leaf in the current Tree
 
         :raises: ValueError (if no node with specified name is present in the tree)
@@ -274,7 +275,7 @@ class BGTree(object):
         """ Checks is supplied BGEdge (from the perspective of its multicolor is T-consistent) """
         return self.multicolor_is_tree_consistent(bgedge.multicolor)
 
-    def append(self, node_name: str, tree, copy=False):
+    def append(self, node_name, tree, copy=False):
         """ Append a specified tree (represented by a root TreeNode element) to the node, specified by its name
 
         :param copy: a flag denoting if the appended tree has to be added as is, or is the deepcopy of it has to be used
