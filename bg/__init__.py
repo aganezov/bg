@@ -6,7 +6,6 @@ __status__ = "production"
 version = "1.7.0b1"
 
 __all__ = ["grimm",
-           "bg_io",
            "breakpoint_graph",
            "graphviz",
            "utils",
