@@ -1,8 +1,10 @@
 __author__ = 'aganezov'
 import os
+
 from setuptools import setup
 
 from bg import version as bg_version
+
 setup(
     name="bg",
     version=bg_version,
@@ -11,15 +13,17 @@ setup(
     author="Sergey Aganezov",
     author_email="aganezov@gwu.edu",
     description="Implementation of Breakpoint Graph data structure",
-    license="LGPLv3",
+    license="MIT",
     keywords=["breakpoint graph", "data structures", "python"],
     url="https://github.com/aganezov/bg",
     classifiers=[
-        "Development Status :: 4 - Beta",
-        "License :: OSI Approved :: GNU Lesser General Public License v3 (LGPLv3)",
+        "Development Status :: 5 - Release",
+        "License :: OSI Approved :: MIT License",
         'Programming Language :: Python',
+        'Programming Language :: Python :: 2',
+        'Programming Language :: Python :: 2.7',
         'Programming Language :: Python :: 3',
-        'Programming Language :: Python :: 3.3',
         'Programming Language :: Python :: 3.4',
+        'Programming Language :: Python :: 3.5',
     ]
 )
