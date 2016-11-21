@@ -36,3 +36,6 @@ install:
 
 script:
   - python -m pytest tests
+
+after_success:
+    - coveralls
