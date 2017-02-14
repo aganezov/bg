@@ -1,5 +1,4 @@
 __author__ = 'aganezov'
-import os
 
 from setuptools import setup
 
@@ -9,7 +8,8 @@ setup(
     name="bg",
     version=bg_version,
     packages=["bg", "tests"],
-    install_requires=list(map(lambda entry: entry.strip(), open(os.path.join(os.path.dirname(__file__), "requirements.txt"), "rt").readlines())),
+    install_requires=['coverage', 'decorator', 'networkx>=1.10', 'nose', 'marshmallow==1.2.4', 'teamcity-messages', 'ete3',
+                      'six', 'mock', 'enum34', 'pytest', 'scipy', 'numpy'],
     author="Sergey Aganezov",
     author_email="aganezov@gwu.edu",
     description="Implementation of Breakpoint Graph data structure",
