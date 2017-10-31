@@ -60,7 +60,7 @@ class BreakpointGraphTestCase(unittest.TestCase):
     def test_add_edge_without_data(self):
         bg = BreakpointGraph()
         bg.add_edge(vertex1=self.v1, vertex2=self.v2, multicolor=Multicolor(self.genome1))
-        self.assertDictEqual(bg.bg.edges(self.v1, data=True)[0][2]["data"], BGEdge.create_default_data_dict())
+        self.assertDictEqual(list(bg.bg.edges(self.v1, data=True))[0][2]["attr_dict"]["data"], BGEdge.create_default_data_dict())
 
     def test_get_vertex_by_name(self):
         # breakpoint graph has an O(1) access to the vertex by respective vertex name
@@ -102,10 +102,10 @@ class BreakpointGraphTestCase(unittest.TestCase):
         self.assertEqual(len(list(graph.edges())), 1)
         self.assertEqual(len(graph.bg.edges()), 1)
         self.assertEqual(len(graph.bg.edges(v1)), 1)
-        self.assertEqual(graph.bg.edges(v1, data=True)[0][2]["multicolor"], multicolor)
-        self.assertEqual(graph.bg.edges(v2, data=True)[0][2]["multicolor"], multicolor)
-        self.assertDictEqual(graph.bg.edges(v1, data=True)[0][2]["data"], BGEdge.create_default_data_dict())
-        self.assertDictEqual(graph.bg.edges(v2, data=True)[0][2]["data"], BGEdge.create_default_data_dict())
+        self.assertEqual(list(graph.bg.edges(v1, data=True))[0][2]["attr_dict"]["multicolor"], multicolor)
+        self.assertEqual(list(graph.bg.edges(v2, data=True))[0][2]["attr_dict"]["multicolor"], multicolor)
+        self.assertDictEqual(list(graph.bg.edges(v1, data=True))[0][2]["attr_dict"]["data"], BGEdge.create_default_data_dict())
+        self.assertDictEqual(list(graph.bg.edges(v2, data=True))[0][2]["attr_dict"]["data"], BGEdge.create_default_data_dict())
 
     def test_add_edge_with_data(self):
         # breakpoint graph support addition of an edge without BGEdge wrapper
@@ -120,10 +120,10 @@ class BreakpointGraphTestCase(unittest.TestCase):
         self.assertEqual(len(list(graph.edges())), 1)
         self.assertEqual(len(graph.bg.edges()), 1)
         self.assertEqual(len(graph.bg.edges(v1)), 1)
-        self.assertEqual(graph.bg.edges(v1, data=True)[0][2]["multicolor"], multicolor)
-        self.assertEqual(graph.bg.edges(v2, data=True)[0][2]["multicolor"], multicolor)
-        self.assertDictEqual(graph.bg.edges(v1, data=True)[0][2]["data"], data)
-        self.assertDictEqual(graph.bg.edges(v2, data=True)[0][2]["data"], data)
+        self.assertEqual(list(graph.bg.edges(v1, data=True))[0][2]["attr_dict"]["multicolor"], multicolor)
+        self.assertEqual(list(graph.bg.edges(v2, data=True))[0][2]["attr_dict"]["multicolor"], multicolor)
+        self.assertDictEqual(list(graph.bg.edges(v1, data=True))[0][2]["attr_dict"]["data"], data)
+        self.assertDictEqual(list(graph.bg.edges(v2, data=True))[0][2]["attr_dict"]["data"], data)
 
     def test_add_bgedge(self):
         # breakpoint graph supports an addition of an edge represented with BGEdge wrapper
@@ -138,10 +138,10 @@ class BreakpointGraphTestCase(unittest.TestCase):
         self.assertEqual(len(list(graph.edges())), 1)
         self.assertEqual(len(graph.bg.edges()), 1)
         self.assertEqual(len(graph.bg.edges(v1)), 1)
-        self.assertEqual(graph.bg.edges(v1, data=True)[0][2]["multicolor"], multicolor)
-        self.assertEqual(graph.bg.edges(v2, data=True)[0][2]["multicolor"], multicolor)
-        self.assertDictEqual(graph.bg.edges(v1, data=True)[0][2]["data"], bgedge.data)
-        self.assertDictEqual(graph.bg.edges(v2, data=True)[0][2]["data"], bgedge.data)
+        self.assertEqual(list(graph.bg.edges(v1, data=True))[0][2]["attr_dict"]["multicolor"], multicolor)
+        self.assertEqual(list(graph.bg.edges(v2, data=True))[0][2]["attr_dict"]["multicolor"], multicolor)
+        self.assertDictEqual(list(graph.bg.edges(v1, data=True))[0][2]["attr_dict"]["data"], bgedge.data)
+        self.assertDictEqual(list(graph.bg.edges(v2, data=True))[0][2]["attr_dict"]["data"], bgedge.data)
 
     def test_edges(self):
         # breakpoint graph supports iterations over all edges in it

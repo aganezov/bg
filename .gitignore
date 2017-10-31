@@ -65,4 +65,5 @@ tests/**/*.pdf
 # virtualenv
 venv/
 
+bg63/
 

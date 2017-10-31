@@ -89,8 +89,9 @@ class BreakpointGraph(object):
         :return: generator over edges in current :class:`BreakpointGraph`
         :rtype: ``generator``
         """
-        for v1, v2, key, data in self.bg.edges_iter(nbunch=nbunch, data=True, keys=True):
-            bgedge = BGEdge(vertex1=v1, vertex2=v2, multicolor=data["multicolor"], data=data["data"])
+        for v1, v2, key, data in self.bg.edges(nbunch=nbunch, data=True, keys=True):
+            bgedge = BGEdge(vertex1=v1, vertex2=v2, multicolor=data["attr_dict"]["multicolor"],
+                            data=data["attr_dict"]["data"])
             if not keys:
                 yield bgedge
             else:
@@ -117,7 +118,7 @@ class BreakpointGraph(object):
         :return:  generator over nodes (vertices) in current :class:`BreakpointGraph` instance.
         :rtype: ``generator``
         """
-        for entry in self.bg.nodes_iter():
+        for entry in self.bg.nodes():
             yield entry
 
     def add_edge(self, vertex1, vertex2, multicolor, merge=True, data=None):
@@ -150,8 +151,8 @@ class BreakpointGraph(object):
         """
         if bgedge.vertex1 in self.bg and bgedge.vertex2 in self.bg[bgedge.vertex1] and merge:
             key = min(self.bg[bgedge.vertex1][bgedge.vertex2].keys())
-            self.bg[bgedge.vertex1][bgedge.vertex2][key]["multicolor"] += bgedge.multicolor
-            self.bg[bgedge.vertex1][bgedge.vertex2][key]["data"] = {}
+            self.bg[bgedge.vertex1][bgedge.vertex2][key]["attr_dict"]["multicolor"] += bgedge.multicolor
+            self.bg[bgedge.vertex1][bgedge.vertex2][key]["attr_dict"]["data"] = {}
         else:
             self.bg.add_edge(u=bgedge.vertex1, v=bgedge.vertex2, attr_dict={"multicolor": deepcopy(bgedge.multicolor),
                                                                             "data": bgedge.data})
@@ -235,8 +236,9 @@ class BreakpointGraph(object):
         if vertex1 in self.bg and vertex2 in self.bg[vertex1]:
             if key is None:
                 key = min(self.bg[vertex1][vertex2])
-            return BGEdge(vertex1=vertex1, vertex2=vertex2, multicolor=self.bg[vertex1][vertex2][key]["multicolor"],
-                          data=self.bg[vertex1][vertex2][key]["data"])
+            return BGEdge(vertex1=vertex1, vertex2=vertex2,
+                          multicolor=self.bg[vertex1][vertex2][key]["attr_dict"]["multicolor"],
+                          data=self.bg[vertex1][vertex2][key]["attr_dict"]["data"])
         return None
 
     def get_edge_by_two_vertices(self, vertex1, vertex2, key=None):
@@ -270,7 +272,8 @@ class BreakpointGraph(object):
         if vertex in self.bg:
             for vertex2, edges in self.bg[vertex].items():
                 for key, data in self.bg[vertex][vertex2].items():
-                    bg_edge = BGEdge(vertex1=vertex, vertex2=vertex2, multicolor=data["multicolor"], data=data["data"])
+                    bg_edge = BGEdge(vertex1=vertex, vertex2=vertex2, multicolor=data["attr_dict"]["multicolor"],
+                                     data=data["attr_dict"]["data"])
                     if keys:
                         yield bg_edge, key
                     else:
@@ -372,8 +375,8 @@ class BreakpointGraph(object):
             # even if that edge is not the most suited to the edge to be deleted
             #
             ############################################################################################################
-            self.bg[bgedge.vertex1][bgedge.vertex2][key]["multicolor"] -= bgedge.multicolor
-            if len(self.bg[bgedge.vertex1][bgedge.vertex2][key]["multicolor"].multicolors) == 0:
+            self.bg[bgedge.vertex1][bgedge.vertex2][key]["attr_dict"]["multicolor"] -= bgedge.multicolor
+            if len(self.bg[bgedge.vertex1][bgedge.vertex2][key]["attr_dict"]["multicolor"].multicolors) == 0:
                 ############################################################################################################
                 #
                 # since edge deletion correspond to multicolor substitution one must make sure
@@ -387,8 +390,9 @@ class BreakpointGraph(object):
         else:
             candidate_data, candidate_id, candidate_score = self.__determine_most_suitable_edge_for_deletion(bgedge)
             if candidate_data is not None:
-                candidate_data["multicolor"] -= bgedge.multicolor
-                if len(self.bg[bgedge.vertex1][bgedge.vertex2][candidate_id]["multicolor"].multicolors) == 0:
+                candidate_data["attr_dict"]["multicolor"] -= bgedge.multicolor
+                if len(self.bg[bgedge.vertex1][bgedge.vertex2][candidate_id]["attr_dict"][
+                           "multicolor"].multicolors) == 0:
                     self.bg.remove_edge(v=bgedge.vertex1, u=bgedge.vertex2, key=candidate_id)
                     if keep_vertices:
                         self.bg.add_node(bgedge.vertex1)
@@ -399,14 +403,14 @@ class BreakpointGraph(object):
         candidate_id = None
         candidate_score = -1
         candidate_data = None
-        for v1, v2, key, data in self.bg.edges_iter(nbunch=bgedge.vertex1, data=True, keys=True):
+        for v1, v2, key, data in self.bg.edges(nbunch=bgedge.vertex1, data=True, keys=True):
             ############################################################################################################
             #
             # iterate over all edges and determine which edge has a multicolor most related to the provided for deletion edge
             #
             ############################################################################################################
             if v2 == bgedge.vertex2:
-                score = Multicolor.similarity_score(bgedge.multicolor, data["multicolor"])
+                score = Multicolor.similarity_score(bgedge.multicolor, data["attr_dict"]["multicolor"])
                 if score > candidate_score:
                     candidate_id = key
                     candidate_data = data
@@ -466,29 +470,30 @@ class BreakpointGraph(object):
         candidate_score = 0
         candidate_data = None
         if key is not None:
-            new_multicolors = Multicolor.split_colors(multicolor=self.bg[bgedge.vertex1][bgedge.vertex2][key]["multicolor"],
-                                                      guidance=guidance, sorted_guidance=sorted_guidance,
-                                                      account_for_color_multiplicity_in_guidance=account_for_colors_multiplicity_in_guidance)
+            new_multicolors = Multicolor.split_colors(
+                multicolor=self.bg[bgedge.vertex1][bgedge.vertex2][key]["attr_dict"]["multicolor"],
+                guidance=guidance, sorted_guidance=sorted_guidance,
+                account_for_color_multiplicity_in_guidance=account_for_colors_multiplicity_in_guidance)
             self.__delete_bgedge(bgedge=BGEdge(vertex1=bgedge.vertex1, vertex2=bgedge.vertex2,
-                                               multicolor=self.bg[bgedge.vertex1][bgedge.vertex2][key]["multicolor"]),
+                                               multicolor=self.bg[bgedge.vertex1][bgedge.vertex2][key]["attr_dict"]["multicolor"]),
                                  key=key)
             for multicolor in new_multicolors:
                 self.__add_bgedge(BGEdge(vertex1=bgedge.vertex1, vertex2=bgedge.vertex2, multicolor=multicolor),
                                   merge=False)
         else:
-            for v1, v2, key, data in self.bg.edges_iter(nbunch=bgedge.vertex1, data=True, keys=True):
+            for v1, v2, key, data in self.bg.edges(nbunch=bgedge.vertex1, data=True, keys=True):
                 if v2 == bgedge.vertex2:
-                    score = Multicolor.similarity_score(bgedge.multicolor, data["multicolor"])
+                    score = Multicolor.similarity_score(bgedge.multicolor, data["attr_dict"]["multicolor"])
                     if score > candidate_score:
                         candidate_id = key
                         candidate_data = data
                         candidate_score = score
             if candidate_data is not None:
-                new_multicolors = Multicolor.split_colors(multicolor=candidate_data["multicolor"],
+                new_multicolors = Multicolor.split_colors(multicolor=candidate_data["attr_dict"]["multicolor"],
                                                           guidance=guidance, sorted_guidance=sorted_guidance,
                                                           account_for_color_multiplicity_in_guidance=account_for_colors_multiplicity_in_guidance)
                 self.__delete_bgedge(bgedge=BGEdge(vertex1=bgedge.vertex1, vertex2=bgedge.vertex2,
-                                                   multicolor=candidate_data["multicolor"]),
+                                                   multicolor=candidate_data["attr_dict"]["multicolor"]),
                                      key=candidate_id)
                 for multicolor in new_multicolors:
                     self.__add_bgedge(BGEdge(vertex1=bgedge.vertex1, vertex2=bgedge.vertex2,
@@ -552,7 +557,7 @@ class BreakpointGraph(object):
         :type guidance: iterable where each entry is iterable with colors entries
         :return: ``None``, performs inplace changes
         """
-        edges_to_be_split_keys = [key for v1, v2, key in self.bg.edges_iter(nbunch=vertex1, keys=True) if v2 == vertex2]
+        edges_to_be_split_keys = [key for v1, v2, key in self.bg.edges(nbunch=vertex1, keys=True) if v2 == vertex2]
         for key in edges_to_be_split_keys:
             self.__split_bgedge(BGEdge(vertex1=vertex1, vertex2=vertex2, multicolor=None), guidance=guidance,
                                 sorted_guidance=sorted_guidance,
@@ -601,10 +606,11 @@ class BreakpointGraph(object):
         :type vertex2: any python hashable object. :class:`bg.vertex.BGVertex` is expected
         :return: ``None``, performs inplace changes
         """
-        edges_to_be_deleted_with_keys = [(key, data) for v1, v2, key, data in self.bg.edges_iter(nbunch=vertex1, keys=True,
-                                                                                                 data=True) if v2 == vertex2]
+        edges_to_be_deleted_with_keys = [(key, data) for v1, v2, key, data in self.bg.edges(nbunch=vertex1, keys=True,
+                                                                                            data=True) if v2 == vertex2]
         for key, data in edges_to_be_deleted_with_keys:
-            self.__delete_bgedge(BGEdge(vertex1=vertex1, vertex2=vertex2, multicolor=data["multicolor"]), key=key)
+            self.__delete_bgedge(BGEdge(vertex1=vertex1, vertex2=vertex2, multicolor=data["attr_dict"]["multicolor"]),
+                                 key=key)
 
     def delete_all_edges_between_two_vertices(self, vertex1, vertex2):
         """ Deletes all edges between two supplied vertices
@@ -634,8 +640,8 @@ class BreakpointGraph(object):
         # and then added with a merge argument set to true
         #
         ############################################################################################################
-        edges_multicolors = [deepcopy(data["multicolor"]) for v1, v2, data in
-                             self.bg.edges_iter(nbunch=vertex1, data=True) if v2 == vertex2]
+        edges_multicolors = [deepcopy(data["attr_dict"]["multicolor"]) for v1, v2, data in
+                             self.bg.edges(nbunch=vertex1, data=True) if v2 == vertex2]
         self.__delete_all_bgedges_between_two_vertices(vertex1=vertex1, vertex2=vertex2)
         for multicolor in edges_multicolors:
             self.__add_bgedge(BGEdge(vertex1=vertex1, vertex2=vertex2, multicolor=multicolor), merge=True)
@@ -787,8 +793,9 @@ class BreakpointGraph(object):
             v2 = self.__get_vertex_by_name(vertex_name=vertex2.name)
             vertices[v2] = v2
             bgedge = BGEdge(vertex1=v1, vertex2=v2, multicolor=kbreak.multicolor)
-            candidate_data, candidate_id, candidate_score = self.__determine_most_suitable_edge_for_deletion(bgedge=bgedge)
-            data = candidate_data["data"]
+            candidate_data, candidate_id, candidate_score = self.__determine_most_suitable_edge_for_deletion(
+                bgedge=bgedge)
+            data = candidate_data["attr_dict"]["data"]
             edge_data[v1] = data
             edge_data[v2] = data
             self.__delete_bgedge(bgedge=bgedge, keep_vertices=True)
@@ -864,7 +871,8 @@ class BreakpointGraph(object):
             ############################################################################################################
             genomes_dict = {}
             try:
-                source = genomes_data if genomes_data is not None and genomes_deserialization_required else data["genomes"]
+                source = genomes_data if genomes_data is not None and genomes_deserialization_required else data[
+                    "genomes"]
             except KeyError as exc:
                 raise ValueError("Error during breakpoint graph deserialization. No \"genomes\" information found")
             for g_dict in source:
@@ -885,7 +893,8 @@ class BreakpointGraph(object):
             # as vertices are referenced in edges object, rather than explicitly provided
             #
             ############################################################################################################
-            raise ValueError("Error during breakpoint graph deserialization. \"vertices\" key is not present in json object")
+            raise ValueError(
+                "Error during breakpoint graph deserialization. \"vertices\" key is not present in json object")
         for vertex_dict in data["vertices"]:
             ############################################################################################################
             #
@@ -907,7 +916,8 @@ class BreakpointGraph(object):
                 vertex_class = BGVertex.get_vertex_class_from_vertex_name(vertex_dict["name"])
             except KeyError:
                 vertex_class = BGVertex
-            vertices_dict[vertex_dict["v_id"]] = vertex_class.from_json(data=vertex_dict, json_schema_class=schema_class)
+            vertices_dict[vertex_dict["v_id"]] = vertex_class.from_json(data=vertex_dict,
+                                                                        json_schema_class=schema_class)
         for edge_dict in data["edges"]:
             ############################################################################################################
             #
@@ -928,25 +938,29 @@ class BreakpointGraph(object):
                 # as edge references a pair of vertices, we must be sure respective vertices were decoded
                 #
                 ############################################################################################################
-                raise ValueError("Error during breakpoint graph deserialization. Deserialized edge references non-present vertex")
+                raise ValueError(
+                    "Error during breakpoint graph deserialization. Deserialized edge references non-present vertex")
             if len(edge.multicolor) == 0:
                 ############################################################################################################
                 #
                 # edges with empty multicolor are not permitted in breakpoint graphs
                 #
                 ############################################################################################################
-                raise ValueError("Error during breakpoint graph deserialization. Empty multicolor for deserialized edge")
+                raise ValueError(
+                    "Error during breakpoint graph deserialization. Empty multicolor for deserialized edge")
             try:
                 edge.multicolor = Multicolor(*[genomes_dict[g_id] for g_id in edge.multicolor])
             except KeyError:
-                raise ValueError("Error during breakpoint graph deserialization. Deserialized edge reference non-present "
-                                 "genome in its multicolor")
+                raise ValueError(
+                    "Error during breakpoint graph deserialization. Deserialized edge reference non-present "
+                    "genome in its multicolor")
             result.__add_bgedge(edge, merge=merge)
         return result
 
     def get_overall_set_of_colors(self):
         if "overall_set_of_colors" not in self.cache_valid or not self.cache_valid["overall_set_of_colors"]:
-            self.cache["overall_set_of_colors"] = {color for bg_edge in self.edges() for color in bg_edge.multicolor.colors}
+            self.cache["overall_set_of_colors"] = {color for bg_edge in self.edges() for color in
+                                                   bg_edge.multicolor.colors}
             self.cache_valid["overall_set_of_colors"] = True
         return self.cache["overall_set_of_colors"]
 
@@ -967,15 +981,18 @@ class BreakpointGraph(object):
             if vertex in visited_vertices:
                 continue
             visited_vertices.add(vertex)
-            chr_type_f, fragment_part_forward = self._traverse_blocks_forward_from_vertex(vertex=vertex, visited_vertices=visited_vertices)
-            chr_type_r, fragment_part_reverse = self._traverse_blocks_reverse_from_vertex(vertex=vertex, visited_vertices=visited_vertices)
+            chr_type_f, fragment_part_forward = self._traverse_blocks_forward_from_vertex(vertex=vertex,
+                                                                                          visited_vertices=visited_vertices)
+            chr_type_r, fragment_part_reverse = self._traverse_blocks_reverse_from_vertex(vertex=vertex,
+                                                                                          visited_vertices=visited_vertices)
             if chr_type_f != chr_type_r:
                 raise Exception("During the gene order sequence traversal we got a conflicted situation. "
                                 "Most probably case for this to happen is to have a genome with non-unique gene content")
             if chr_type_f == "$":
                 fragment = fragment_part_reverse + fragment_part_forward
             else:
-                fragment = fragment_part_forward if len(fragment_part_forward) > len(fragment_part_reverse) else fragment_part_reverse
+                fragment = fragment_part_forward if len(fragment_part_forward) > len(
+                    fragment_part_reverse) else fragment_part_reverse
             result[genome].append((chr_type_f, fragment))
         return result
 
@@ -1022,10 +1039,12 @@ class BreakpointGraph(object):
         return self._traverse_blocks_from_vertex(vertex=vertex, visited_vertices=visited_vertices, direction="reverse")
 
     def _traverse_fragments_forward_from_vertex(self, vertex, visited_vertices):
-        return self._traverse_fragments_from_vertex(vertex=vertex, visited_vertices=visited_vertices, direction="forward")
+        return self._traverse_fragments_from_vertex(vertex=vertex, visited_vertices=visited_vertices,
+                                                    direction="forward")
 
     def _traverse_fragments_reverse_from_vertex(self, vertex, visited_vertices):
-        return self._traverse_fragments_from_vertex(vertex=vertex, visited_vertices=visited_vertices, direction="reverse")
+        return self._traverse_fragments_from_vertex(vertex=vertex, visited_vertices=visited_vertices,
+                                                    direction="reverse")
 
     def has_edge(self, vertex1, vertex2):
         return self.bg.has_edge(u=vertex1, v=vertex2)
@@ -1068,7 +1087,7 @@ class BreakpointGraph(object):
                         fragment = fragments_order_part_reverse + fragments_order_part_forward
             else:
                 fragment = fragments_order_part_forward if len(fragments_order_part_forward) > len(
-                        fragments_order_part_reverse) else fragments_order_part_reverse
+                    fragments_order_part_reverse) else fragments_order_part_reverse
                 if len(fragment) > 1 and fragment[-1][0] == fragment[0][0] and fragment[-1][1] == fragment[0][1]:
                     fragment = fragment[:-1]
             result[genome].append((chr_type_f, fragment))
@@ -1139,9 +1158,11 @@ class BreakpointGraph(object):
     @staticmethod
     def _get_fragment_to_edge_orientation(current_vertex, edge):
         v1, v2 = (edge.vertex1, edge.vertex2) if edge.vertex1 == current_vertex else (edge.vertex2, edge.vertex1)
-        forward_orientation = get_from_dict_with_path(source_dict=edge.data, key="forward_orientation", path=["fragment"])
+        forward_orientation = get_from_dict_with_path(source_dict=edge.data, key="forward_orientation",
+                                                      path=["fragment"])
         if isinstance(forward_orientation, list):
-            return ["+" if BreakpointGraph._forward_orientation(v1, v2, orientation) else "-" for orientation in forward_orientation]
+            return ["+" if BreakpointGraph._forward_orientation(v1, v2, orientation) else "-" for orientation in
+                    forward_orientation]
         else:
             return ["+" if BreakpointGraph._forward_orientation(v1, v2, forward_orientation) else "-"]
 
