@@ -3,7 +3,7 @@ __author__ = "Sergey Aganezov"
 __email__ = "aganezov(at)gwu.edu"
 __status__ = "production"
 
-version = "1.8.1"
+version = "1.9.0"
 
 __all__ = ["grimm",
            "breakpoint_graph",
