@@ -4,7 +4,7 @@ from bisect import bisect_left
 from marshmallow import Schema, fields
 
 __author__ = "Sergey Aganezov"
-__email__ = "aganezov(at)gwu.edu"
+__email__ = "aganezov(at)cs.jhu.edu"
 __status__ = "production"
 
 INFINITY_VERTEX_IDENTIFIER = "__infinity"

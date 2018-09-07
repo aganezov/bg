@@ -11,7 +11,7 @@ from bg.utils import add_to_dict_with_path
 from bg.vertices import BlockVertex, TaggedVertex, TaggedBlockVertex, TaggedInfinityVertex, BGVertex
 
 __author__ = "Sergey Aganezov"
-__email__ = "aganezov(at)gwu.edu"
+__email__ = "aganezov(at)cs.jhu.edu"
 __status__ = "production"
 
 

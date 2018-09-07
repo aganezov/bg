@@ -4,7 +4,7 @@ from marshmallow import Schema, fields
 from bg.utils import dicts_are_equal, recursive_dict_update
 
 __author__ = "Sergey Aganezov"
-__email__ = "aganezov(at)gwu.edu"
+__email__ = "aganezov(at)cs.jhu.edu"
 __status__ = "production"
 
 # module wide constant utilized in JSON serialization to specify key for JSON schema info, if required

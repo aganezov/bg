@@ -8,7 +8,7 @@ from bg.genome import BGGenome
 from bg.multicolor import Multicolor
 
 __author__ = "Sergey Aganezov"
-__email__ = "aganezov(at)gwu.edu"
+__email__ = "aganezov(at)cs.jhu.edu"
 __status__ = "production"
 
 # defines a default edge length in phylogenetic tree

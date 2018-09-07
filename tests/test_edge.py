@@ -12,7 +12,7 @@ from bg.utils import dicts_are_equal
 from bg.vertices import BlockVertex, InfinityVertex, TaggedBlockVertex
 
 __author__ = "Sergey Aganezov"
-__email__ = "aganezov(at)gwu.edu"
+__email__ = "aganezov(at)cs.jhu.edu"
 __status__ = "production"
 
 import unittest

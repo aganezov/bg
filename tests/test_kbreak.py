@@ -8,7 +8,7 @@ from bg.multicolor import Multicolor
 from bg.vertices import BlockVertex, InfinityVertex
 
 __author__ = "Sergey Aganezov"
-__email__ = "aganezov(at)gwu.edu"
+__email__ = "aganezov(at)cs.jhu.edu"
 __status__ = "production"
 
 import unittest

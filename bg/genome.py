@@ -2,7 +2,7 @@
 from marshmallow import Schema, fields
 
 __author__ = "aganezov"
-__email__ = "aganezov(at)gwu.edu"
+__email__ = "aganezov(at)cs.jhu.edu"
 __status__ = "production"
 
 # module wide constant, that is utilized for json dict key creation
