@@ -7,7 +7,7 @@ teamcity-messages
 ete3
 six
 mock
-enum34
+enum-compat
 pytest
 scipy
 numpy

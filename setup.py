@@ -9,7 +9,7 @@ setup(
     version=bg_version,
     packages=["bg", "tests"],
     install_requires=['coverage', 'decorator', 'networkx>=2', 'nose', 'marshmallow==1.2.4', 'teamcity-messages', 'ete3',
-                      'six', 'mock', 'enum34', 'pytest', 'scipy', 'numpy'],
+                      'six', 'mock', 'pytest', 'scipy', 'numpy', 'enum-compat'],
     author="Sergey Aganezov",
     author_email="aganezov@cs.princeton.edu",
     description="Implementation of Breakpoint Graph data structure",
