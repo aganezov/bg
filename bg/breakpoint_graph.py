@@ -154,8 +154,8 @@ class BreakpointGraph(object):
             self.bg[bgedge.vertex1][bgedge.vertex2][key]["attr_dict"]["multicolor"] += bgedge.multicolor
             self.bg[bgedge.vertex1][bgedge.vertex2][key]["attr_dict"]["data"] = {}
         else:
-            self.bg.add_edge(u=bgedge.vertex1, v=bgedge.vertex2, attr_dict={"multicolor": deepcopy(bgedge.multicolor),
-                                                                            "data": bgedge.data})
+            self.bg.add_edge(bgedge.vertex1, bgedge.vertex2, attr_dict={"multicolor": deepcopy(bgedge.multicolor),
+                                                                        "data": bgedge.data})
         self.cache_valid["overall_set_of_colors"] = False
 
     def add_bgedge(self, bgedge, merge=True):
@@ -345,7 +345,10 @@ class BreakpointGraph(object):
         :return: generator over connected components in current :class:`BreakpointGraph` wrapping respective connected components into new :class:`BreakpointGraph` objects.
         :rtype: ``generator``
         """
-        for component in nx.connected_component_subgraphs(self.bg, copy=copy):
+        for component in nx.connected_components(self.bg):
+            component = self.bg.subgraph(component)
+            if copy:
+                component.copy()
             yield BreakpointGraph(component)
 
     def __delete_bgedge(self, bgedge, key=None, keep_vertices=False):
