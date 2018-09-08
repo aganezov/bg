@@ -1,4 +1,6 @@
 # -*- coding: utf-8 -*-
+from marshmallow import ValidationError
+
 __author__ = "Sergey Aganezov"
 __email__ = "aganezov(at)cs.jhu.edu"
 __status__ = "production"
@@ -100,8 +102,8 @@ class BGVertexTestCase(unittest.TestCase):
         # not all JSON object attributes are to be stored in BGVertex object
         json_object = {
             "name": self.str_name1,
-            "_py__bg_vertex_json_schema": self.vertex_class.json_schema_name,
-            "json_id": 1
+            "_py__bg_vertex_json_schema": self.vertex_class.json_schema.__class__.__name__,
+            "v_id": 1
         }
         vertex = self.vertex_class.from_json(json_object)
         self.assertIsInstance(vertex, self.vertex_class)
@@ -112,14 +114,14 @@ class BGVertexTestCase(unittest.TestCase):
         json_object = {
             BGVertex_JSON_SCHEMA_JSON_KEY: json_schema_name,
             "name": self.str_name1,
-            "json_id": 1
+            "v_id": 1
         }
         vertex = self.vertex_class.from_json(json_object)
         self.assertIsInstance(vertex, self.vertex_class)
         self.assertEqual(vertex.name, self.str_name1)
         # there must be a "name" field in json object to be serialized
-        with self.assertRaises(ValueError):
-            json_object = {"json_id": 1}
+        with self.assertRaises(ValidationError):
+            json_object = {"v_id": 1}
             self.vertex_class.from_json(json_object)
 
     def test_get_vertex_class_from_vertex_name(self):
@@ -270,7 +272,7 @@ class InfinityVertexTestCase(BGVertexTestCase):
         # not all JSON object attributes are to be stored in BGVertex object
         json_object = {
             "name": self.str_name1,
-            "json_id": 1
+            "v_id": 1
         }
         vertex = self.vertex_class.from_json(json_object)
         self.assertTrue(isinstance(vertex, self.vertex_class))
@@ -281,14 +283,14 @@ class InfinityVertexTestCase(BGVertexTestCase):
         json_object = {
             BGVertex_JSON_SCHEMA_JSON_KEY: json_schema_name,
             "name": self.str_name1,
-            "json_id": 1
+            "v_id": 1
         }
         vertex = self.vertex_class.from_json(json_object)
         self.assertTrue(isinstance(vertex, self.vertex_class))
         self.assertEqual(vertex.name, InfinityVertex.NAME_SEPARATOR.join([self.str_name1, InfinityVertex.NAME_SUFFIX]))
         # there must be a "name" field in json object to be serialized
-        with self.assertRaises(ValueError):
-            json_object = {"json_id": 1}
+        with self.assertRaises(ValidationError):
+            json_object = {"v_id": 1}
             self.vertex_class.from_json(json_object)
 
 

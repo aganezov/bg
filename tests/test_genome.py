@@ -4,7 +4,7 @@ __status__ = "production"
 
 import unittest
 
-from bg.genome import BGGenome, BGGenome_JSON_SCHEMA_JSON_KEY
+from bg.genome import BGGenome, BGGenome_JSON_SCHEMA_JSON_KEY, post_load
 
 
 class BGGenomeTestCase(unittest.TestCase):
@@ -77,6 +77,8 @@ class BGGenomeTestCase(unittest.TestCase):
     def test_json_deserialization_subclassing(self):
         # being provided an explicit JSONSchema, it shall be utilized for json deserialization
         class BGGenomeJSONSchemaNameOptional(BGGenome.BGGenomeJSONSchema):
+
+            @post_load
             def make_object(self, data):
                 if "name" not in data:
                     data["name"] = "default_name"

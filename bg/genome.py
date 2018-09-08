@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from marshmallow import Schema, fields
+from marshmallow import Schema, fields, post_load
 
 __author__ = "aganezov"
 __email__ = "aganezov(at)cs.jhu.edu"
@@ -22,6 +22,7 @@ class BGGenome(object):
         g_id = fields.Integer(attribute="json_id")
         name = fields.String()
 
+        @post_load
         def make_object(self, data):
             if "name" not in data:
                 raise ValueError("Error during genome serialization. \"name\" key is not present in json object")
@@ -63,15 +64,9 @@ class BGGenome(object):
 
     def to_json(self, schema_info=True):
         """ JSON serialization method that accounts for a possibility of field filtration and schema specification """
-        old_exclude_fields = self.json_schema.exclude
-        new_exclude_fields = list(old_exclude_fields)
-        if not schema_info:
-            new_exclude_fields.append(BGGenome_JSON_SCHEMA_JSON_KEY)
-        # monkey patch schema `exclude` attribute to ignore some fields in result json object
-        self.json_schema.exclude = new_exclude_fields
-        result = self.json_schema.dump(self).data
+        schema = self.json_schema.__class__(exclude=() if schema_info else (BGGenome_JSON_SCHEMA_JSON_KEY,))
+        result = schema.dump(self)
         # reverse the result of monkey patching
-        self.json_schema.exclude = old_exclude_fields
         return result
 
     @classmethod
@@ -81,7 +76,7 @@ class BGGenome(object):
         If specific json schema is provided, it is utilized, and if not, a class specific is used
         """
         schema = cls.json_schema if json_schema_class is None else json_schema_class()
-        return schema.load(data).data
+        return schema.load(data)
 
     def __lt__(self, other):
         """ Genomes are ordered according to lexicographical ordering of their names """

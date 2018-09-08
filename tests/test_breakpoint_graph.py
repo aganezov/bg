@@ -5,6 +5,8 @@ import io
 import unittest
 from collections import Counter
 
+from marshmallow import ValidationError, post_load
+
 try:
     from unittest.mock import Mock
 except ImportError:
@@ -2381,6 +2383,7 @@ class BreakpointGraphTestCase(unittest.TestCase):
         # multiplicity of colors is set to 1 and 2
 
         class BlockVertexJSONShcemaWithSpecialAttribute(TaggedBlockVertex.TaggedBlockVertexJSONSchema):
+            @post_load
             def make_object(self, data):
                 new_vertex = super(BlockVertexJSONShcemaWithSpecialAttribute, self).make_object(data=data)
                 new_vertex.special_attribute = "special_attribute"
@@ -2425,7 +2428,7 @@ class BreakpointGraphTestCase(unittest.TestCase):
     def test_deserialization_incorrect_not_vertex_name(self):
         # every vertex json object in vertices list shall contain a name attribute
         # a ValueError is raised is such vertex object without name attribute is encountered
-        with self.assertRaises(ValueError):
+        with self.assertRaises(ValidationError):
             BreakpointGraph.from_json(data={
                 "edges": [],
                 "vertices": [

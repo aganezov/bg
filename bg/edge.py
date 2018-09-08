@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from marshmallow import Schema, fields
+from marshmallow import Schema, fields, post_load
 
 from bg.utils import dicts_are_equal, recursive_dict_update
 
@@ -35,6 +35,7 @@ class BGEdge(object):
         vertex2_id = fields.Int(attribute="vertex2_json_id", required=True)
         multicolor = fields.List(fields.Int, attribute="colors_json_ids", allow_none=False, required=True)
 
+        @post_load
         def make_object(self, data):
             if "vertex1_json_id" not in data:
                 raise ValueError("Error during edge serialization. \"vertex1_id\" key is not present in json object")
@@ -169,15 +170,9 @@ class BGEdge(object):
 
     def to_json(self, schema_info=True):
         """ JSON serialization method that accounts for a possibility of field filtration and schema specification """
-        old_exclude_fields = self.json_schema.exclude
-        new_exclude_fields = list(old_exclude_fields)
-        if not schema_info:
-            new_exclude_fields.append(BGEdge_JSON_SCHEMA_JSON_KEY)
-        # monkey patch schema `exclude` attribute to ignore some fields in result json object
-        self.json_schema.exclude = new_exclude_fields
-        result = self.json_schema.dump(self).data
+        schema = self.json_schema.__class__(exclude=() if schema_info else (BGEdge_JSON_SCHEMA_JSON_KEY,))
         # reverse the result of monkey patching
-        self.json_schema.exclude = old_exclude_fields
+        result = schema.dump(self)
         return result
 
     @classmethod
@@ -187,7 +182,7 @@ class BGEdge(object):
         If specific json schema is provided, it is utilized, and if not, a class specific is used
         """
         schema = cls.json_schema if json_schema_class is None else json_schema_class()
-        return schema.load(data).data
+        return schema.load(data)
 
     def update_data(self, source):
         if not isinstance(source, dict):

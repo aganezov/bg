@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 from bisect import bisect_left
 
-from marshmallow import Schema, fields
+from marshmallow import Schema, fields, post_load
 
 __author__ = "Sergey Aganezov"
 __email__ = "aganezov(at)cs.jhu.edu"
@@ -31,6 +31,7 @@ class BGVertex(object):
         v_id = fields.Int(required=True, attribute="json_id")
         _py__bg_vertex_json_schema = fields.String(attribute="json_schema_name")
 
+        @post_load
         def make_object(self, data):
             try:
                 return BGVertex(name=data["name"])
@@ -94,15 +95,9 @@ class BGVertex(object):
         # json serialization method that accounts for a possibility of excluding some schema specified fields from the result
         # also, since there are usually thousands of vertices serialized at the same time, no new schema object is created every time,
         # but rather some small monkey patching is performed with `exclude` field of json schema
-        old_exclude_fields = self.json_schema.exclude
-        new_exclude_fields = list(old_exclude_fields)
-        if not schema_info:
-            new_exclude_fields.append(BGVertex_JSON_SCHEMA_JSON_KEY)
-        # monkey patch schema `exclude` attribute to ignore some fields in result json object
-        self.json_schema.exclude = new_exclude_fields
-        result = self.json_schema.dump(self).data
+        schema = self.json_schema.__class__(exclude=() if schema_info else (BGVertex_JSON_SCHEMA_JSON_KEY,))
+        result = schema.dump(self)
         # reverse the result of monkey patching
-        self.json_schema.exclude = old_exclude_fields
         return result
 
     @classmethod
@@ -110,7 +105,7 @@ class BGVertex(object):
         # deserialization from json is performed by internal machinery of `make_object` method, that is invoked transparently
         # specific json schema class can be specified and used for deserialization
         schema = cls.json_schema if json_schema_class is None else json_schema_class()
-        return schema.load(data).data
+        return schema.load(data)
 
     @staticmethod
     def get_vertex_class_from_vertex_name(string):
@@ -134,6 +129,7 @@ class BlockVertex(BGVertex):
     class BlockVertexJSONSchema(BGVertex.BGVertexJSONSchema):
         """ JSON schema for this class is redefined to tune the `make_object` method, that shall return `BlockVertex` instance, rather than `BGVertex` one """
 
+        @post_load
         def make_object(self, data):
             try:
                 return BlockVertex(name=data["name"])
@@ -186,6 +182,7 @@ class InfinityVertex(BGVertex):
     class InfinityVertexJSONSchema(BGVertex.BGVertexJSONSchema):
         """ JSON Schema for this class is redefined to tune the `make_object` method, that shall return `InfinityVertex` instance, rather than a `BGVertex` one """
 
+        @post_load
         def make_object(self, data):
             try:
                 json_name = data["name"]
@@ -235,6 +232,7 @@ class InfinityVertex(BGVertex):
 class TaggedVertex(BGVertex):
     class TaggedVertexJSONSchema(BGVertex.BGVertexJSONSchema):
 
+        @post_load
         def make_object(self, data):
             predefined_object_class = getattr(self, "object_class", None)
             object_class = TaggedVertex if predefined_object_class is None else predefined_object_class
@@ -312,6 +310,7 @@ class TaggedVertex(BGVertex):
 
 class TaggedBlockVertex(BlockVertex, TaggedVertex):
     class TaggedBlockVertexJSONSchema(TaggedVertex.TaggedVertexJSONSchema, BlockVertex.BlockVertexJSONSchema):
+        @post_load
         def make_object(self, data):
             setattr(self, "object_class", TaggedBlockVertex)
             return super(TaggedBlockVertex.TaggedBlockVertexJSONSchema, self).make_object(data)
@@ -321,6 +320,7 @@ class TaggedBlockVertex(BlockVertex, TaggedVertex):
 
 class TaggedInfinityVertex(InfinityVertex, TaggedVertex):
     class TaggedInfinityVertexJSONSchema(TaggedVertex.TaggedVertexJSONSchema, InfinityVertex.InfinityVertexJSONSchema):
+        @post_load
         def make_object(self, data):
             setattr(self, "object_class", TaggedInfinityVertex)
             return super(TaggedInfinityVertex.TaggedInfinityVertexJSONSchema, self).make_object(data)

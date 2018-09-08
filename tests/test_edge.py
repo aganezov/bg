@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 from collections import Counter
 
+from marshmallow import ValidationError, post_load, fields
+
 try:
     from unittest.mock import Mock
 except ImportError:
@@ -271,30 +273,27 @@ class BGEdgeTestCase(unittest.TestCase):
             "vertex2_id": 2,
             "multicolor": [1, 2, 3, 4]
         }
-        with self.assertRaises(ValueError):
+        with self.assertRaises(ValidationError):
             BGEdge.from_json(data=json_object)
         json_object = {
             "vertex1_id": 2,
             "multicolor": [1, 2, 3, 4]
         }
-        with self.assertRaises(ValueError):
+        with self.assertRaises(ValidationError):
             BGEdge.from_json(data=json_object)
         # incorrect case with no multicolor present in json object
         json_object = {
             "vertex2_id": 2,
             "vertex1_id": 1,
         }
-        with self.assertRaises(ValueError):
+        with self.assertRaises(ValidationError):
             BGEdge.from_json(data=json_object)
 
     def test_json_deserialization_supplied_schema(self):
         # when a scheme is supplied it shall be used for deserialization
         # correct case no information in json object about schema
         class BGEdgeJSONSchemeDefaultVertex1(BGEdge.BGEdgeJSONSchema):
-            def make_object(self, data):
-                if "vertex1_json_id" not in data:
-                    data["vertex1_json_id"] = 1
-                return super(BGEdgeJSONSchemeDefaultVertex1, self).make_object(data)
+            vertex1_id = fields.Int(attribute="vertex1_json_id", required=False, default=1, missing=1)
 
         json_object = {
             "vertex1_id": 1,
@@ -333,14 +332,14 @@ class BGEdgeTestCase(unittest.TestCase):
             "vertex1_id": 2,
             "multicolor": [1, 2, 3, 4]
         }
-        with self.assertRaises(ValueError):
+        with self.assertRaises(ValidationError):
             BGEdge.from_json(data=json_object)
         # incorrect case with no multicolor present in json object
         json_object = {
             "vertex2_id": 2,
             "vertex1_id": 1,
         }
-        with self.assertRaises(ValueError):
+        with self.assertRaises(ValidationError):
             BGEdge.from_json(data=json_object)
 
     def test_initialization_empty_data_attribute(self):

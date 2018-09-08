@@ -8,7 +8,7 @@ setup(
     name="bg",
     version=bg_version,
     packages=["bg", "tests"],
-    install_requires=['coverage', 'decorator', 'networkx>=2', 'nose', 'marshmallow==1.2.4', 'teamcity-messages', 'ete3',
+    install_requires=['coverage', 'decorator', 'networkx>=2', 'nose', 'marshmallow', 'ete3',
                       'six', 'mock', 'pytest', 'scipy', 'numpy', 'enum-compat'],
     author="Sergey Aganezov",
     author_email="aganezov@cs.princeton.edu",
@@ -23,7 +23,8 @@ setup(
         'Programming Language :: Python :: 2',
         'Programming Language :: Python :: 2.7',
         'Programming Language :: Python :: 3',
-        'Programming Language :: Python :: 3.4',
         'Programming Language :: Python :: 3.5',
+        'Programming Language :: Python :: 3.6',
+        'Programming Language :: Python :: 3.7',
     ]
 )
