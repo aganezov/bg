@@ -2,7 +2,6 @@
 
 if [ "$TRAVIS_OS_NAME" = 'osx' ]; then
     brew update
-    brew tap homebrew/science
     brew install wget
     if [[ "$PYTHON" == "2.7" ]]; then
       wget https://repo.continuum.io/miniconda/Miniconda2-latest-MacOSX-x86_64.sh -O miniconda.sh;
