@@ -39,8 +39,6 @@ before_install:
   - sudo chmod +x .travis/install.sh && sudo chown $USER .travis/install.sh && /bin/bash .travis/install.sh
 
 install:
-  - conda install -c conda-forge coveralls
-  - conda install -c conda-forge pytest-cov
   - python setup.py develop
 
 script:

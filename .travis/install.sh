@@ -18,6 +18,8 @@ if [ "$TRAVIS_OS_NAME" = 'osx' ]; then
     conda info -a
     conda create -n test-environment python=$PYTHON
     source activate test-environment
+    conda install -c conda-forge coveralls
+    conda install -c conda-forge pytest-cov
 fi
 
 if [ "$TRAVIS_OS_NAME" = 'linux' ]; then
@@ -35,4 +37,6 @@ if [ "$TRAVIS_OS_NAME" = 'linux' ]; then
     conda info -a
     conda create -n test-environment python=$TRAVIS_PYTHON_VERSION
     source activate test-environment
+    conda install -c conda-forge coveralls
+    conda install -c conda-forge pytest-cov
 fi
