@@ -3,29 +3,36 @@
 if [ "$TRAVIS_OS_NAME" = 'osx' ]; then
     brew update
     brew tap homebrew/science
-    brew install gcc
-    brew install pyenv
-    brew install mercurial
-    case "$PYTHON" in
-    "2.7")
-     pyenv install 2.7.11
-     pyenv global 2.7.11
-     ;;
-     "3.4")
-     pyenv install 3.4.3
-     pyenv global 3.4.3
-     ;;
-     "3.5")
-     pyenv install 3.5.1
-     pyenv global 3.5.1
-     ;;
-    esac
-    `pyenv which pip` install virtualenv
-    `pyenv which virtualenv` bg-env
+    brew install wget
+    if [[ "$PYTHON" == "2.7" ]]; then
+      wget https://repo.continuum.io/miniconda/Miniconda2-latest-MacOSX-x86_64.sh -O miniconda.sh;
+    else
+      wget https://repo.continuum.io/miniconda/Miniconda3-latest-MacOSX-x86_64.sh -O miniconda.sh;
+    fi
+    bash miniconda.sh -b -p $HOME/miniconda
+    export PATH="$HOME/miniconda/bin:$PATH"
+    hash -r
+    conda config --set always_yes yes --set changeps1 no
+    conda update -q conda
+    # Useful for debugging any issues with conda
+    conda info -a
+    conda create -n test-environment python=$PYTHON
+    source activate test-environment
 fi
 
 if [ "$TRAVIS_OS_NAME" = 'linux' ]; then
-    sudo apt-get update
-    pip install virtualenv
-    virtualenv bg-env
+    if [[ "$TRAVIS_PYTHON_VERSION" == "2.7" ]]; then
+      wget https://repo.continuum.io/miniconda/Miniconda2-latest-Linux-x86_64.sh -O miniconda.sh;
+    else
+      wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh;
+    fi
+    bash miniconda.sh -b -p $HOME/miniconda
+    export PATH="$HOME/miniconda/bin:$PATH"
+    hash -r
+    conda config --set always_yes yes --set changeps1 no
+    conda update -q conda
+    # Useful for debugging any issues with conda
+    conda info -a
+    conda create -n test-environment python=$TRAVIS_PYTHON_VERSION
+    source activate test-environment
 fi
