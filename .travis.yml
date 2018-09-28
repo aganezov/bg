@@ -3,7 +3,6 @@ python:
   - 2.7
   - 3.5
   - 3.6
-  - 3.7
 
 os:
   - linux
@@ -11,6 +10,15 @@ sudo: required
 
 matrix:
   include:
+    - python: 3.7
+      dist: xenial
+      sudo: true
+
+    - os: osx
+      osx_image: xcode9.4
+      language: generic
+      env:
+        - PYTHON=2.7
     - os: osx
       osx_image: xcode9.4
       language: generic
@@ -26,19 +34,13 @@ matrix:
       language: generic
       env:
         - PYTHON=3.7
-    - os: osx
-      osx_image: xcode9.4
-      language: generic
-      env:
-        - PYTHON=2.7
 
 before_install:
   - sudo chmod +x .travis/install.sh && sudo chown $USER .travis/install.sh && /bin/bash .travis/install.sh
 
 install:
-  - pip install --upgrade pip
-  - pip install coveralls
-  - pip install pytest-cov
+  - conda install -c conda-forge coveralls
+  - conda install -c conda-forge pytest-cov
   - python setup.py develop
 
 script:
